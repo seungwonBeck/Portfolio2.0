@@ -118,49 +118,75 @@ export const Cartridges = ({ onPick, width, away }: { onPick: (i: number, from: 
 
 /**
  * Game-case rack at the bottom of the TV scene, front view. The cases are tall, so the viewport's bottom edge crops them and only the upper
- * half shows, with the title running down the spine. Clear plastic shell, printed insert, gloss. A picked case pops up and settles back down; the loaded one keeps a blue glow.
+ * half shows, with the title running down the spine. Clear plastic shell, printed insert in its own color, gloss. A picked case pops up with a
+ * small overshoot and settles back; the loaded case stays slightly raised, glowing, with a PLAY tag.
  */
-const CASE = { w: 46, h: 212, gap: 6, lift: 62 } // lift: how far a picked case pops up before it drops back
+const CASE = { w: 46, h: 212, gap: 6, lift: 62, held: 10 } // lift: pop height; held: how far the loaded case stays raised
 export const CASE_ROW_W = projects.length * (CASE.w + CASE.gap) - CASE.gap
+// [highlight, mid, shadow, accent] per project: each print has its own color
+const PRINTS = [
+  ['#ef7462', '#bd3c2d', '#6b160d', '#ffd2c9'], ['#5dbbe2', '#1f8ab8', '#0a4a66', '#c4eeff'], ['#f3c14f', '#d08f14', '#7a4d05', '#fff0c2'],
+  ['#58cfa6', '#1d9c78', '#0a5a44', '#c6f7e6'], ['#a98bf2', '#6b48c9', '#2f1a75', '#e2d8ff'], ['#f58cb4', '#cc4a83', '#6d1b43', '#ffd6e7'],
+  ['#8fa0b8', '#51617a', '#1f2a3a', '#dbe4f2'],
+]
 export const CaseRack = ({ onPick, active, scale = 1 }: { onPick: (i: number) => void; active?: number | null; scale?: number }) => {
-  const { w, h, gap, lift } = CASE
+  const { w, h, gap, lift, held } = CASE
   const W = CASE_ROW_W + 24
   const [pop, setPop] = useState<{ i: number; n: number } | null>(null) // n re-triggers the animation when the same case is picked again
   const pick = (i: number) => { setPop(s => ({ i, n: (s?.n ?? 0) + 1 })); onPick(i) }
   return (
-    <div style={{ width: W * scale, height: (h + lift + 10) * scale }}>
-      <div className="relative" style={{ width: W, height: h + lift + 10, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+    <div style={{ width: W * scale, height: (h + lift + 34) * scale }}>
+      <div className="relative" style={{ width: W, height: h + lift + 34, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
         <ul className="absolute bottom-0 flex" style={{ left: 12, gap }}>
           {projects.map((p, i) => {
-            const blue = i % 2 === 1
-            const [hi, mid, lo] = blue ? ['#58b8df', '#1f8ab8', '#0b4d69'] : ['#ee7361', '#bd3c2d', '#6f180f']
+            const [hi, mid, lo, acc] = PRINTS[i % PRINTS.length]
             const on = active === i
             const popping = pop?.i === i
             return (
               <li key={p.id} className="relative" style={{ width: w, height: h }}>
-                <button key={popping ? `p${pop!.n}` : 'rest'} type="button" onClick={() => pick(i)} aria-label={`${p.title} 케이스, TV에서 열기`}
-                  className="absolute inset-0 transition-[filter] duration-300 hover:-translate-y-2 focus-visible:-translate-y-2"
-                  style={{ ['--lift' as string]: `${lift}px`, animation: popping ? 'casePop 1.25s cubic-bezier(.3,.7,.3,1) both' : undefined,
-                    filter: `drop-shadow(0 7px 6px rgba(0,0,0,.5))${on ? ' drop-shadow(0 0 7px rgba(31,182,232,.75))' : ''}` }}>
-                  {/* clear outer shell: bright rim, inner bevel */}
-                  <span className="absolute inset-0 rounded-t-[6px]" style={{ background: 'linear-gradient(90deg,rgba(255,255,255,.95),rgba(232,236,241,.6) 9%,rgba(232,236,241,.3) 91%,rgba(255,255,255,.85))', boxShadow: 'inset 0 1.5px 0 #fff, inset 0 -1px 0 rgba(0,0,0,.2), 0 0 0 1px rgba(0,0,0,.4)' }} />
-                  <span className="absolute inset-x-[2px] top-[2px] h-[6px] rounded-t-[4px] bg-gradient-to-b from-white to-white/30" />
+                <motion.button key={popping ? `p${pop!.n}` : 'rest'} type="button" onClick={() => pick(i)} aria-label={`${p.title} 케이스, TV에서 열기`}
+                  className="absolute inset-0"
+                  initial={false}
+                  animate={popping
+                    ? { y: [0, -lift * 1.07, -lift, -lift, 3, -held], rotate: [0, -1.2, -0.6, 0.6, 0, 0] }
+                    : { y: on ? -held : 0, rotate: 0 }}
+                  transition={popping
+                    ? { duration: 1.6, times: [0, 0.2, 0.3, 0.56, 0.86, 1], ease: [[0.16, 0.9, 0.3, 1], [0.4, 0, 0.6, 1], 'linear', [0.5, 0, 0.75, 0.4], [0.3, 0, 0.3, 1]] }
+                    : { type: 'spring', stiffness: 260, damping: 24 }}
+                  whileHover={{ y: (on ? -held : 0) - 9, transition: { type: 'spring', stiffness: 380, damping: 22 } }}
+                  style={{ filter: `drop-shadow(0 8px 6px rgba(0,0,0,.5))${on ? ' drop-shadow(0 0 9px rgba(43,212,255,.9))' : ''}` }}>
+                  {on && <>
+                    <span aria-hidden className="pointer-events-none absolute -inset-[4px] animate-[casePulse_1.6s_ease-in-out_infinite] rounded-t-[9px] border-2 border-[#2bd4ff]" style={{ boxShadow: '0 0 12px #2bd4ff, inset 0 0 8px rgba(43,212,255,.5)' }} />
+                    <span aria-hidden className="pointer-events-none absolute -top-[26px] left-1/2 flex -translate-x-1/2 items-center gap-[3px] whitespace-nowrap rounded-full bg-[#2bd4ff] px-[7px] py-[2px] text-[9px] font-extrabold tracking-[0.06em] text-[#04222e] shadow-[0_2px_8px_rgba(0,0,0,.5)]">
+                      <i className="h-[6px] w-[6px] rounded-full bg-[#04222e] animate-[casePulse_1.2s_ease-in-out_infinite]" />PLAY
+                    </span>
+                  </>}
+                  {/* clear outer shell: bright rim, bevel, specular edges, hang slot */}
+                  <span className="absolute inset-0 rounded-t-[7px]" style={{ background: 'linear-gradient(90deg,rgba(255,255,255,.97),rgba(236,240,245,.62) 8%,rgba(226,231,238,.3) 92%,rgba(255,255,255,.9))', boxShadow: 'inset 0 2px 0 #fff, inset 0 -1px 0 rgba(0,0,0,.25), 0 0 0 1px rgba(0,0,0,.45)' }} />
+                  <span className="absolute inset-x-[2px] top-[2px] h-[8px] rounded-t-[5px] bg-gradient-to-b from-white to-[#dfe3e9]" />
+                  <span className="absolute left-1/2 top-[4px] h-[3px] w-[12px] -translate-x-1/2 rounded-full bg-black/35" />
                   {/* printed insert */}
-                  <span className="absolute inset-x-[4px] bottom-0 top-[8px] overflow-hidden rounded-t-[2px]" style={{ background: `linear-gradient(90deg,${hi} 0%,${mid} 40%,${lo} 100%)`, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.3), inset 0 2px 3px rgba(0,0,0,.25)' }}>
-                    {/* header plate */}
-                    <span className="absolute inset-x-0 top-0 h-[30px]" style={{ background: 'linear-gradient(180deg,#26272b,#121316)', boxShadow: '0 1px 0 rgba(255,255,255,.55)' }} />
-                    <Logo drift={false} flat className="absolute left-1/2 top-[6px] h-[17px] w-[17px] -translate-x-1/2" />
-                    <span className="absolute inset-x-0 top-[31px] h-[3px] bg-gradient-to-b from-white/70 to-white/10" />
-                    <span className="absolute inset-x-[3px] top-[38px] text-center text-[8.5px] font-bold leading-none tracking-[0.08em] text-white/75">{String(i + 1).padStart(2, '0')}</span>
-                    <span className="screen-font absolute inset-x-0 bottom-[16px] top-[54px] grid justify-center overflow-hidden text-[13.5px] font-extrabold leading-none tracking-[0.05em] text-white [text-shadow:0_1px_1px_rgba(0,0,0,.55)]" style={{ writingMode: 'vertical-rl' }}>
+                  <span className="absolute inset-x-[4px] bottom-0 top-[10px] overflow-hidden rounded-t-[2px]" style={{ background: `linear-gradient(90deg,${hi} 0%,${mid} 42%,${lo} 100%)`, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.35), inset 0 3px 4px rgba(0,0,0,.35)' }}>
+                    <span className="absolute inset-0" style={{ background: `radial-gradient(130% 55% at 28% 0%,rgba(255,255,255,.3),transparent 60%)` }} />
+                    {/* header plate with the logo */}
+                    <span className="absolute inset-x-0 top-0 h-[32px]" style={{ background: 'linear-gradient(180deg,#2a2b30,#0e0f12)', boxShadow: '0 1px 0 rgba(255,255,255,.6), inset 0 -2px 0 rgba(255,255,255,.06)' }} />
+                    <Logo drift={false} flat className="absolute left-1/2 top-[7px] h-[18px] w-[18px] -translate-x-1/2" />
+                    <span className="absolute inset-x-0 top-[33px] h-[3px]" style={{ background: acc, opacity: 0.85 }} />
+                    {/* number + pixel motif */}
+                    <span className="absolute left-1/2 top-[42px] -translate-x-1/2 rounded-[3px] border border-white/70 px-[4px] py-[2px] text-[9px] font-extrabold leading-none tracking-[0.06em] text-white/95">{String(i + 1).padStart(2, '0')}</span>
+                    <span className="absolute left-1/2 top-[62px] flex -translate-x-1/2 gap-[2px]"><i className="h-[4px] w-[4px]" style={{ background: acc }} /><i className="h-[4px] w-[4px] bg-white/80" /><i className="h-[4px] w-[4px]" style={{ background: acc }} /></span>
+                    <span className="screen-font absolute inset-x-0 bottom-[16px] top-[78px] grid justify-center overflow-hidden text-[14px] font-extrabold leading-none tracking-[0.05em] text-white" style={{ writingMode: 'vertical-rl', textShadow: '0 1px 0 rgba(0,0,0,.55), 0 0 4px rgba(0,0,0,.4)' }}>
                       <span className="max-h-full overflow-hidden text-ellipsis whitespace-nowrap">{p.title}</span>
                     </span>
-                    {/* fine print texture and gloss */}
-                    <span className="absolute inset-0 opacity-[.07]" style={{ background: 'repeating-linear-gradient(45deg,#fff 0 1px,transparent 1px 3px)' }} />
-                    <span className="absolute inset-0" style={{ background: 'linear-gradient(104deg,rgba(255,255,255,.42) 0%,rgba(255,255,255,.1) 26%,transparent 44%,rgba(0,0,0,.22) 100%)' }} />
-                    <span className="absolute inset-y-0 left-[3px] w-[2px] bg-gradient-to-b from-white/60 via-white/20 to-transparent" />
+                    {/* fine print texture, gloss streaks, edge shading */}
+                    <span className="absolute inset-0 opacity-[.08]" style={{ background: 'repeating-linear-gradient(45deg,#fff 0 1px,transparent 1px 3px)' }} />
+                    <span className="absolute inset-0" style={{ background: 'linear-gradient(104deg,rgba(255,255,255,.4) 0%,rgba(255,255,255,.08) 24%,transparent 42%,rgba(0,0,0,.25) 100%)' }} />
+                    <span className="absolute inset-y-0 left-[3px] w-[2px] bg-gradient-to-b from-white/70 via-white/25 to-transparent" />
+                    <span className="absolute inset-y-0 right-0 w-[3px] bg-gradient-to-l from-black/45 to-transparent" />
                   </span>
-                </button>
+                  <span className="pointer-events-none absolute inset-y-[6px] left-[1.5px] w-[1.5px] rounded bg-white/90" />
+                  <span className="pointer-events-none absolute inset-y-[6px] right-[1.5px] w-[1px] rounded bg-white/60" />
+                </motion.button>
               </li>
             )
           })}
