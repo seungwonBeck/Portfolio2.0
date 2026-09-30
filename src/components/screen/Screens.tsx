@@ -606,14 +606,14 @@ const views = { HOME: Home, ABOUT: About, PROJECTS: Projects, DETAIL: Detail, SK
 
 type Motion = { d: number; cut: boolean }
 
-export default function Screen({ s, bootMs, dark }: { s: State; bootMs: number; dark: boolean }) {
+export default function Screen({ s, bootMs, dark, instantLoad = false }: { s: State; bootMs: number; dark: boolean; instantLoad?: boolean }) {
   // The black loading splash is an overlay that fades in over the old screen and fades out over the new one.
   // `base` is the screen underneath: it stays on the old screen until the overlay is opaque, then swaps to the project unseen.
   const loading = s.screen === 'LOAD'
   const [base, setBase] = useState(s.screen)
   useEffect(() => {
     if (!loading) return setBase(s.screen)
-    const t = setTimeout(() => setBase('DETAIL'), 550)
+    const t = setTimeout(() => setBase('DETAIL'), instantLoad ? 0 : 550) // instantLoad: the splash is already opaque, swap right away
     return () => clearTimeout(t)
   }, [s.screen, loading])
   const View = base === 'BOOT' ? null : views[base]
@@ -661,7 +661,7 @@ export default function Screen({ s, bootMs, dark }: { s: State; bootMs: number; 
       )}
       <AnimatePresence>
         {loading && (
-          <motion.div key="load" className="absolute inset-0 z-20" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.55, ease: 'easeInOut' }}>
+          <motion.div key="load" className="absolute inset-0 z-20" initial={{ opacity: instantLoad ? 1 : 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.55, ease: 'easeInOut' }}>
             <Splash s={s} />
           </motion.div>
         )}

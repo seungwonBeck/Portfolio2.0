@@ -1,5 +1,7 @@
 /** Profile pictures for the ABOUT screen: 0 = the owner's cartoon, 1 = ID photo (public/avatars/*.webp; the ID photo is only reachable by flipping the coin), 2+ = original pixel characters. */
 const img = (f: string) => `${import.meta.env.BASE_URL}avatars/${f}`
+// decode both photos up front, so the coin never shows a half-decoded one while it flips
+if (typeof Image !== 'undefined') for (const f of ['me.webp', 'photo.webp']) { const i = new Image(); i.decoding = 'sync'; i.src = img(f) }
 
 const BLOB = ['..............', '....bbbbbb....', '..bbbbbbbbbb..', '..bbbbbbbbbb..', '..bbwwbbwwbb..', '..bbwebbwebb..', '..bbbbbbbbbb..', '..bbbbrrbbbb..', '..bbbbbbbbbb..', '...bbbbbbbb...', '....bbbbbb....', '....bbbbbb....']
 const ROBOT = ['.....rr.....', '.....aa.....', '..aaaaaaaa..', '.aaaaaaaaaa.', '.aawwaawwaa.', '.aawkaawkaa.', '.aaaaaaaaaa.', '.aakkkkkkaa.', '.aaaaaaaaaa.', '..aaaaaaaa..', '.bb.aaaa.bb.', '.bb......bb.']
@@ -24,7 +26,7 @@ export function Avatar({ i, className = '' }: { i: number; className?: string })
   const a = AVATARS[i], rows = a.rows ?? [], n = rows[0]?.length ?? 0
   return (
     <span className={`relative inline-block shrink-0 overflow-hidden rounded-full ${className}`} style={{ background: a.bg }}>
-      {a.src ? <img src={a.src} alt={a.name} draggable={false} className={`h-full w-full ${a.fit === 'contain' ? 'object-contain' : 'object-cover'}`} /> : (
+      {a.src ? <img src={a.src} alt={a.name} draggable={false} decoding="sync" loading="eager" className={`h-full w-full ${a.fit === 'contain' ? 'object-contain' : 'object-cover'}`} /> : (
         <svg viewBox={`0 0 ${n + 4} ${n + 4}`} shapeRendering="crispEdges" className="h-full w-full">
           {rows.map((row, r) => [...row].map((ch, c) => ch === '.' ? null :
             <rect key={`${r}-${c}`} x={c + 2} y={r + 2 + (n - rows.length) / 2} width="1.02" height="1.02" fill={a.pal![ch]} />))}
@@ -42,12 +44,13 @@ export function Coin({ rot, front, photo, onClick }: { rot: number; front: numbe
   return (
     <button type="button" aria-label="프로필 뒤집기" onClick={onClick} className="relative block cursor-pointer" style={{ width: SIZE, height: SIZE, perspective: 600 }}>
       <span className="absolute -bottom-3 left-1/2 h-3 w-[70%] -translate-x-1/2 rounded-full bg-black/20 blur-[6px]" />
-      <span className="absolute inset-0 block transition-transform duration-[900ms] ease-[cubic-bezier(.3,1.4,.5,1)]" style={{ transformStyle: 'preserve-3d', transform: `rotateY(${rot}deg)` }}>
+      <span className="absolute inset-0 block transition-transform duration-[900ms] ease-[cubic-bezier(.3,1.4,.5,1)]" style={{ transformStyle: 'preserve-3d', transform: `rotateY(${rot}deg)`, willChange: 'transform' }}>
         {Array.from({ length: DEPTH }, (_, k) => (
           <span key={k} className="absolute inset-0 rounded-full" style={{ transform: `translateZ(${k - DEPTH / 2 + 0.5}px)`, background: k % 2 ? '#aeb6c2' : '#d6dbe3' }} />
         ))}
-        <span className="absolute inset-0" style={{ ...face, transform: `translateZ(${DEPTH / 2}px)` }}><Avatar i={front} className="h-full w-full ring-[5px] ring-[#e4e8ee]" /></span>
-        <span className="absolute inset-0" style={{ ...face, transform: `rotateY(180deg) translateZ(${DEPTH / 2}px)` }}><Avatar i={photo ? 1 : front} className="h-full w-full ring-[5px] ring-[#e4e8ee]" /></span>
+        {/* faces are drawn at 2x and scaled down: a 3D-rotating layer is rasterized once, at its size, and looked grainy until the flip ended */}
+        <span className="absolute" style={{ ...face, left: '-50%', top: '-50%', width: '200%', height: '200%', transform: `translateZ(${DEPTH / 2}px) scale(.5)` }}><Avatar i={front} className="h-full w-full ring-[10px] ring-[#e4e8ee]" /></span>
+        <span className="absolute" style={{ ...face, left: '-50%', top: '-50%', width: '200%', height: '200%', transform: `rotateY(180deg) translateZ(${DEPTH / 2}px) scale(.5)` }}><Avatar i={photo ? 1 : front} className="h-full w-full ring-[10px] ring-[#e4e8ee]" /></span>
       </span>
     </button>
   )
