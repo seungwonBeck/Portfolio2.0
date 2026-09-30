@@ -92,8 +92,8 @@ function Hero({ children, tv, onPick, onPickTv, away }: { children: (sep: Motion
     return () => { removeEventListener('resize', f); ro.disconnect() }
   }, [])
   const { scrollYProgress: p } = useScroll({ target: ref, offset: ['start start', 'end end'] })
-  const WORLD = 2.4 // distance from the dock to the TV, in viewport widths (the cable's length)
-  const TOTAL = 780 // vh of scroll; the tilt story keeps its old pace (it used 450vh)
+  const WORLD = 3 // distance from the dock to the TV, in viewport widths (the cable's length)
+  const TOTAL = 880 // vh of scroll; the tilt story keeps its old pace (it used 450vh)
   const po = useTransform(p, [0, 450 / TOTAL], [0, 1])
   const q = useTransform(p, [450 * 0.72 / TOTAL, 1], [0, 1])
   const soft = { stiffness: 55, damping: 24, mass: 1.2 } // slow, no overshoot
