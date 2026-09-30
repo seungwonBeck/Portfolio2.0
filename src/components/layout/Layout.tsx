@@ -116,35 +116,6 @@ export const Cartridges = ({ onPick, width, away }: { onPick: (i: number, from: 
   )
 }
 
-/** Chip rack beside the TV: the cartridges stand on a stepped tray showing their spines; click one to load it (same as the holder above). */
-export const ChipRack = ({ onPick, away, scale = 1 }: { onPick: (i: number) => void; away?: number | null; scale?: number }) => (
-  <div style={{ width: (projects.length * 26 + 12) * scale, height: 146 * scale }}>
-  <div className="relative" style={{ width: projects.length * 26 + 12, height: 146, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
-    <ul className="absolute bottom-[12px] left-[6px] flex">
-      {projects.map((p, i) => (
-        <li key={p.id} className="relative h-[124px] w-[26px]">
-          {away !== i && (
-            <button type="button" onClick={() => onPick(i)} aria-label={`${p.title} 카트리지, TV에서 열기`}
-              className="absolute inset-0 transition-transform duration-200 ease-out [filter:drop-shadow(1px_2px_2px_rgba(0,0,0,.4))] hover:-translate-y-3 focus-visible:-translate-y-3">
-              <span className="absolute inset-0 rounded-t-[3px] border-x border-black/40" style={{ background: 'linear-gradient(90deg,#414246,#36373b 60%,#2c2d30)' }} />
-              <Logo drift={false} flat className="absolute left-1/2 top-[5px] h-[11px] w-[11px] -translate-x-1/2" />
-              <span className="screen-font absolute inset-x-[3px] bottom-[6px] top-[22px] overflow-hidden rounded-[2px]" style={{ background: i % 2 ? '#1d86b3' : '#b3392b' }}>
-                <span className="absolute inset-0 grid place-items-center text-[8.5px] font-extrabold leading-none text-white/95" style={{ writingMode: 'vertical-rl' }}>
-                  <span className="max-h-full overflow-hidden text-ellipsis whitespace-nowrap">{p.title}</span>
-                </span>
-              </span>
-            </button>
-          )}
-        </li>
-      ))}
-    </ul>
-    {/* stepped tray */}
-    <div aria-hidden className="absolute inset-x-0 bottom-0 h-[16px]" style={{ clipPath: 'polygon(3% 0, 97% 0, 100% 100%, 0 100%)', background: 'linear-gradient(180deg,#4a4a50,#2f2f33 60%,#232326)' }} />
-    <div aria-hidden className="absolute inset-x-[10px] bottom-[10px] h-[2px] rounded bg-white/20" />
-  </div>
-  </div>
-)
-
 /** A thin translucent divider wall whose top edge slopes down to the right, like the slot dividers of a card tray. */
 const Fin = ({ className }: { className: string }) => (
   // outer span carries the shadow (a clip-path would cut it off), inner span is the clipped wall

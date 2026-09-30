@@ -7,7 +7,7 @@ import Console, { CANVAS } from './components/device/Console'
 import Logo from './components/Logo'
 import Screen, { AvatarContext, OpenContext } from './components/screen/Screens'
 import { projects } from './types'
-import { CardFace, Cartridges, ChipRack, chipScale, FallbackList, Footer, Header, HowToPlay, IntroCopy, Showcase } from './components/layout/Layout'
+import { CardFace, Cartridges, chipScale, FallbackList, Footer, Header, HowToPlay, IntroCopy, Showcase } from './components/layout/Layout'
 import MobilePad from './components/layout/MobilePad'
 import { useControls } from './hooks/useControls'
 
@@ -37,7 +37,7 @@ function Scaled({ children, maxH = Infinity, dockY, screenOff, overlay }: { chil
 const CAPTIONS = [
   { s: 'o', a: 0.12, b: 0.46, t: 'Two halves, one maker.', d: '디자인과 개발, 두 손으로 만듭니다. 조이콘처럼 떼어도 붙여도 하나.' },
   { s: 'o', a: 0.48, b: 0.64, t: 'Click.', d: '딱, 하고 맞물리는 순간.' },
-  { s: 'q', a: 0.04, b: 0.4, t: 'Big screen, big ideas.', d: '독에 꽂으면, 작은 화면 속 이야기가 TV로 펼쳐집니다.', light: true },
+  { s: 'q', a: 0.04, b: 0.4, t: 'Dock in.', d: '딸깍, 독에 꽂으면 — 이제 거실로 나갈 시간이에요.', light: true },
 ] as const
 
 function Fade({ p, keys, vals, children }: { p: MotionValue<number>; keys: number[]; vals: number[]; children: React.ReactNode }) {
@@ -92,10 +92,10 @@ function Hero({ children, tv, onPick, onPickTv, away }: { children: (sep: Motion
     return () => { removeEventListener('resize', f); ro.disconnect() }
   }, [])
   const { scrollYProgress: p } = useScroll({ target: ref, offset: ['start start', 'end end'] })
-  const WORLD = 1.7 // distance from the dock to the TV, in viewport widths (the cable's length)
-  const TOTAL = 650 // vh of scroll; the tilt story keeps its old pace (it used 450vh)
+  const WORLD = 2.4 // distance from the dock to the TV, in viewport widths (the cable's length)
+  const TOTAL = 780 // vh of scroll; the tilt story keeps its old pace (it used 450vh)
   const po = useTransform(p, [0, 450 / TOTAL], [0, 1])
-  const q = useTransform(p, [0.46, 1], [0, 1])
+  const q = useTransform(p, [450 * 0.72 / TOTAL, 1], [0, 1])
   const soft = { stiffness: 55, damping: 24, mass: 1.2 } // slow, no overshoot
   // low damping on purpose: re-attach overshoots a little, which reads as a "click"
   const sep = useSpring(useTransform(po, [0.12, 0.28, 0.46, 0.6], [0, 320, 320, 0]), { stiffness: 140, damping: 13 })
@@ -125,19 +125,16 @@ function Hero({ children, tv, onPick, onPickTv, away }: { children: (sep: Motion
   const toCenter = useTransform(po, v => Math.min(1, v / 0.06) * centerY.current)
   const y = useSpring(toCenter, soft)
   // TV: the console's UI size (640×360) scaled to fill the viewport, with a thin bezel and a stand
-  const GAP = 28 // chip rack beside the TV; the rack grows with the TV (rs)
+  // TV with the chip holder underneath (the same holder as above the console); the TV is sized so both fit the viewport
   const fw = innerWidth, cw = est * CANVAS.w / CANVAS.h
-  const tk0 = Math.min((fw * 0.9 - 194 - GAP - 16) / 640, 0.78 * (vh - 16 - 90) / 360)
-  const rs = Math.max(0.9, Math.min(1.5, tk0 / 1.3)), RACK = 194 * rs
-  const tk = Math.min(tk0, (fw * 0.9 - RACK - GAP - 16) / 640)
-  const tvW = 640 * tk + 16, tvBox = 360 * tk + 16, groupW = tvW + GAP + RACK
-  const shelfTop = (vh - 70) / 2 + tvBox / 2 // TV and rack stand on the shelf; its V legs run down from here
-  const legH = Math.max(30, Math.min(110, vh - shelfTop - 14 - 12))
-  // cable: leaves the dock's lower right, runs right along the floor, then drops onto the shelf's left end in the next "screen" of the world
+  const tk = Math.min((fw * 0.86 - 16) / 640, 0.85 * (vh - 16 - 250) / 360)
+  const tvW = 640 * tk + 16, tvBox = 360 * tk + 16
+  const holderH = 144 * chipScale(tvW) + 28, groupH = tvBox + 28 + holderH
+  const tvTop = (vh - groupH) / 2
+  // cable: leaves the dock's lower right, runs right along the floor, then plugs into the TV's left side in the next "screen" of the world
   const cx0 = fw / 2 + cw * 0.363, cy0 = 56 + centerY.current + 1.38 * est
-  const groupLeft = fw * WORLD + (fw - groupW) / 2
-  const cx1 = groupLeft + 26, cy1 = shelfTop + 7
-  const cable = `M${cx0} ${cy0} H${cx1 - 90} C${cx1 - 30} ${cy0} ${cx1} ${cy1 - 40} ${cx1} ${cy1}`
+  const cx1 = fw * WORLD + (fw - tvW) / 2, cy1 = tvTop + tvBox * 0.78
+  const cable = `M${cx0} ${cy0} H${cx1 - 110} C${cx1 - 40} ${cy0} ${cx1 - 30} ${cy1} ${cx1} ${cy1}`
 
   // centered stack: title, 160px, cartridges, 160px, console
   const top = (
@@ -171,20 +168,13 @@ function Hero({ children, tv, onPick, onPickTv, away }: { children: (sep: Motion
               <path d={cable} stroke="rgba(255,255,255,.28)" strokeWidth="2.5" strokeLinecap="round" />
             </motion.svg>
             <div className="absolute top-0 grid h-full w-full place-items-center" style={{ left: `${WORLD * 100}%` }}>
-              <div className="relative flex items-end" style={{ gap: GAP, marginBottom: 70 }}>
+              <div className="flex flex-col items-center" style={{ gap: 28 }}>
                 <div className="relative rounded-[6px] bg-[#0a0a0b] p-[8px] shadow-[0_20px_60px_rgba(0,0,0,.5)]" style={{ width: tvW, height: tvBox }}>
                   <div className="relative overflow-hidden bg-black" style={{ width: 640 * tk, height: 360 * tk }}>
                     <div style={{ width: 640, height: 360, transform: `scale(${tk})`, transformOrigin: 'top left' }}>{tvOn && tv}</div>
                   </div>
                 </div>
-                <ChipRack onPick={onPickTv} away={away} scale={rs} />
-                {/* shelf with V-shaped legs */}
-                <div aria-hidden className="absolute -inset-x-4 top-full h-[14px] rounded-[3px]" style={{ background: 'linear-gradient(180deg,#48484d 0%,#2c2c30 40%,#1d1d20 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.2), 0 10px 30px rgba(0,0,0,.5)' }} />
-                {[8, 92].map(x => (
-                  <svg key={x} aria-hidden className="absolute overflow-visible" style={{ left: `${x}%`, top: `calc(100% + 14px)`, width: 60, height: legH, marginLeft: -30 }} viewBox={`0 0 60 ${legH}`} fill="none">
-                    <path d={`M4 0 L30 ${legH} L56 0`} stroke="#3c3c42" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                ))}
+                <div className="text-white"><Cartridges onPick={i => onPickTv(i)} width={tvW} away={away} /></div>
               </div>
             </div>
           </motion.div>
