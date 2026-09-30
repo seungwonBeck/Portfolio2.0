@@ -11,7 +11,7 @@ const K = '#16171a', W = '#ffffff'
 type Entry = { name: string; bg: string; src?: string; fit?: 'cover' | 'contain'; rows?: string[]; pal?: Record<string, string> }
 export const AVATARS: Entry[] = [
   { name: 'ME', bg: '#96cdff', src: img('me.webp') },
-  { name: 'PHOTO', bg: '#96cdff', src: img('photo.webp'), fit: 'contain' },
+  { name: 'PHOTO', bg: '#ffffff', src: img('photo.webp'), fit: 'contain' },
   { name: 'BLOB', bg: '#ff9f43', rows: BLOB, pal: { b: '#1fb6e8', w: W, e: K, r: '#ff4b3e' } },
   { name: 'ROBOT', bg: '#3b6cff', rows: ROBOT, pal: { a: '#c4ccd6', b: '#6b7683', r: '#ff4b3e', w: W, k: K } },
   { name: 'CAT', bg: '#34c759', rows: CAT, pal: { o: '#ff9f43', p: '#ff6b8a', w: W, k: K } },
@@ -36,8 +36,8 @@ export function Avatar({ i, className = '' }: { i: number; className?: string })
 
 const SIZE = 120, DEPTH = 14 // px
 
-/** A coin with real thickness: two faces plus a stack of rim discs. `rot` is the total Y rotation in degrees (multiples of 180); `front` is the face at 0°, the ID photo is always the back. */
-export function Coin({ rot, front, onClick }: { rot: number; front: number; onClick: () => void }) {
+/** A coin with real thickness: two faces plus a stack of rim discs. `rot` is the total Y rotation in degrees (multiples of 180); `front` is the face at 0°, the back only shows the ID photo while `photo` is set (so it never flashes by during a character spin). */
+export function Coin({ rot, front, photo, onClick }: { rot: number; front: number; photo: boolean; onClick: () => void }) {
   const face = { backfaceVisibility: 'hidden' } as const
   return (
     <button type="button" aria-label="프로필 뒤집기" onClick={onClick} className="relative block cursor-pointer" style={{ width: SIZE, height: SIZE, perspective: 600 }}>
@@ -47,7 +47,7 @@ export function Coin({ rot, front, onClick }: { rot: number; front: number; onCl
           <span key={k} className="absolute inset-0 rounded-full" style={{ transform: `translateZ(${k - DEPTH / 2 + 0.5}px)`, background: k % 2 ? '#aeb6c2' : '#d6dbe3' }} />
         ))}
         <span className="absolute inset-0" style={{ ...face, transform: `translateZ(${DEPTH / 2}px)` }}><Avatar i={front} className="h-full w-full ring-[5px] ring-[#e4e8ee]" /></span>
-        <span className="absolute inset-0" style={{ ...face, transform: `rotateY(180deg) translateZ(${DEPTH / 2}px)` }}><Avatar i={1} className="h-full w-full ring-[5px] ring-[#e4e8ee]" /></span>
+        <span className="absolute inset-0" style={{ ...face, transform: `rotateY(180deg) translateZ(${DEPTH / 2}px)` }}><Avatar i={photo ? 1 : front} className="h-full w-full ring-[5px] ring-[#e4e8ee]" /></span>
       </span>
     </button>
   )

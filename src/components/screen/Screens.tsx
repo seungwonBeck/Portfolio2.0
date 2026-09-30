@@ -93,33 +93,38 @@ function About({ s }: { s: State }) {
   if (s.avatar !== 1) front.current = s.avatar
   const [rot, setRot] = useState(s.avatar === 1 ? 180 : 0)
   const prev = useRef(s.avatar)
+  const [photo, setPhoto] = useState(s.avatar === 1) // back face shows the ID photo; it is released only after the coin has flipped away
   useEffect(() => {
     if (prev.current === s.avatar) return
     setRot(r => r + ((prev.current === 1) !== (s.avatar === 1) ? 180 : 360))
     prev.current = s.avatar
   }, [s.avatar])
+  useEffect(() => {
+    if (s.avatar === 1) { setPhoto(true); return }
+    const t = setTimeout(() => setPhoto(false), 950)
+    return () => clearTimeout(t)
+  }, [s.avatar])
   return (
     <Scroll>
       <Title>ABOUT ME</Title>
       <div className="mb-5 flex items-center gap-7">
-        <div className="shrink-0 pb-3"><Coin rot={rot} front={front.current} onClick={() => pick(s.avatar === 1 ? front.current : 1)} /></div>
+        <div className="shrink-0 pb-3"><Coin rot={rot} front={front.current} photo={photo} onClick={() => pick(s.avatar === 1 ? front.current : 1)} /></div>
         <div className="min-w-0 flex-1">
           <div className="text-[18px] font-extrabold leading-tight">{profile.name}</div>
           <div className="text-[12px] text-ink-sub">{profile.role}</div>
           <div className="label mb-1.5 mt-3">Edit character</div>
-          <div className="grid grid-cols-7 gap-1.5">
+          <div className="grid grid-cols-6 gap-1.5">
             {AVATAR_ORDER.map(i => (
               <button key={i} type="button" aria-label={AVATARS[i].name} onClick={() => pick(i)}
                 className={`grid aspect-square place-items-center rounded-lg bg-card p-1 ${i === s.avatar ? 'ring-[3px] ring-accent-blue' : 'ring-1 ring-black/10'}`}>
                 <Avatar i={i} className="h-full w-full" />
               </button>
             ))}
-            <div title="동전을 돌리면 진짜 사진이 나와요" className="grid aspect-square place-items-center rounded-lg border-2 border-dashed border-black/20 text-[16px] font-extrabold text-ink-sub">?</div>
           </div>
-          <p className="mt-2 text-[11px] leading-snug text-ink-sub [word-break:keep-all]">
-            <span className="rounded bg-card px-1.5 py-0.5 font-bold text-ink ring-1 ring-black/10">◀ ▶</span> 고르기 ·{' '}
-            <b className="text-accent-blue">↻ 동전을 눌러 돌리면 진짜 내 사진(?)이 나와요</b>
-          </p>
+          <p className="mt-2 text-[11px] text-ink-sub"><span className="rounded bg-card px-1.5 py-0.5 font-bold text-ink ring-1 ring-black/10">◀ ▶</span> 캐릭터 고르기</p>
+          <div className="mt-1.5 inline-flex items-center gap-2 rounded-lg border-2 border-dashed border-black/20 px-2.5 py-1 text-[11px] font-bold text-accent-blue">
+            <span className="text-[14px] font-extrabold text-ink-sub">?</span> 내 프로필은 ↻ 동전을 돌리면 나와요
+          </div>
         </div>
       </div>
       <p className="mb-4 text-[13px] leading-relaxed">{profile.intro}</p>
