@@ -24,7 +24,7 @@ export function Boot({ ms }: { ms: number }) {
     <motion.div className="grid h-full place-items-center bg-card"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: ms / 2000 }}>
       <div className="text-center">
-        <div className="text-[44px] font-black tracking-tight">folio<span className="text-accent-red"> 2</span></div>
+        <div className="text-[44px] font-black tracking-tight">seungwon<span className="text-accent-red">.2</span></div>
         <div className="label mt-1">press any key</div>
       </div>
     </motion.div>

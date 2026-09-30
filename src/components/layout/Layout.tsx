@@ -18,7 +18,7 @@ export const IntroCopy = () => (
     <h1 className="font-display text-5xl font-black leading-[1.05] tracking-tight md:text-7xl lg:text-[clamp(4rem,13vh,7.5rem)] xl:whitespace-nowrap">
       Portfolio
     </h1>
-    <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink-sub">{profile.intro}</p>
+    <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink-sub">{profile.tagline}</p>
   </div>
 )
 
@@ -54,13 +54,13 @@ export const CardFace = ({ i, title }: { i: number; title: string }) => (
     <span className="absolute inset-0" style={{ clipPath: CARD_CLIP, borderRadius: 6, background: 'linear-gradient(165deg,#5b5d62 0%,#3f4044 50%,#303135 100%)' }} />
     <span className="absolute inset-[1.5px]" style={{ clipPath: CARD_CLIP, borderRadius: 5, background: 'linear-gradient(180deg,#414246 0%,#36373b 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.1), inset 0 -3px 5px rgba(0,0,0,.18)' }} />
     {/* logo mark: stays visible when the card is inserted and only its top edge shows */}
-    <span className="screen-font absolute left-[9px] top-[3px] grid h-[11px] w-[20px] place-items-center rounded-[2px] bg-[#1d86b3] text-[7px] font-black leading-none tracking-tight text-white/95">f2</span>
+    <span className="screen-font absolute left-[9px] top-[3px] grid h-[11px] w-[20px] place-items-center rounded-[2px] bg-[#1d86b3] text-[6.5px] font-black leading-none tracking-tight text-white/95">sw.2</span>
     {/* shallow grip ridges */}
     <span className="absolute left-[34px] top-[6px] h-[6px] w-[28px]"
       style={{ background: 'repeating-linear-gradient(90deg,rgba(0,0,0,.35) 0 1.5px,rgba(255,255,255,.07) 1.5px 2.5px,transparent 2.5px 5px)' }} />
     {/* printed paper label: flat inks, a white title band with a rating box, no gloss */}
     <span className="screen-font absolute inset-x-[9px] bottom-[46px] top-[24px] overflow-hidden rounded-[2px]" style={{ boxShadow: '0 0 0 1px rgba(0,0,0,.55)', background: i % 2 ? 'linear-gradient(170deg,#bd4a3d,#93352c)' : 'linear-gradient(170deg,#2a86ad,#1e5f80)' }}>
-      <span className="absolute inset-x-0 top-0 flex h-[9px] items-center justify-between bg-[#f1efe8] px-[3px] text-[4.5px] font-bold uppercase tracking-[0.12em] text-[#2a2b2f]">folio 2<i className="h-[5px] w-[5px] border border-[#2a2b2f]" /></span>
+      <span className="absolute inset-x-0 top-0 flex h-[9px] items-center justify-between bg-[#f1efe8] px-[3px] text-[4.5px] font-bold uppercase tracking-[0.12em] text-[#2a2b2f]">seungwon.2<i className="h-[5px] w-[5px] border border-[#2a2b2f]" /></span>
       <span className="absolute inset-x-0 bottom-0 p-1.5 text-left text-[9.5px] font-extrabold leading-[1.1] text-white/95">{title}</span>
     </span>
     {/* gold contact pins */}

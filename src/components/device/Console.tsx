@@ -207,7 +207,7 @@ export default function Console(p: P) {
         <div aria-hidden className="pointer-events-none absolute inset-0"
           style={{ background: 'linear-gradient(112deg,rgba(255,255,255,.09) 0%,rgba(255,255,255,.03) 30%,transparent 30.2%), radial-gradient(120% 90% at 50% 40%,transparent 60%,rgba(0,0,0,.35))' }} />
         <i aria-hidden className="absolute left-1/2 top-[12px] h-[8px] w-[8px] -translate-x-1/2 rounded-full bg-[#141b22]" />
-        <span aria-hidden className="absolute bottom-[8px] left-1/2 -translate-x-1/2 text-[11px] font-semibold tracking-[0.4em] text-white/20">FOLIO 2</span>
+        <span aria-hidden className="absolute bottom-[8px] left-1/2 -translate-x-1/2 text-[11px] font-semibold tracking-[0.4em] text-white/20">SEUNGWON.2</span>
       </div>
 
       {/* left Joy-Con */}

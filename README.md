@@ -1,4 +1,4 @@
-# folio 2 — 게임기 속 인터랙티브 포트폴리오
+# seungwon.2 — 게임기 속 인터랙티브 포트폴리오
 
 React 18 + Vite + TypeScript + Tailwind v4 + Framer Motion. 기기는 전부 CSS로 그렸습니다(이미지·로고 없음).
 
