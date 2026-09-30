@@ -106,7 +106,7 @@ export const Cartridges = ({ onPick, width, away }: { onPick: (i: number, from: 
       ))}
     </ul>
     {/* front wall of the tray: cards stand behind it, so only their tops show until they are pulled up */}
-    <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[40px] rounded-b-[6px]"
+    <div aria-hidden data-wall className="pointer-events-none absolute inset-x-0 bottom-0 h-[40px] rounded-b-[6px]"
       style={{ background: 'linear-gradient(180deg,rgba(252,252,253,.96) 0%,rgba(232,234,238,.94) 50%,rgba(222,224,230,.95) 100%)', boxShadow: 'inset 0 2px 1px rgba(255,255,255,.95), 0 -4px 6px -3px rgba(0,0,0,.2)' }} />
     </div>
     </div>

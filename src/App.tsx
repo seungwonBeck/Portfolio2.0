@@ -117,34 +117,41 @@ function Hero({ children, onPick, away }: { children: (sep: MotionValue<number>)
  * A cartridge pulled out of the holder: it flies above the console's top-right edge, pushes in, bounces back up once,
  * then slides fully in (the part that has entered is clipped away).
  */
-function Flying({ i, from, to, eject, onDone }: { i: number; from: DOMRect; to: { x: number; y: number }; eject?: boolean; onDone: () => void }) {
+function Flying({ i, from, to, eject, wallTop, onDone }: { i: number; from: DOMRect; to: { x: number; y: number }; eject?: boolean; wallTop: number; onDone: () => void }) {
   const dx = to.x - (from.left + from.width / 2)
   const k = from.width / 90 // the holder scales down on narrow screens; the flying card follows
   const contact = to.y - 62 * k - (from.top + 62 * k) // card center offset when its pins touch the top edge
   const IN = 124 * k // slides in by its full height, so it is clipped away by the edge rather than faded
-  // insertion depth (px hidden) at each keyframe: 0 until the card touches the edge, slides in to 16px shy, clicks back 6px, pushes home
-  const DEPTH = [0, 0, 0, 0, IN - 16, IN - 22, IN, IN]
-  // lift out → one diagonal glide to hover over the slot → lower until it touches → slide in → click → push home
+  // The holder's front wall is part of the page while the flying card is an overlay, so: (1) lift straight up until the card's bottom
+  // clears the wall, (2) clip whatever is still behind the wall during that lift, so the card never appears to pass through it.
+  const hid = (y: number) => Math.max(0, from.top + 124 * k + y - wallTop)
+  const L = hid(0) + 10 // full lift (px)
+  const clip = (ds: number[], ys: number[]) => ds.map((d, n) => `inset(0px 0px ${Math.max(d, n <= 2 ? hid(ys[n]) : 0)}px 0px)`)
+  // insertion depth (px hidden) per keyframe: 0 until the card touches the edge, slides in to 16px shy, clicks back 6px, pushes home
+  const DEPTH = [0, 0, 0, 0, 0, IN - 16, IN - 22, IN, IN]
+  // lift straight out → one diagonal glide to hover over the slot → lower until it touches → slide in → click → push home
   const frames = {
-    x: [0, 4, dx, dx, dx, dx, dx, dx],
-    rotate: [0, -4, 0, 0, 0, 0, 0, 0], // tilts slightly while carried, straightens as it lines up
-    scale: [1, 1.05, 1.02, 1, 1, 1, 1, 1],
-    y: [0, -14, contact - 26, ...DEPTH.slice(3).map(d => contact + d)],
-    clipPath: DEPTH.map(d => `inset(0px 0px ${d}px 0px)`),
+    x: [0, 0, 4, dx, dx, dx, dx, dx, dx],
+    rotate: [0, -2, -4, 0, 0, 0, 0, 0, 0], // tilts slightly while carried, straightens as it lines up
+    scale: [1, 1.02, 1.05, 1.02, 1, 1, 1, 1, 1],
+    y: [0, -0.55 * L, -L, contact - 26, ...DEPTH.slice(4).map(d => contact + d)],
+    clipPath: [] as string[],
   }
+  frames.clipPath = clip(DEPTH, frames.y)
   type Ease = number[] | 'linear'
-  let times = [0, 0.12, 0.5, 0.6, 0.82, 0.88, 0.97, 1]
-  let ease: Ease[] = [[0.3, 0, 0.2, 1], [0.45, 0, 0.2, 1], [0.2, 0.6, 0.3, 1], [0.4, 0, 0.3, 1], [0.2, 0.8, 0.3, 1], [0.5, 0, 0.75, 0.4], 'linear']
+  let times = [0, 0.08, 0.17, 0.5, 0.6, 0.82, 0.88, 0.97, 1]
+  let ease: Ease[] = [[0.3, 0, 0.4, 1], [0.3, 0, 0.4, 1], [0.45, 0, 0.2, 1], [0.2, 0.6, 0.3, 1], [0.4, 0, 0.3, 1], [0.2, 0.8, 0.3, 1], [0.5, 0, 0.75, 0.4], 'linear']
   let anim: Record<string, (number | string)[]> = frames
   if (eject) { // the same path played backwards: pops out of the console, then glides back to its pocket in the holder
     // no tilt, scale-up or sideways jog on the way back: those were the "lift-off" wobble of the insert path and looked odd at the landing
     // and the insert path's "click" rebound played backwards made the card slip out, then dip back in: use a steadily increasing depth instead
-    const D = [0, 0, 0, 0, IN - 44, IN - 22, IN, IN]
+    const D = [0, 0, 0, 0, 0, IN - 44, IN - 22, IN, IN]
     const calm = {
-      x: frames.x.map((v, n) => (n === 1 ? 0 : v)), rotate: frames.rotate.map(() => 0), scale: frames.scale.map(() => 1),
-      y: [0, -6, contact - 26, ...D.slice(3).map(d => contact + d)],
-      clipPath: D.map(d => `inset(0px 0px ${d}px 0px)`),
+      x: frames.x.map((v, n) => (n <= 2 ? 0 : v)), rotate: frames.rotate.map(() => 0), scale: frames.scale.map(() => 1),
+      y: [0, -0.55 * L, -L, contact - 26, ...D.slice(4).map(d => contact + d)],
+      clipPath: [] as string[],
     }
+    calm.clipPath = clip(D, calm.y)
     anim = Object.fromEntries(Object.entries(calm).map(([k, v]) => [k, [...v].reverse()]))
     times = times.map(t => 1 - t).reverse()
     ease = [...ease].reverse().map(e => (e === 'linear' ? e : [1 - e[2], 1 - e[3], 1 - e[0], 1 - e[1]]))
@@ -175,7 +182,7 @@ function TvMode({ children, onClose }: { children: React.ReactNode; onClose: () 
 
 export default function App() {
   const { state, pressed, press, pick, goHome, setOnly, setAvatar, open, bootMs, sound, big, setBig, dark, toggleSound } = useControls()
-  type Fly = { i: number; from: DOMRect; to: { x: number; y: number }; eject?: boolean; next?: () => void }
+  type Fly = { i: number; from: DOMRect; wallTop: number; to: { x: number; y: number }; eject?: boolean; next?: () => void }
   const [fly, setFly] = useState<Fly | null>(null)
   const [inserted, setInserted] = useState<number | null>(null) // the cartridge currently in the console; its pocket stays empty
   const reduce = useReducedMotion()
@@ -184,10 +191,11 @@ export default function App() {
     const c = document.getElementById('console')?.getBoundingClientRect()
     if (!c || reduce) { setInserted(i); setOnly(i); return pick(i) }
     const k = c.width / CANVAS.w
+    const wallTop = document.querySelector('[data-wall]')?.getBoundingClientRect().top ?? 1e9
     const to = { x: c.left + 1330 * k, y: c.top + 17 * k } // top edge of the tablet, right side
     const start = () => {
       setInserted(i)
-      setFly({ i, from, to })
+      setFly({ i, from, to, wallTop })
       // the console only "knows" the cartridge (title in the top bar, project tile) once it has slid all the way in
       setTimeout(() => { setOnly(i); pick(i) }, 1600)
     }
@@ -195,7 +203,7 @@ export default function App() {
     if (inserted !== null && slot) { // swap: take the current cartridge out and return it to its pocket first
       setOnly(null) // the old title goes away as soon as the cartridge is pulled out
       goHome()
-      setFly({ i: inserted, from: slot, to, eject: true, next: () => { setInserted(null); start() } })
+      setFly({ i: inserted, from: slot, to, wallTop, eject: true, next: () => { setInserted(null); start() } })
     } else start()
   }
   return (
