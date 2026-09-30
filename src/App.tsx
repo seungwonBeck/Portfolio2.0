@@ -7,9 +7,11 @@ import Console, { CANVAS } from './components/device/Console'
 import Logo from './components/Logo'
 import Screen, { AvatarContext, OpenContext } from './components/screen/Screens'
 import { projects } from './types'
-import { CardFace, Cartridges, chipScale, FallbackList, Footer, Header, HowToPlay, IntroCopy, Showcase } from './components/layout/Layout'
+import { CardFace, Cartridges, CaseRack, chipScale, FallbackList, Footer, Header, HowToPlay, IntroCopy, Showcase } from './components/layout/Layout'
 import MobilePad from './components/layout/MobilePad'
 import { useControls } from './hooks/useControls'
+import type { Btn } from './store/nav'
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react'
 
 /** Scales the fixed-size console to its container's width, and to maxH if given. `dockY` lowers only the console; `overlay` (the dock) stays put. */
 function Scaled({ children, maxH = Infinity, dockY, screenOff, overlay }: { children: React.ReactNode; maxH?: number; dockY?: MotionValue<string>; screenOff?: MotionValue<number>; overlay?: React.ReactNode }) {
@@ -55,6 +57,34 @@ function Caption({ p, a, b, t, d, light }: { p: MotionValue<number>; a: number; 
   )
 }
 
+/** Controller halves at the bottom corners of the TV scene: a D-pad on the left, face buttons on the right. Hand-drawn style arrow above says what they are. */
+function SideCtrl({ side, press }: { side: 'l' | 'r'; press: (b: Btn) => void }) {
+  const btn = (b: Btn, node: React.ReactNode, cls = '') => (
+    <button type="button" aria-label={b} onPointerDown={e => { e.preventDefault(); press(b) }}
+      className={`grid h-9 w-9 touch-manipulation place-items-center rounded-full bg-[#1b1c1f] text-[13px] font-extrabold text-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,.14),0_2px_3px_rgba(0,0,0,.5)] active:scale-90 active:bg-[#0f1012] ${cls}`}>{node}</button>
+  )
+  const arrow = <svg aria-hidden viewBox="0 0 40 44" className="mx-auto h-11 w-10" fill="none" stroke="rgba(255,255,255,.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 3 C 16 14 24 22 20 36 M11 28 L20 38 L30 28" /></svg>
+  return (
+    <div className={`absolute bottom-0 z-10 flex flex-col items-center ${side === 'l' ? 'left-[6%]' : 'right-[6%]'}`} style={{ width: 132 }}>
+      <span className="text-[12px] font-bold text-white/70">{side === 'l' ? '방향키로 이동' : 'A 로 선택'}</span>
+      {arrow}
+      <div className="relative h-[150px] w-full overflow-hidden rounded-t-[66px]" style={{ background: 'linear-gradient(180deg,#3d3e42,#2a2b2e 40%,#1f2023)', boxShadow: 'inset 0 2px 0 rgba(255,255,255,.18), 0 -6px 24px rgba(0,0,0,.4)' }}>
+        <div className="absolute left-1/2 top-[26px] grid -translate-x-1/2 grid-cols-3 gap-[2px]">
+          {side === 'l' ? (<>
+            <span />{btn('up', <ChevronUp size={18} />)}<span />
+            {btn('left', <ChevronLeft size={18} />)}<span />{btn('right', <ChevronRight size={18} />)}
+            <span />{btn('down', <ChevronDown size={18} />)}<span />
+          </>) : (<>
+            <span />{btn('HOME', 'X')}<span />
+            {btn('Y', 'Y')}<span />{btn('A', 'A', '!bg-accent-red')}
+            <span />{btn('B', 'B')}<span />
+          </>)}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /** The dock: a dark front panel that hides the lower console, with our logo on it. */
 function Dock() {
   return (
@@ -77,7 +107,7 @@ function Dock() {
  * left/right, (2) snaps them back, then (3) lowers it into a dock, (4) the view pulls back to a TV that fills the viewport
  * and shows the console's screen. `po` is the old tilt story's progress, `q` the dock + TV story's.
  */
-function Hero({ children, tv, onPick, onPickTv, away }: { children: (sep: MotionValue<number>) => React.ReactNode; tv: React.ReactNode; onPick: (i: number, from: DOMRect) => void; onPickTv: (i: number) => void; away: number | null }) {
+function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (sep: MotionValue<number>) => React.ReactNode; tv: React.ReactNode; onPick: (i: number, from: DOMRect) => void; onPickTv: (i: number) => void; onPress: (b: Btn) => void; away: number | null }) {
   const ref = useRef<HTMLDivElement>(null)
   const reduce = useReducedMotion()
   const [vh, setVh] = useState(innerHeight)
@@ -125,11 +155,13 @@ function Hero({ children, tv, onPick, onPickTv, away }: { children: (sep: Motion
   const toCenter = useTransform(po, v => Math.min(1, v / 0.06) * centerY.current)
   const y = useSpring(toCenter, soft)
   // TV: the console's UI size (640×360) scaled to fill the viewport, with a thin bezel and a stand
-  // TV with the chip holder underneath (the same holder as above the console); the TV is sized so both fit the viewport
+  // TV with a game-case rack underneath; the TV is sized so both fit the viewport
   const fw = innerWidth, cw = est * CANVAS.w / CANVAS.h
-  const tk = Math.min((fw * 0.86 - 16) / 640, 0.85 * (vh - 16 - 250) / 360)
+  const rs = Math.max(0.7, Math.min(1.25, vh * 0.2 / 150)) // case rack scale
+  const rackH = 190 * rs
+  const tk = Math.min((fw * 0.86 - 16) / 640, 0.85 * (vh - 16 - rackH - 28 - 30) / 360)
   const tvW = 640 * tk + 16, tvBox = 360 * tk + 16
-  const holderH = 144 * chipScale(tvW) + 28, groupH = tvBox + 28 + holderH
+  const groupH = tvBox + 24 + rackH
   const tvTop = (vh - groupH) / 2
   // cable: leaves the dock's lower right, runs right along the floor, then plugs into the TV's left side in the next "screen" of the world
   const cx0 = fw / 2 + cw * 0.363, cy0 = 56 + centerY.current + 1.38 * est
@@ -168,14 +200,16 @@ function Hero({ children, tv, onPick, onPickTv, away }: { children: (sep: Motion
               <path d={cable} stroke="rgba(255,255,255,.28)" strokeWidth="2.5" strokeLinecap="round" />
             </motion.svg>
             <div className="absolute top-0 grid h-full w-full place-items-center" style={{ left: `${WORLD * 100}%` }}>
-              <div className="flex flex-col items-center" style={{ gap: 28 }}>
+              <div className="flex flex-col items-center" style={{ gap: 24 }}>
                 <div className="relative rounded-[6px] bg-[#0a0a0b] p-[8px] shadow-[0_20px_60px_rgba(0,0,0,.5)]" style={{ width: tvW, height: tvBox }}>
                   <div className="relative overflow-hidden bg-black" style={{ width: 640 * tk, height: 360 * tk }}>
                     <div style={{ width: 640, height: 360, transform: `scale(${tk})`, transformOrigin: 'top left' }}>{tvOn && tv}</div>
                   </div>
                 </div>
-                <div className="text-white"><Cartridges onPick={i => onPickTv(i)} width={tvW} away={away} /></div>
+                <CaseRack onPick={onPickTv} active={away} scale={rs} />
               </div>
+              <SideCtrl side="l" press={onPress} />
+              <SideCtrl side="r" press={onPress} />
             </div>
           </motion.div>
           <p className="label mt-4 text-center sm:hidden">Tip: 가로 모드로 보면 더 커요</p>
@@ -283,7 +317,7 @@ export default function App() {
     <OpenContext.Provider value={open}><AvatarContext.Provider value={setAvatar}>
       <Header />
       {fly && <Flying {...fly} onDone={() => { const n = fly.next; setFly(null); n?.() }} />}
-      <Hero onPick={insert} onPickTv={i => { if (fly || i === inserted) return; setInserted(i); setOnly(i); pick(i) }} away={fly ? fly.i : inserted} tv={<Screen s={state} bootMs={bootMs} dark={dark} />}>
+      <Hero onPick={insert} onPress={press} onPickTv={i => { if (fly || i === inserted) return; setInserted(i); setOnly(i); pick(i) }} away={fly ? fly.i : inserted} tv={<Screen s={state} bootMs={bootMs} dark={dark} />}>
         {sep => (
           <Console pressed={pressed} press={press} sep={sep}>
             {!big && <Screen s={state} bootMs={bootMs} dark={dark} />}
