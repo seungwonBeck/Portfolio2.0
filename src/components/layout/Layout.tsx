@@ -15,7 +15,7 @@ export const Header = () => (
 export const IntroCopy = () => (
   <div className="w-full text-left">
     <div className="label mb-3">01 — The play edition</div>
-    <h1 className="font-display text-5xl font-black leading-[1.05] tracking-tight md:text-7xl lg:text-[7.5rem] xl:whitespace-nowrap">
+    <h1 className="font-display text-5xl font-black leading-[1.05] tracking-tight md:text-7xl lg:text-[clamp(4rem,13vh,7.5rem)] xl:whitespace-nowrap">
       Portfolio
     </h1>
     <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink-sub">{profile.intro}</p>

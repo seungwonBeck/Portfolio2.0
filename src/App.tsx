@@ -58,10 +58,14 @@ function Hero({ children, onPick, away }: { children: (sep: MotionValue<number>)
   const reduce = useReducedMotion()
   const [vh, setVh] = useState(innerHeight)
   const [, force] = useState(0)
+  const topRef = useRef<HTMLElement>(null)
+  const [topB, setTopB] = useState(480) // page-y of the title+chips block's bottom edge
   useEffect(() => {
     const f = () => { setVh(innerHeight); force(n => n + 1) } // width changes matter too (console size)
+    const m = () => setTopB(Math.round((topRef.current?.getBoundingClientRect().bottom ?? 0) + scrollY))
+    const ro = new ResizeObserver(m); if (topRef.current) ro.observe(topRef.current); m()
     addEventListener('resize', f)
-    return () => removeEventListener('resize', f)
+    return () => { removeEventListener('resize', f); ro.disconnect() }
   }, [])
   const { scrollYProgress: p } = useScroll({ target: ref, offset: ['start start', 'end end'] })
   const soft = { stiffness: 55, damping: 24, mass: 1.2 } // slow, no overshoot: smooth zoom
@@ -70,7 +74,7 @@ function Hero({ children, onPick, away }: { children: (sep: MotionValue<number>)
   const rotateY = useSpring(useTransform(p, [0.12, 0.24, 0.36, 0.48, 0.6], [0, -9, 9, -6, 0]), soft)
   const scale = useSpring(useTransform(p, [0, 0.12, 0.28, 0.6, 0.72, 0.88, 0.95, 1], [1, 1, 0.92, 0.96, 1, 1.35, 1.35, 1]), soft)
   // Once pinned, ease the console from its 80px-below-the-chips spot to the vertical center of the viewport.
-  const maxH = Math.max(300, vh - 560) // title + chips + gaps take ~550px, so title, chips and console all fit one viewport
+  const maxH = Math.max(220, vh - topB - 80) // measured title + chips block (+56 frame padding, 24 breathing room): everything fits one viewport
   const est = Math.min(maxH, (innerWidth - (innerWidth >= 768 ? 160 : 40)) * (CANVAS.h / CANVAS.w)) // rendered console height
   // chip row spans the console from Joy-Con seam to Joy-Con seam (233..1520 of the 1760px canvas)
   const rowW = (est * CANVAS.w / CANVAS.h) * ((1520 - 233) / CANVAS.w)
@@ -82,7 +86,7 @@ function Hero({ children, onPick, away }: { children: (sep: MotionValue<number>)
 
   // centered stack: title, 160px, cartridges, 160px, console
   const top = (
-    <section className="flex flex-col items-center px-5 pt-14 md:px-20">
+    <section ref={topRef} className="flex flex-col items-center px-5 pt-14 md:px-20">
       <div className="grid w-full items-start gap-8 md:grid-cols-[7fr_3fr] lg:gap-12"><IntroCopy /><HowToPlay /></div>
       <div className="mt-14 w-full"><Cartridges onPick={onPick} width={rowW} away={away} /></div>
     </section>
