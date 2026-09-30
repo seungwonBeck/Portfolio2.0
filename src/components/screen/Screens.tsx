@@ -1,6 +1,6 @@
-import { ReactNode, createContext, useContext, useEffect, useRef, useState } from 'react'
+import { ReactNode, RefObject, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { BatteryFull, ExternalLink, FolderOpen, Gamepad2, Gauge, Mail, User } from 'lucide-react'
+import { BatteryFull, ExternalLink, FolderOpen, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, Rocket, User } from 'lucide-react'
 import { contactItems, DOCK, State, TILES } from '../../store/nav'
 import { profile, projects, skills } from '../../types'
 
@@ -207,7 +207,7 @@ function drawVoxels(c: CanvasRenderingContext2D, rows: string[], x0: number, y0:
 }
 
 /** Side quest: an endless runner. A = jump, collect coins, dodge blocks. The hero is an original sprite. */
-function Game({ s }: { s: State }) {
+function Runner({ s }: { s: State }) {
   const cv = useRef<HTMLCanvasElement>(null)
   const seen = useRef(0)
   const [phase, setPhase] = useState<'idle' | 'play' | 'dead'>('idle')
@@ -295,6 +295,246 @@ function Game({ s }: { s: State }) {
         {phase === 'play' && 'A · 점프'}
         {phase === 'dead' && '앗! A로 다시 도전'}
       </p>
+    </div>
+  )
+}
+
+const best0 = (k: string) => { try { return +(localStorage.getItem(k) ?? 0) } catch { return 0 } }
+const saveBest = (k: string, v: number) => { try { localStorage.setItem(k, String(v)) } catch { /* ignore */ } }
+const FONT = '700 12px Paperlogy, sans-serif'
+
+/** Shared shell for the canvas games: title, score line, canvas, hint. */
+function Arcade({ title, score, best, cv, hint }: { title: string; score: number; best: number; cv: RefObject<HTMLCanvasElement>; hint: string }) {
+  return (
+    <div className="px-7">
+      <div className="flex items-baseline justify-between">
+        <Title>{title}</Title>
+        <span className="label">Score {score} · Best {best}</span>
+      </div>
+      <canvas ref={cv} width={GW} height={GH} className="w-full rounded-xl ring-1 ring-black/10" style={{ imageRendering: 'pixelated' }} />
+      <p className="mt-2 text-[11px] text-ink-sub">{hint}</p>
+    </div>
+  )
+}
+
+const SHAPES = [[[1, 1, 1, 1]], [[1, 1], [1, 1]], [[0, 1, 0], [1, 1, 1]], [[0, 1, 1], [1, 1, 0]], [[1, 1, 0], [0, 1, 1]], [[1, 0, 0], [1, 1, 1]], [[0, 0, 1], [1, 1, 1]]]
+const BLOCK_COLORS = ['#1fb6e8', '#f5c518', '#a45cff', '#34c759', '#ff4b3e', '#3b6cff', '#ff9f43']
+const CELL = 9, BX = 243, BY = 10
+const rot = (m: number[][]) => m[0].map((_, i) => m.map(r => r[i]).reverse())
+
+/** Falling-blocks puzzle. ◀▶ move · ▼ soft drop · ▲ hard drop · A rotate. */
+function Blocks({ s }: { s: State }) {
+  const cv = useRef<HTMLCanvasElement>(null)
+  const seen = useRef(s.pad.n)
+  const [phase, setPhase] = useState<'idle' | 'play' | 'dead'>('idle')
+  const [score, setScore] = useState(0)
+  const [best, setBest] = useState(() => best0('folio-blocks-best'))
+  const g = useRef({ b: [] as number[][], m: SHAPES[0], x: 3, y: 0, c: 0, nx: 0, acc: 0, lines: 0, score: 0, drop: false })
+  const rnd = () => Math.floor(Math.random() * 7)
+
+  const fits = (m: number[][], x: number, y: number) => m.every((r, j) => r.every((v, i) =>
+    !v || (x + i >= 0 && x + i < 10 && y + j < 20 && !g.current.b[y + j]?.[x + i])))
+
+  const spawn = () => { // false when the stack reached the top
+    const st = g.current
+    st.c = st.nx; st.m = SHAPES[st.c]; st.nx = rnd(); st.x = 3; st.y = 0
+    return fits(st.m, st.x, st.y)
+  }
+  const lock = () => {
+    const st = g.current
+    st.m.forEach((r, j) => r.forEach((v, i) => { if (v) st.b[st.y + j][st.x + i] = st.c + 1 }))
+    const rest = st.b.filter(r => r.some(v => !v)), n = 20 - rest.length
+    st.b = [...Array.from({ length: n }, () => Array(10).fill(0)), ...rest]
+    st.lines += n; st.score += [0, 100, 300, 500, 800][n]
+    return spawn()
+  }
+
+  const cell = (c: CanvasRenderingContext2D, x: number, y: number, ci: number) => {
+    const col = BLOCK_COLORS[ci - 1]
+    c.fillStyle = col; c.fillRect(x, y, CELL, CELL)
+    c.fillStyle = shade(col, 0.4); c.fillRect(x, y, CELL, 1)
+    c.fillStyle = shade(col, -0.32); c.fillRect(x, y + CELL - 1, CELL, 1); c.fillRect(x + CELL - 1, y, 1, CELL)
+  }
+  const draw = () => {
+    const c = cv.current?.getContext('2d'); if (!c) return
+    const st = g.current
+    c.fillStyle = '#16171a'; c.fillRect(0, 0, GW, GH)
+    c.fillStyle = '#23252b'; c.fillRect(BX, BY, 10 * CELL, 20 * CELL)
+    st.b.forEach((r, j) => r.forEach((v, i) => { if (v) cell(c, BX + i * CELL, BY + j * CELL, v) }))
+    if (phase === 'play') st.m.forEach((r, j) => r.forEach((v, i) => { if (v) cell(c, BX + (st.x + i) * CELL, BY + (st.y + j) * CELL, st.c + 1) }))
+    c.fillStyle = '#fff'; c.font = FONT
+    c.fillText('NEXT', 350, 24); c.fillText(`LINES ${st.lines}`, 350, 110)
+    SHAPES[st.nx].forEach((r, j) => r.forEach((v, i) => { if (v) cell(c, 350 + i * CELL, 34 + j * CELL, st.nx + 1) }))
+  }
+  useEffect(draw, [phase])
+
+  useEffect(() => { // pad presses: A starts, then move / rotate / drop
+    if (s.pad.n === seen.current) return
+    seen.current = s.pad.n
+    const st = g.current, b = s.pad.b
+    if (phase !== 'play') {
+      if (b !== 'A') return
+      Object.assign(st, { b: Array.from({ length: 20 }, () => Array(10).fill(0)), acc: 0, lines: 0, score: 0, nx: rnd(), drop: false })
+      spawn(); setScore(0); setPhase('play'); return
+    }
+    if (b === 'left' && fits(st.m, st.x - 1, st.y)) st.x--
+    else if (b === 'right' && fits(st.m, st.x + 1, st.y)) st.x++
+    else if (b === 'down' && fits(st.m, st.x, st.y + 1)) st.y++
+    else if (b === 'up') { while (fits(st.m, st.x, st.y + 1)) st.y++; st.drop = true } // locks on the next frame
+    else if (b === 'A') { const r = rot(st.m); if (fits(r, st.x, st.y)) st.m = r }
+    draw()
+  }, [s.pad.n])
+
+  useEffect(() => {
+    if (phase !== 'play') return
+    const st = g.current
+    let id = 0, last = performance.now()
+    const loop = (now: number) => {
+      st.acc += now - last; last = now
+      const every = Math.max(120, 700 - st.lines * 30)
+      let alive = true
+      if (st.drop) { st.drop = false; st.acc = 0; alive = lock() }
+      while (alive && st.acc >= every) {
+        st.acc -= every
+        if (fits(st.m, st.x, st.y + 1)) st.y++; else alive = lock()
+      }
+      setScore(st.score); draw()
+      if (!alive) {
+        setPhase('dead')
+        if (st.score > best) { setBest(st.score); saveBest('folio-blocks-best', st.score) }
+        return
+      }
+      id = requestAnimationFrame(loop)
+    }
+    id = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(id)
+  }, [phase])
+
+  return <Arcade title="BLOCKS" score={score} best={best} cv={cv} hint={phase === 'idle' ? 'A로 시작 · ◀▶ 이동 · ▼ 내리기 · ▲ 바로 떨어뜨리기 · A 회전' : phase === 'play' ? 'A 회전 · ▲ 하드드롭' : '게임 오버! A로 다시 도전'} />
+}
+
+const SHIP = ['....a....', '...aaa...', '...aba...', '.aaaaaaa.', 'aacaaacaa', 'aa.....aa']
+const BUG = ['.a.....a.', '..a...a..', '.aaaaaaa.', 'aabaaabaa', 'aaaaaaaaa', 'a.a...a.a']
+/** Plain pixel blit (no shading): '.' is empty, other letters index the palette. */
+function blit(c: CanvasRenderingContext2D, rows: string[], pal: Record<string, string>, x: number, y: number, px = 3) {
+  rows.forEach((row, r) => [...row].forEach((ch, i) => { if (ch !== '.') { c.fillStyle = pal[ch]; c.fillRect(x + i * px, y + r * px, px, px) } }))
+}
+type Foe = { hx: number; hy: number; x: number; y: number; alive: boolean; dive: number; row: number }
+const ROWS_COLOR = ['#ff4b3e', '#f5c518', '#34c759']
+const newWave = (): Foe[] => Array.from({ length: 24 }, (_, i) => {
+  const hx = 128 + (i % 8) * 46, hy = 24 + Math.floor(i / 8) * 26
+  return { hx, hy, x: hx, y: -30, alive: true, dive: 0, row: Math.floor(i / 8) }
+})
+
+/** Space shooter: ◀▶ steer (keeps drifting until you press the other way or ▼) · A fire. */
+function Starfighter({ s }: { s: State }) {
+  const cv = useRef<HTMLCanvasElement>(null)
+  const seen = useRef(s.pad.n)
+  const [phase, setPhase] = useState<'idle' | 'play' | 'dead'>('idle')
+  const [score, setScore] = useState(0)
+  const [best, setBest] = useState(() => best0('folio-star-best'))
+  const g = useRef({ x: GW / 2, dir: 0, shots: [] as { x: number; y: number }[], bombs: [] as { x: number; y: number }[], foes: [] as Foe[], lives: 3, hurt: 0, score: 0, t: 0, nextDive: 1, wave: 1 })
+
+  const draw = () => {
+    const c = cv.current?.getContext('2d'); if (!c) return
+    const st = g.current
+    c.fillStyle = '#0d1020'; c.fillRect(0, 0, GW, GH)
+    c.fillStyle = '#fff'
+    for (let i = 0; i < 40; i++) c.fillRect((i * 97) % GW, (i * 53 + st.t * 40 * (1 + (i % 3))) % GH, 1, 1) // scrolling stars
+    for (const f of st.foes) if (f.alive) blit(c, BUG, { a: ROWS_COLOR[f.row], b: '#fff' }, f.x - 13, f.y - 9)
+    c.fillStyle = '#fff'; for (const b of st.shots) c.fillRect(b.x - 1, b.y - 6, 2, 8)
+    c.fillStyle = '#ff9f43'; for (const b of st.bombs) c.fillRect(b.x - 1, b.y, 3, 6)
+    if (!(st.hurt > 0 && Math.floor(st.hurt * 10) % 2)) blit(c, SHIP, { a: '#1fb6e8', b: '#fff', c: '#ff4b3e' }, st.x - 13, GH - 26)
+    c.fillStyle = '#fff'; c.font = FONT; c.fillText('♥'.repeat(Math.max(st.lives, 0)), 8, 16)
+  }
+  useEffect(draw, [phase])
+
+  useEffect(() => {
+    if (s.pad.n === seen.current) return
+    seen.current = s.pad.n
+    const st = g.current, b = s.pad.b
+    if (phase !== 'play') {
+      if (b !== 'A') return
+      Object.assign(st, { x: GW / 2, dir: 0, shots: [], bombs: [], foes: newWave(), lives: 3, hurt: 0, score: 0, t: 0, nextDive: 1, wave: 1 })
+      setScore(0); setPhase('play'); return
+    }
+    if (b === 'left') st.dir = -1; else if (b === 'right') st.dir = 1; else if (b === 'down') st.dir = 0
+    else if (b === 'A' && st.shots.length < 3) st.shots.push({ x: st.x, y: GH - 28 })
+  }, [s.pad.n])
+
+  useEffect(() => {
+    if (phase !== 'play') return
+    const st = g.current
+    let id = 0, last = performance.now()
+    const loop = (now: number) => {
+      const dt = Math.min(0.033, (now - last) / 1000); last = now
+      st.t += dt; st.hurt = Math.max(0, st.hurt - dt)
+      st.x = Math.max(14, Math.min(GW - 14, st.x + st.dir * 240 * dt))
+      st.shots.forEach(b => { b.y -= 420 * dt }); st.shots = st.shots.filter(b => b.y > -8)
+      st.bombs.forEach(b => { b.y += 150 * dt }); st.bombs = st.bombs.filter(b => b.y < GH)
+      const sway = Math.sin(st.t * 1.4) * 26
+      for (const f of st.foes) {
+        if (!f.alive) continue
+        if (f.dive) { // dive: sweep down toward the ship's column, then re-enter from the top
+          f.dive += dt; f.y += (110 + st.wave * 12) * dt; f.x += Math.cos(f.dive * 4) * 70 * dt + (st.x - f.x) * 0.5 * dt
+          if (Math.random() < dt * 0.6) st.bombs.push({ x: f.x, y: f.y + 8 })
+          if (f.y > GH + 10) { f.dive = 0; f.y = -20 }
+        } else {
+          f.x = f.hx + sway; f.y += Math.min(f.hy - f.y, 90 * dt)
+        }
+        for (let i = st.shots.length - 1; i >= 0; i--) {
+          const b = st.shots[i]
+          if (Math.abs(b.x - f.x) < 14 && Math.abs(b.y - f.y) < 10) { f.alive = false; st.shots.splice(i, 1); st.score += f.dive ? 100 : 40; break }
+        }
+      }
+      st.nextDive -= dt
+      if (st.nextDive <= 0) {
+        const pool = st.foes.filter(f => f.alive && !f.dive && Math.abs(f.y - f.hy) < 2)
+        if (pool.length) pool[Math.floor(Math.random() * pool.length)].dive = 0.001
+        st.nextDive = Math.max(0.5, 1.6 - st.wave * 0.2)
+      }
+      if (!st.hurt) {
+        const hit = st.bombs.some(b => Math.abs(b.x - st.x) < 12 && b.y > GH - 26) ||
+          st.foes.some(f => f.alive && Math.abs(f.x - st.x) < 18 && Math.abs(f.y - (GH - 18)) < 12)
+        if (hit) { st.lives--; st.hurt = 1.4; st.bombs = [] }
+      }
+      if (!st.foes.some(f => f.alive)) { st.wave++; st.foes = newWave(); st.score += 200 }
+      setScore(st.score); draw()
+      if (st.lives <= 0) {
+        setPhase('dead')
+        if (st.score > best) { setBest(st.score); saveBest('folio-star-best', st.score) }
+        return
+      }
+      id = requestAnimationFrame(loop)
+    }
+    id = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(id)
+  }, [phase])
+
+  return <Arcade title="STAR FIGHTER" score={score} best={best} cv={cv} hint={phase === 'idle' ? 'A로 시작 · ◀▶ 조종(계속 이동) · ▼ 정지 · A 발사' : phase === 'play' ? 'A 발사 · ◀▶ 방향 전환' : '격추당했어요! A로 다시 도전'} />
+}
+
+const ARCADE = [
+  { name: 'SIDE QUEST', sub: 'A · 점프', color: '#1fb6e8', Icon: Footprints, View: Runner },
+  { name: 'BLOCKS', sub: '떨어지는 블록 쌓기', color: '#a45cff', Icon: LayoutGrid, View: Blocks },
+  { name: 'STAR FIGHTER', sub: '우주 슈팅', color: '#ff4b3e', Icon: Rocket, View: Starfighter },
+]
+
+/** GAME tab: pick one of the mini games (◀▶ + A); B goes back to this menu. */
+function Game({ s }: { s: State }) {
+  if (s.gmode !== null) { const V = ARCADE[s.gmode].View; return <V s={s} /> }
+  return (
+    <div className="px-7">
+      <Title>ARCADE</Title>
+      <div className="grid grid-cols-3 gap-3">
+        {ARCADE.map((a, i) => (
+          <div key={a.name} className={`flex h-[120px] flex-col justify-between rounded-2xl p-4 text-white ${i === s.game ? 'ring-[3px] ring-accent-blue ring-offset-2' : ''}`} style={{ background: a.color }}>
+            <a.Icon size={28} strokeWidth={2.2} />
+            <div><div className="text-[14px] font-extrabold leading-tight">{a.name}</div><div className="text-[10px] opacity-80">{a.sub}</div></div>
+          </div>
+        ))}
+      </div>
+      <p className="mt-2 text-[11px] text-ink-sub">◀▶ 선택 · A 시작 · B 뒤로</p>
     </div>
   )
 }

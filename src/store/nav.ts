@@ -16,15 +16,25 @@ export const DOCK = ['ABOUT', 'PROJECTS', 'SKILLS', 'CONTACT', 'GAME'] as const
 export interface State {
   screen: Screen; home: number; proj: number; contact: number; hits: number
   only: number | null; row: 'tile' | 'dock'; dock: number; dir: 1 | -1
+  /** GAME screen: game (menu focus), gmode (running game, null = menu), pad (last button pressed inside a game; n counts presses) */
+  game: number; gmode: number | null; pad: { n: number; b: Btn }
 }
-export const initial: State = { screen: 'BOOT', home: 0, proj: 0, contact: 0, hits: 0, only: null, row: 'tile', dock: 0, dir: 1 }
+export const initial: State = { screen: 'BOOT', home: 0, proj: 0, contact: 0, hits: 0, only: null, row: 'tile', dock: 0, dir: 1, game: 0, gmode: null, pad: { n: 0, b: 'A' } }
 
 const clamp = (n: number, len: number) => Math.max(0, Math.min(len - 1, n))
 
 /** pick: cartridge inserted → title splash (LOAD). loaded: splash finished → project detail (ignored if the user already left). */
 export type Action = Btn | { pick: number } | { loaded: true } | { only: number | null } | { open: { row: 'tile' | 'dock'; i: number } }
 
+export const GAMES = 3
+
+/** Entering GAME always lands on the game menu. */
 export function reducer(s: State, b: Action): State {
+  const n = step(s, b)
+  return n.screen === 'GAME' && s.screen !== 'GAME' ? { ...n, gmode: null } : n
+}
+
+function step(s: State, b: Action): State {
   if (typeof b === 'object') {
     if ('only' in b) return { ...s, only: b.only }
     if ('open' in b) { // mouse/touch on a tile or dock icon: same as focusing it and pressing A
@@ -39,6 +49,14 @@ export function reducer(s: State, b: Action): State {
   }
   if (s.screen === 'BOOT') return { ...s, screen: 'HOME' }
   if (b === 'HOME') return s.screen === 'HOME' ? s : { ...s, screen: 'HOME', dir: -1 }
+  if (s.screen === 'GAME' && ['up', 'down', 'left', 'right', 'A', 'B'].includes(b)) {
+    if (b === 'B') return s.gmode === null ? { ...s, screen: 'HOME', dir: -1 } : { ...s, gmode: null }
+    if (s.gmode === null) {
+      if (b === 'A') return { ...s, gmode: s.game, hits: 0 }
+      return { ...s, game: clamp(s.game + (b === 'left' || b === 'up' ? -1 : 1), GAMES) }
+    }
+    return { ...s, hits: b === 'A' ? s.hits + 1 : s.hits, pad: { n: s.pad.n + 1, b: b as Btn } } // running game reads pad/hits
+  }
   const d = b === 'left' || b === 'up' ? -1 : 1
   switch (b) {
     case 'left': case 'right':
