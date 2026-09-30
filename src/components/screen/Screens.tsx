@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { BatteryFull, ExternalLink, FolderOpen, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, Rocket, User } from 'lucide-react'
 import { AVATAR_ORDER, contactItems, DOCK, State, TILES } from '../../store/nav'
 import { Avatar, AVATARS, Coin } from './avatars'
+import Logo from '../Logo'
 import { profile, projects, skills } from '../../types'
 
 const tileIcon = { ABOUT: User, PROJECTS: FolderOpen, SKILLS: Gauge, CONTACT: Mail, GAME: Gamepad2 }
@@ -24,6 +25,7 @@ export function Boot({ ms }: { ms: number }) {
     <motion.div className="grid h-full place-items-center bg-card"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: ms / 2000 }}>
       <div className="text-center">
+        <Logo className="mx-auto mb-3 h-14 text-ink" />
         <div className="text-[44px] font-black tracking-tight">seungwon<span className="text-accent-red">.2</span></div>
         <div className="label mt-1">press any key</div>
       </div>

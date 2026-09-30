@@ -3,10 +3,11 @@ import { motion, useReducedMotion, useScroll, useSpring, useTransform } from 'fr
 import { ArrowUpRight, CircleDot, Move, Home, Volume2, VolumeX } from 'lucide-react'
 import { profile, projects, skills } from '../../types'
 import { Thumb } from '../screen/Screens'
+import Logo from '../Logo'
 
 export const Header = () => (
   <header className="relative z-20 flex items-center justify-between px-5 py-5 md:px-20">
-    <span className="text-lg font-extrabold tracking-tight">seungwon<span className="text-accent-red">.</span></span>
+    <span className="flex items-center gap-2 text-lg font-extrabold tracking-tight"><Logo drift={false} className="h-[18px] w-[18px] text-ink" /><span>seungwon<span className="text-accent-red">.</span></span></span>
     <span className="label hidden sm:block">An interactive portfolio</span>
     <span className="label flex items-center gap-2"><i className="h-1.5 w-1.5 rounded-full bg-accent-blue" />Open to work</span>
   </header>
@@ -54,7 +55,7 @@ export const CardFace = ({ i, title }: { i: number; title: string }) => (
     <span className="absolute inset-0" style={{ clipPath: CARD_CLIP, borderRadius: 6, background: 'linear-gradient(165deg,#5b5d62 0%,#3f4044 50%,#303135 100%)' }} />
     <span className="absolute inset-[1.5px]" style={{ clipPath: CARD_CLIP, borderRadius: 5, background: 'linear-gradient(180deg,#414246 0%,#36373b 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.1), inset 0 -3px 5px rgba(0,0,0,.18)' }} />
     {/* logo mark: stays visible when the card is inserted and only its top edge shows */}
-    <span className="screen-font absolute left-[9px] top-[3px] grid h-[11px] w-[20px] place-items-center rounded-[2px] bg-[#1d86b3] text-[6.5px] font-black leading-none tracking-tight text-white/95">sw.2</span>
+    <Logo drift={false} className="absolute left-[9px] top-[2px] h-[12px] w-[12px] text-white/90" />
     {/* shallow grip ridges */}
     <span className="absolute left-[34px] top-[6px] h-[6px] w-[28px]"
       style={{ background: 'repeating-linear-gradient(90deg,rgba(0,0,0,.35) 0 1.5px,rgba(255,255,255,.07) 1.5px 2.5px,transparent 2.5px 5px)' }} />
