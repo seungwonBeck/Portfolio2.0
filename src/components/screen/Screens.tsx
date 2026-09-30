@@ -93,9 +93,19 @@ function About({ s }: { s: State }) {
       <Title>ABOUT ME</Title>
       <div className="mb-4 flex items-center gap-6">
         <div className="shrink-0 text-center">
-          <Avatar i={s.avatar} className="h-[112px] w-[112px] ring-4 ring-white" />
+          {/* click = flip like a coin between the cartoon (0) and the ID photo (1) */}
+          <div style={{ perspective: 500 }}>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.button key={s.avatar} type="button" aria-label="프로필 뒤집기" onClick={() => pick(s.avatar === 0 ? 1 : 0)}
+                initial={{ rotateY: -90 }} animate={{ rotateY: 0 }} exit={{ rotateY: 90 }} transition={{ duration: 0.2, ease: 'easeInOut' }}
+                className="block cursor-pointer rounded-full">
+                <Avatar i={s.avatar} className="h-[112px] w-[112px] ring-4 ring-white" />
+              </motion.button>
+            </AnimatePresence>
+          </div>
           <div className="mt-1.5 text-[12px] font-extrabold">{profile.name}</div>
           <div className="text-[10px] text-ink-sub">{profile.role}</div>
+          <div className="mx-auto mt-1 max-w-[130px] [word-break:keep-all] text-[10px] font-bold leading-tight text-accent-blue">↻ 프로필을 눌러보세요 · 동전처럼 뒤집혀요</div>
         </div>
         <div className="min-w-0 flex-1">
           <div className="label mb-2">Edit character · {AVATARS[s.avatar].name}</div>

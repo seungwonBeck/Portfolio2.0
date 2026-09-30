@@ -8,10 +8,10 @@ const GHOST = ['...gggggg...', '..gggggggg..', '.gggggggggg.', '.ggwkggwkgg.', '
 const ALIEN = ['.g........g.', '..g......g..', '..gggggggg..', '.gggggggggg.', '.gwwkggwwkg.', '.gwwkggwwkg.', '.gggggggggg.', '..gggddggg..', '...gggggg...', '....gggg....']
 
 const K = '#16171a', W = '#ffffff'
-type Entry = { name: string; bg: string; src?: string; pos?: string; rows: string[]; pal: Record<string, string> }
+type Entry = { name: string; bg: string; src?: string; fit?: 'cover' | 'contain'; rows: string[]; pal: Record<string, string> }
 export const AVATARS: Entry[] = [
-  { name: 'ME', bg: '#96cdff', src: img('me.webp'), pos: '50% 50%', rows: [] as string[], pal: {} as Record<string, string> },
-  { name: 'PHOTO', bg: '#ffffff', src: img('photo.webp'), pos: '50% 20%', rows: [] as string[], pal: {} as Record<string, string> },
+  { name: 'ME', bg: '#96cdff', src: img('me.webp'), rows: [] as string[], pal: {} as Record<string, string> },
+  { name: 'PHOTO', bg: '#96cdff', src: img('photo.webp'), fit: 'contain', rows: [] as string[], pal: {} as Record<string, string> },
   { name: 'BLOB', bg: '#ff9f43', rows: BLOB, pal: { b: '#1fb6e8', w: W, e: K, r: '#ff4b3e' } },
   { name: 'ROBOT', bg: '#3b6cff', rows: ROBOT, pal: { a: '#c4ccd6', b: '#6b7683', r: '#ff4b3e', w: W, k: K } },
   { name: 'CAT', bg: '#34c759', rows: CAT, pal: { o: '#ff9f43', p: '#ff6b8a', w: W, k: K } },
@@ -24,7 +24,7 @@ export function Avatar({ i, className = '' }: { i: number; className?: string })
   const a = AVATARS[i], n = a.rows[0]?.length ?? 0
   return (
     <span className={`relative inline-block shrink-0 overflow-hidden rounded-full ${className}`} style={{ background: a.bg }}>
-      {a.src ? <img src={a.src} alt={a.name} draggable={false} className="h-full w-full object-cover" style={{ objectPosition: a.pos }} /> : (
+      {a.src ? <img src={a.src} alt={a.name} draggable={false} className={`h-full w-full ${a.fit === 'contain' ? 'object-contain' : 'object-cover'}`} /> : (
         <svg viewBox={`0 0 ${n + 4} ${n + 4}`} shapeRendering="crispEdges" className="h-full w-full">
           {a.rows.map((row, r) => [...row].map((ch, c) => ch === '.' ? null :
             <rect key={`${r}-${c}`} x={c + 2} y={r + 2 + (n - a.rows.length) / 2} width="1.02" height="1.02" fill={a.pal[ch]} />))}
