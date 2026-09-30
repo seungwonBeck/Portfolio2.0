@@ -151,7 +151,6 @@ export const CaseRack = ({ onPick, active, scale = 1 }: { onPick: (i: number) =>
                   transition={popping
                     ? { duration: 1.1, times: [0, 0.4, 1], ease: [[0.25, 0.8, 0.3, 1], [0.5, 0, 0.3, 1]] } // one plain rise and fall back to the resting spot
                     : { type: 'spring', stiffness: 260, damping: 28 }}
-                  whileHover={{ y: -9, transition: { type: 'spring', stiffness: 380, damping: 22 } }}
                   style={{ filter: `drop-shadow(0 8px 6px rgba(0,0,0,.5))${on ? ' drop-shadow(0 0 9px rgba(43,212,255,.9))' : ''}` }}>
                   {on && <>
                     <span aria-hidden className="pointer-events-none absolute -inset-[4px] animate-[casePulse_1.6s_ease-in-out_infinite] rounded-t-[9px] border-2 border-[#2bd4ff]" style={{ boxShadow: '0 0 12px #2bd4ff, inset 0 0 8px rgba(43,212,255,.5)' }} />
