@@ -16,7 +16,7 @@ export const IntroCopy = () => (
   <div className="w-full text-left">
     <div className="label mb-3">01 — The play edition</div>
     <h1 className="font-display text-5xl font-black leading-[1.05] tracking-tight md:text-6xl lg:text-[5rem] xl:whitespace-nowrap">
-      포트폴리오
+      Portfolio
     </h1>
     <p className="mt-4 max-w-md text-sm leading-relaxed text-ink-sub">{profile.intro}</p>
   </div>
