@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
 import { ArrowUpRight, CircleDot, Move, Home, Volume2, VolumeX } from 'lucide-react'
 import { profile, projects, skills } from '../../types'
@@ -118,13 +118,15 @@ export const Cartridges = ({ onPick, width, away }: { onPick: (i: number, from: 
 
 /**
  * Game-case rack at the bottom of the TV scene, front view. The cases are tall, so the viewport's bottom edge crops them and only the upper
- * ~75% shows, with the title running down the spine. Clear plastic shell, printed insert, gloss. The loaded case slides up out of the rack.
+ * half shows, with the title running down the spine. Clear plastic shell, printed insert, gloss. A picked case pops up and settles back down; the loaded one keeps a blue glow.
  */
-const CASE = { w: 46, h: 212, gap: 6, lift: 44 }
+const CASE = { w: 46, h: 212, gap: 6, lift: 62 } // lift: how far a picked case pops up before it drops back
 export const CASE_ROW_W = projects.length * (CASE.w + CASE.gap) - CASE.gap
 export const CaseRack = ({ onPick, active, scale = 1 }: { onPick: (i: number) => void; active?: number | null; scale?: number }) => {
   const { w, h, gap, lift } = CASE
   const W = CASE_ROW_W + 24
+  const [pop, setPop] = useState<{ i: number; n: number } | null>(null) // n re-triggers the animation when the same case is picked again
+  const pick = (i: number) => { setPop(s => ({ i, n: (s?.n ?? 0) + 1 })); onPick(i) }
   return (
     <div style={{ width: W * scale, height: (h + lift + 10) * scale }}>
       <div className="relative" style={{ width: W, height: h + lift + 10, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
@@ -133,11 +135,13 @@ export const CaseRack = ({ onPick, active, scale = 1 }: { onPick: (i: number) =>
             const blue = i % 2 === 1
             const [hi, mid, lo] = blue ? ['#58b8df', '#1f8ab8', '#0b4d69'] : ['#ee7361', '#bd3c2d', '#6f180f']
             const on = active === i
+            const popping = pop?.i === i
             return (
               <li key={p.id} className="relative" style={{ width: w, height: h }}>
-                <button type="button" onClick={() => !on && onPick(i)} aria-label={`${p.title} 케이스, TV에서 열기`}
-                  className={`absolute inset-0 transition-[transform,filter] duration-[650ms] ease-[cubic-bezier(.22,1.15,.36,1)] ${on ? '' : 'hover:-translate-y-2.5 focus-visible:-translate-y-2.5'}`}
-                  style={{ transform: on ? `translateY(-${lift}px)` : undefined, filter: `drop-shadow(0 ${on ? 14 : 7}px ${on ? 10 : 6}px rgba(0,0,0,${on ? .6 : .5}))` }}>
+                <button key={popping ? `p${pop!.n}` : 'rest'} type="button" onClick={() => pick(i)} aria-label={`${p.title} 케이스, TV에서 열기`}
+                  className="absolute inset-0 transition-[filter] duration-300 hover:-translate-y-2 focus-visible:-translate-y-2"
+                  style={{ ['--lift' as string]: `${lift}px`, animation: popping ? 'casePop 1.25s cubic-bezier(.3,.7,.3,1) both' : undefined,
+                    filter: `drop-shadow(0 7px 6px rgba(0,0,0,.5))${on ? ' drop-shadow(0 0 7px rgba(31,182,232,.75))' : ''}` }}>
                   {/* clear outer shell: bright rim, inner bevel */}
                   <span className="absolute inset-0 rounded-t-[6px]" style={{ background: 'linear-gradient(90deg,rgba(255,255,255,.95),rgba(232,236,241,.6) 9%,rgba(232,236,241,.3) 91%,rgba(255,255,255,.85))', boxShadow: 'inset 0 1.5px 0 #fff, inset 0 -1px 0 rgba(0,0,0,.2), 0 0 0 1px rgba(0,0,0,.4)' }} />
                   <span className="absolute inset-x-[2px] top-[2px] h-[6px] rounded-t-[4px] bg-gradient-to-b from-white to-white/30" />

@@ -218,7 +218,7 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
                 </div>
               </div>
               {/* cases and controller sit at the bottom edge and are cropped by it */}
-              <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: -(212 - 155) * rs }}><CaseRack onPick={onPickTv} active={away} scale={rs} /></div>
+              <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: -(212 - 105) * rs }}><CaseRack onPick={onPickTv} active={away} scale={rs} /></div>
               <TvPad press={onPress} scale={rs} />
             </div>
           </motion.div>

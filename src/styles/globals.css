@@ -51,3 +51,11 @@ body { background: var(--color-bg); color: var(--color-ink); font-family: var(--
 @media (prefers-reduced-motion: reduce) { .marquee { animation: none !important; } }
 
 @media (prefers-reduced-motion: reduce) { * { transition-duration: 0s !important; animation-duration: 0s !important; } }
+
+/* a picked game case pops up, hangs for a beat, then settles back into the rack */
+@keyframes casePop {
+  0% { transform: translateY(0); }
+  32% { transform: translateY(calc(var(--lift) * -1)); }
+  58% { transform: translateY(calc(var(--lift) * -1)); }
+  100% { transform: translateY(0); }
+}
