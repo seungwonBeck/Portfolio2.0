@@ -55,7 +55,7 @@ function Caption({ p, a, b, t, d, light }: { p: MotionValue<number>; a: number; 
   )
 }
 
-/** The dock: a dark front panel that hides the lower console, with our logo on it and a cable running off to the right. */
+/** The dock: a dark front panel that hides the lower console, with our logo on it. */
 function Dock() {
   return (
     <div aria-hidden className="absolute z-20" style={{ left: '13.2%', width: '73.1%', top: '47%', height: '100%' }}>
@@ -68,7 +68,6 @@ function Dock() {
           <span className="mt-[10%] whitespace-nowrap font-black tracking-[0.34em] text-white/85" style={{ fontSize: 'calc(var(--k, 1) * 22px)' }}>SEUNGWON.2</span>
         </div>
       </div>
-      <i className="absolute left-full h-[2px] rounded-full bg-white/25" style={{ bottom: '9%', width: '70vw' }} />
     </div>
   )
 }
@@ -100,7 +99,7 @@ function Hero({ children, tv, onPick, away }: { children: (sep: MotionValue<numb
   // low damping on purpose: re-attach overshoots a little, which reads as a "click"
   const sep = useSpring(useTransform(po, [0.12, 0.28, 0.46, 0.6], [0, 320, 320, 0]), { stiffness: 140, damping: 13 })
   const rotateY = useSpring(useTransform(po, [0.12, 0.24, 0.36, 0.48, 0.6], [0, -9, 9, -6, 0]), soft)
-  const scaleOld = useSpring(useTransform(po, [0, 0.12, 0.28, 0.6, 0.72], [1, 1, 0.92, 0.96, 1]), soft)
+  const scale = useSpring(useTransform(po, [0, 0.12, 0.28, 0.6, 0.72], [1, 1, 0.92, 0.96, 1]), soft)
   // dock + TV: the console lowers into the dock, the room goes dark, then the scene shrinks away and the TV grows to fill the viewport
   const dockY = useSpring(useTransform(q, [0.05, 0.34], [0, 30]), soft)
   const dockYPct = useTransform(dockY, v => `${v}%`)
@@ -108,13 +107,10 @@ function Hero({ children, tv, onPick, away }: { children: (sep: MotionValue<numb
   const dockIn = useTransform(q, [0, 0.16], [0, 1])
   const dockUp = useTransform(dockIn, v => `${(1 - v) * 40}%`)
   const room = useTransform(q, [0, 0.16], [0, 1])
-  const sceneFade = useTransform(q, [0.42, 0.62], [1, 0])
-  const sceneShrink = useTransform(q, [0.4, 0.72], [1, 0.6])
-  const scale = useTransform([scaleOld, sceneShrink], ([a, b]: number[]) => a * b)
-  const tvO = useTransform(q, [0.42, 0.6], [0, 1])
-  const tvS = useTransform(q, [0.42, 0.8], [0.4, 1])
+  // once docked, the camera follows the cable to the right (scroll goes down, the view goes right) and the TV comes into view
+  const pan = useTransform(q, [0.42, 0.86], ['0%', '-100%'])
   const [tvOn, setTvOn] = useState(false)
-  useMotionValueEvent(q, 'change', v => setTvOn(v > 0.42))
+  useMotionValueEvent(q, 'change', v => setTvOn(v > 0.34))
   // Once pinned, ease the console from its 80px-below-the-chips spot to the vertical center of the viewport.
   const maxH = Math.max(220, vh - topB - 80) // measured title + chips block (+56 frame padding, 24 breathing room): everything fits one viewport
   const est = Math.min(maxH, (innerWidth - (innerWidth >= 768 ? 160 : 40)) * (CANVAS.h / CANVAS.w)) // rendered console height
@@ -126,6 +122,12 @@ function Hero({ children, tv, onPick, away }: { children: (sep: MotionValue<numb
   const y = useSpring(toCenter, soft)
   // TV: the console's UI size (640×360) scaled to fill the viewport, with a thin bezel and a stand
   const tk = Math.min((innerWidth - 16) / 640, (vh - 16 - 26) / 360)
+  // cable: leaves the dock's lower right, runs right along the floor, then drops into the TV's left foot in the next "screen" of the world
+  const fw = innerWidth, cw = est * CANVAS.w / CANVAS.h
+  const cx0 = fw / 2 + cw * 0.363, cy0 = 56 + centerY.current + 1.38 * est
+  const tvBox = 360 * tk + 16, tvBottom = (vh - 26) / 2 + tvBox / 2, tvLeft = fw + (fw - (640 * tk + 16)) / 2
+  const cx1 = tvLeft + (640 * tk + 16) * 0.155, cy1 = tvBottom + 10
+  const cable = `M${cx0} ${cy0} H${cx1 - 90} C${cx1 - 30} ${cy0} ${cx1} ${cy1 - 40} ${cx1} ${cy1}`
 
   // centered stack: title, 160px, cartridges, 160px, console
   const top = (
@@ -141,23 +143,28 @@ function Hero({ children, tv, onPick, away }: { children: (sep: MotionValue<numb
       {top}
       <div ref={ref} className="relative" style={{ height: `${TOTAL}vh` }}>
         <div className="sticky top-0 flex h-screen flex-col items-center overflow-hidden px-5 pt-14 md:px-20" style={{ perspective: 1800, '--chipw': `${90 * chipScale(rowW)}px` } as React.CSSProperties}>
-          <motion.div aria-hidden className="absolute inset-0" style={{ opacity: room, background: 'radial-gradient(120% 90% at 50% 40%,#46464b 0%,#323236 60%,#28282b 100%)' }} />
+          <motion.div aria-hidden className="absolute inset-0" style={{ opacity: room, background: 'radial-gradient(120% 90% at 50% 40%,#2c2c30 0%,#1d1d20 60%,#131315 100%)' }} />
           <div className="pointer-events-none absolute left-5 top-20 z-10 w-[32rem] max-w-[85vw] md:left-20">
             {CAPTIONS.map(c => <Caption key={c.t} p={c.s === 'o' ? po : q} {...c} />)}
           </div>
-          <motion.div className="relative w-full" style={{ scale, rotateY, y, opacity: sceneFade }}>
-            <Scaled maxH={maxH} dockY={dockYPct} screenOff={screenOff}
-              overlay={<motion.div className="absolute inset-0" style={{ opacity: dockIn, y: dockUp }}><Dock /></motion.div>}>
-              {children(sep)}
-            </Scaled>
-          </motion.div>
-          <motion.div className="absolute inset-0 z-30 grid place-items-center" style={{ opacity: tvO, scale: tvS, pointerEvents: tvOn ? 'auto' : 'none' }}>
-            <div className="relative rounded-[6px] bg-[#0a0a0b] p-[8px] shadow-[0_20px_60px_rgba(0,0,0,.5)]" style={{ width: 640 * tk + 16, height: 360 * tk + 16, marginBottom: 26 }}>
-              <div className="relative overflow-hidden bg-black" style={{ width: 640 * tk, height: 360 * tk }}>
-                <div style={{ width: 640, height: 360, transform: `scale(${tk})`, transformOrigin: 'top left' }}>{tvOn && tv}</div>
+          <motion.div className="absolute inset-0 flex flex-col items-center px-5 pt-14 md:px-20" style={{ x: pan }}>
+            <motion.div className="relative w-full" style={{ scale, rotateY, y }}>
+              <Scaled maxH={maxH} dockY={dockYPct} screenOff={screenOff}
+                overlay={<motion.div className="absolute inset-0" style={{ opacity: dockIn, y: dockUp }}><Dock /></motion.div>}>
+                {children(sep)}
+              </Scaled>
+            </motion.div>
+            <motion.svg aria-hidden className="pointer-events-none absolute left-0 top-0 h-full overflow-visible" style={{ width: fw * 2, opacity: dockIn }} fill="none">
+              <path d={cable} stroke="rgba(255,255,255,.28)" strokeWidth="2.5" strokeLinecap="round" />
+            </motion.svg>
+            <div className="absolute left-full top-0 grid h-full w-full place-items-center">
+              <div className="relative rounded-[6px] bg-[#0a0a0b] p-[8px] shadow-[0_20px_60px_rgba(0,0,0,.5)]" style={{ width: 640 * tk + 16, height: 360 * tk + 16, marginBottom: 26 }}>
+                <div className="relative overflow-hidden bg-black" style={{ width: 640 * tk, height: 360 * tk }}>
+                  <div style={{ width: 640, height: 360, transform: `scale(${tk})`, transformOrigin: 'top left' }}>{tvOn && tv}</div>
+                </div>
+                <i className="absolute -bottom-[18px] left-[14%] h-[18px] w-[3%] rounded-b-[3px] bg-[#111113]" />
+                <i className="absolute -bottom-[18px] right-[14%] h-[18px] w-[3%] rounded-b-[3px] bg-[#111113]" />
               </div>
-              <i className="absolute -bottom-[18px] left-[14%] h-[18px] w-[3%] rounded-b-[3px] bg-[#111113]" />
-              <i className="absolute -bottom-[18px] right-[14%] h-[18px] w-[3%] rounded-b-[3px] bg-[#111113]" />
             </div>
           </motion.div>
           <p className="label mt-4 text-center sm:hidden">Tip: 가로 모드로 보면 더 커요</p>
