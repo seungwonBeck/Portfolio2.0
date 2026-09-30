@@ -65,6 +65,7 @@ function step(s: State, b: Action): State {
   const d = b === 'left' || b === 'up' ? -1 : 1
   switch (b) {
     case 'left': case 'right':
+      if (s.screen === 'ABOUT' && s.avatar === 1) return s // the real photo stays until the coin is clicked again
       if (s.screen === 'ABOUT') { // keys walk the picker (ME + characters); the real photo (1) only comes from flipping the coin
         const o = AVATAR_ORDER, i = o.indexOf(s.avatar)
         return { ...s, avatar: o[i < 0 ? 0 : clamp(i + d, o.length)] }

@@ -98,8 +98,9 @@ function About({ s }: { s: State }) {
   const [photo, setPhoto] = useState(s.avatar === 1) // back face shows the ID photo; it is released only after the coin has flipped away
   useEffect(() => {
     if (prev.current === s.avatar) return
-    setRot(r => r + ((prev.current === 1) !== (s.avatar === 1) ? 180 : 360))
+    const d = (prev.current === 1) !== (s.avatar === 1) ? 180 : 360 // read before prev changes: the updater runs later
     prev.current = s.avatar
+    setRot(r => r + d)
   }, [s.avatar])
   useEffect(() => {
     if (s.avatar === 1) { setPhoto(true); return }

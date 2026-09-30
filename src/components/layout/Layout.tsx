@@ -55,7 +55,7 @@ export const CardFace = ({ i, title }: { i: number; title: string }) => (
     <span className="absolute inset-0" style={{ clipPath: CARD_CLIP, borderRadius: 6, background: 'linear-gradient(165deg,#5b5d62 0%,#3f4044 50%,#303135 100%)' }} />
     <span className="absolute inset-[1.5px]" style={{ clipPath: CARD_CLIP, borderRadius: 5, background: 'linear-gradient(180deg,#414246 0%,#36373b 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.1), inset 0 -3px 5px rgba(0,0,0,.18)' }} />
     {/* logo mark: stays visible when the card is inserted and only its top edge shows */}
-    <Logo drift={false} className="absolute left-[9px] top-[2px] h-[12px] w-[12px] text-white/90" />
+    <Logo drift={false} flat className="absolute left-[9px] top-[2px] h-[12px] w-[12px]" />
     {/* shallow grip ridges */}
     <span className="absolute left-[34px] top-[6px] h-[6px] w-[28px]"
       style={{ background: 'repeating-linear-gradient(90deg,rgba(0,0,0,.35) 0 1.5px,rgba(255,255,255,.07) 1.5px 2.5px,transparent 2.5px 5px)' }} />
