@@ -21,7 +21,7 @@ export interface State {
   /** ABOUT screen: selected profile picture (0 = ID photo) */
   avatar: number
 }
-export const AVATAR_COUNT = 2
+export const AVATAR_COUNT = 7
 export const initial: State = { screen: 'BOOT', home: 0, proj: 0, contact: 0, hits: 0, only: null, row: 'tile', dock: 0, dir: 1, game: 0, gmode: null, pad: { n: 0, b: 'A' }, avatar: 0 }
 
 const clamp = (n: number, len: number) => Math.max(0, Math.min(len - 1, n))
@@ -64,7 +64,7 @@ function step(s: State, b: Action): State {
   const d = b === 'left' || b === 'up' ? -1 : 1
   switch (b) {
     case 'left': case 'right':
-      if (s.screen === 'ABOUT') return { ...s, avatar: clamp(s.avatar + d, AVATAR_COUNT) }
+      if (s.screen === 'ABOUT') return { ...s, avatar: Math.max(2, clamp(s.avatar + d, AVATAR_COUNT)) } // keys only pick characters; ME / PHOTO come from flipping the coin
       if (s.screen !== 'HOME') return s
       return s.row === 'tile' ? { ...s, home: clamp(s.home + d, TILES.length) } : { ...s, dock: clamp(s.dock + d, DOCK.length) }
     case 'up': case 'down':
