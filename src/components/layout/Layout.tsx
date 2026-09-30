@@ -25,8 +25,8 @@ export const IntroCopy = () => (
 
 const guide = [
   { icon: Move, t: '이동', k: '방향키 / 왼쪽 스틱' },
-  { icon: CircleDot, t: 'A · 선택', k: 'Enter / Z' },
-  { icon: CircleDot, t: 'B · 뒤로', k: 'Esc / X' },
+  { icon: CircleDot, t: 'A · 선택', k: 'Enter / Z / A' },
+  { icon: CircleDot, t: 'B · 뒤로', k: 'Esc / X / B' },
   { icon: Home, t: 'HOME', k: 'H · 홈으로' },
   { icon: CircleDot, t: 'Y · 테마', k: 'Y 키' },
   { icon: CircleDot, t: '+ / −', k: 'P 확대 · M 소리' },
@@ -121,7 +121,7 @@ export const Cartridges = ({ onPick, width, away }: { onPick: (i: number, from: 
  * half shows, with the title running down the spine. Clear plastic shell, printed insert in its own color, gloss. A picked case pops up with a
  * plain rise and fall back down; the loaded case glows with a PLAY tag.
  */
-const CASE = { w: 46, h: 212, gap: 6, lift: 62 } // lift: how high a picked case rises before it lowers again
+const CASE = { w: 46, h: 212, gap: 6, lift: 30 } // lift: how high a picked case rises before it lowers again
 export const CASE_ROW_W = projects.length * (CASE.w + CASE.gap) - CASE.gap
 // [highlight, mid, shadow, accent] per project: each print has its own color
 const PRINTS = [

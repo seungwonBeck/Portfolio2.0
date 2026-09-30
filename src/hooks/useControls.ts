@@ -5,11 +5,14 @@ import { play, Sfx } from './useSound'
 
 const KEYS: Record<string, Btn> = {
   ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down',
-  Enter: 'A', z: 'A', Z: 'A',
-  Escape: 'B', x: 'B', X: 'B', Backspace: 'B',
+  Enter: 'A', z: 'A', Z: 'A', a: 'A', A: 'A',
+  Escape: 'B', x: 'B', X: 'B', b: 'B', B: 'B', Backspace: 'B',
   h: 'HOME', H: 'HOME',
   y: 'Y', Y: 'Y', p: 'plus', P: 'plus', m: 'minus', M: 'minus',
 }
+
+// letter keys also by physical key, so they work while a Korean IME is on (e.key would be ㅁ, ㅠ ...)
+const CODES: Record<string, Btn> = { KeyA: 'A', KeyZ: 'A', KeyB: 'B', KeyX: 'B', KeyH: 'HOME', KeyY: 'Y', KeyP: 'plus', KeyM: 'minus' }
 
 const seen = () => { try { return !!localStorage.getItem('folio-seen') } catch { return false } }
 const bootMs = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : seen() ? 500 : 2000
@@ -66,7 +69,7 @@ export function useControls() {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return
       if ((e.target as HTMLElement).closest('input,textarea')) return
-      const b = KEYS[e.key]
+      const b = KEYS[e.key] ?? CODES[e.code]
       if (!b) { if (ref.current.state.screen === 'BOOT') dispatch('A'); return }
       e.preventDefault()
       if (!e.repeat) press(b)
