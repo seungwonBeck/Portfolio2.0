@@ -1,4 +1,4 @@
-/** Profile pictures for the ABOUT screen: 0 = the owner's cartoon, 1 = ID photo (public/avatars/*.webp; both only reachable by flipping the coin), 2+ = original pixel characters. */
+/** Profile pictures for the ABOUT screen: 0 = the owner's cartoon, 1 = ID photo (public/avatars/*.webp; the ID photo is only reachable by flipping the coin), 2+ = original pixel characters. */
 const img = (f: string) => `${import.meta.env.BASE_URL}avatars/${f}`
 
 const BLOB = ['..............', '....bbbbbb....', '..bbbbbbbbbb..', '..bbbbbbbbbb..', '..bbwwbbwwbb..', '..bbwebbwebb..', '..bbbbbbbbbb..', '..bbbbrrbbbb..', '..bbbbbbbbbb..', '...bbbbbbbb...', '....bbbbbb....', '....bbbbbb....']
