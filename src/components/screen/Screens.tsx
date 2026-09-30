@@ -2,7 +2,7 @@ import { ReactNode, RefObject, createContext, useContext, useEffect, useRef, use
 import { AnimatePresence, motion } from 'framer-motion'
 import { BatteryFull, ExternalLink, FolderOpen, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, Rocket, User } from 'lucide-react'
 import { contactItems, DOCK, State, TILES } from '../../store/nav'
-import { Avatar, AVATARS } from './avatars'
+import { Avatar, Coin } from './avatars'
 import { profile, projects, skills } from '../../types'
 
 const tileIcon = { ABOUT: User, PROJECTS: FolderOpen, SKILLS: Gauge, CONTACT: Mail, GAME: Gamepad2 }
@@ -88,38 +88,20 @@ function Home({ s }: { s: State }) {
 
 function About({ s }: { s: State }) {
   const pick = useContext(AvatarContext)
+  // the coin keeps spinning the same way: +180° per change instead of swinging back
+  const [rot, setRot] = useState(s.avatar * 180)
+  const prev = useRef(s.avatar)
+  useEffect(() => { if (prev.current !== s.avatar) { prev.current = s.avatar; setRot(r => r + 180) } }, [s.avatar])
   return (
     <Scroll>
       <Title>ABOUT ME</Title>
-      <div className="mb-4 flex items-center gap-6">
-        <div className="shrink-0 text-center">
-          {/* click = flip like a coin between the cartoon (0) and the ID photo (1) */}
-          <div style={{ perspective: 500 }}>
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.button key={s.avatar} type="button" aria-label="프로필 뒤집기" onClick={() => pick(s.avatar === 0 ? 1 : 0)}
-                initial={{ rotateY: -90 }} animate={{ rotateY: 0 }} exit={{ rotateY: 90 }} transition={{ duration: 0.2, ease: 'easeInOut' }}
-                className="block cursor-pointer rounded-full">
-                <Avatar i={s.avatar} className="h-[112px] w-[112px] ring-4 ring-white" />
-              </motion.button>
-            </AnimatePresence>
-          </div>
-          <div className="mt-1.5 text-[12px] font-extrabold">{profile.name}</div>
-          <div className="text-[10px] text-ink-sub">{profile.role}</div>
-          <div className="mx-auto mt-1 max-w-[130px] [word-break:keep-all] text-[10px] font-bold leading-tight text-accent-blue">↻ 프로필을 눌러보세요 · 동전처럼 뒤집혀요</div>
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="label mb-2">Edit character · {AVATARS[s.avatar].name}</div>
-          <div className="grid grid-cols-7 gap-1.5">
-            {AVATARS.map((a, i) => (
-              <button key={a.name} type="button" aria-label={a.name} onClick={() => pick(i)}
-                className={`grid aspect-square place-items-center rounded-lg bg-card p-1 ${i === s.avatar ? 'ring-[3px] ring-accent-blue' : 'ring-1 ring-black/10'}`}>
-                <Avatar i={i} className="h-full w-full" />
-              </button>
-            ))}
-          </div>
-          <p className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-ink-sub">
-            <span className="rounded bg-card px-1.5 py-0.5 font-bold text-ink ring-1 ring-black/10">◀ ▶</span>
-            키로 고르거나 직접 눌러서 프로필 사진을 바꿔보세요
+      <div className="mb-5 flex items-center gap-7">
+        <div className="shrink-0 pb-3"><Coin rot={rot} onClick={() => pick(s.avatar ? 0 : 1)} /></div>
+        <div className="min-w-0">
+          <div className="text-[18px] font-extrabold leading-tight">{profile.name}</div>
+          <div className="text-[12px] text-ink-sub">{profile.role}</div>
+          <p className="mt-2 flex items-center gap-1.5 text-[11px] font-bold text-accent-blue">
+            ↻ 동전(프로필)을 눌러보세요 · <span className="rounded bg-card px-1.5 py-0.5 text-ink ring-1 ring-black/10">◀ ▶</span> 키도 돼요
           </p>
         </div>
       </div>
