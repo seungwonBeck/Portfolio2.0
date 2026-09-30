@@ -15,25 +15,25 @@ export const Header = () => (
 export const IntroCopy = () => (
   <div className="w-full text-left">
     <div className="label mb-3">01 — The play edition</div>
-    <h1 className="font-display text-5xl font-black leading-[1.05] tracking-tight md:text-6xl lg:text-[6.5rem] xl:whitespace-nowrap">
+    <h1 className="font-display text-5xl font-black leading-[1.05] tracking-tight md:text-7xl lg:text-[7.5rem] xl:whitespace-nowrap">
       Portfolio
     </h1>
-    <p className="mt-5 max-w-xl text-base leading-relaxed text-ink-sub">{profile.intro}</p>
+    <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink-sub">{profile.intro}</p>
   </div>
 )
 
 const guide = [
-  { icon: Move, t: '이동', k: '← → ↑ ↓ / 왼쪽 스틱 드래그' },
+  { icon: Move, t: '이동', k: '방향키 / 왼쪽 스틱' },
   { icon: CircleDot, t: 'A · 선택', k: 'Enter / Z' },
-  { icon: CircleDot, t: 'B · 뒤로', k: 'Esc / X / Backspace' },
-  { icon: Home, t: 'HOME · 홈으로', k: 'H' },
-  { icon: CircleDot, t: 'Y · 화면 테마', k: 'Y' },
-  { icon: CircleDot, t: '+ / −', k: 'P 크게 보기 · M 효과음' },
+  { icon: CircleDot, t: 'B · 뒤로', k: 'Esc / X' },
+  { icon: Home, t: 'HOME', k: 'H · 홈으로' },
+  { icon: CircleDot, t: 'Y · 테마', k: 'Y 키' },
+  { icon: CircleDot, t: '+ / −', k: 'P 확대 · M 소리' },
 ]
 export const HowToPlay = () => (
   <aside className="hidden md:block">
     <div className="label mb-3 border-t border-black/10 pt-3">How to play</div>
-    <div className="grid gap-y-3">
+    <div className="grid grid-cols-2 gap-x-5 gap-y-3">
       {guide.map(g => (
         <div key={g.t} className="flex items-start gap-2">
           <g.icon size={18} strokeWidth={1.6} className="mt-0.5 shrink-0 text-ink-sub" />
