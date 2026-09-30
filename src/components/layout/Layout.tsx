@@ -15,10 +15,10 @@ export const Header = () => (
 export const IntroCopy = () => (
   <div className="w-full text-left">
     <div className="label mb-3">01 — The play edition</div>
-    <h1 className="font-display text-5xl font-black leading-[1.05] tracking-tight md:text-6xl lg:text-[5rem] xl:whitespace-nowrap">
+    <h1 className="font-display text-5xl font-black leading-[1.05] tracking-tight md:text-6xl lg:text-[6.5rem] xl:whitespace-nowrap">
       Portfolio
     </h1>
-    <p className="mt-4 max-w-md text-sm leading-relaxed text-ink-sub">{profile.intro}</p>
+    <p className="mt-5 max-w-xl text-base leading-relaxed text-ink-sub">{profile.intro}</p>
   </div>
 )
 
@@ -33,11 +33,11 @@ const guide = [
 export const HowToPlay = () => (
   <aside className="hidden md:block">
     <div className="label mb-3 border-t border-black/10 pt-3">How to play</div>
-    <div className="grid grid-cols-3 gap-x-6 gap-y-3">
+    <div className="grid gap-y-3">
       {guide.map(g => (
         <div key={g.t} className="flex items-start gap-2">
-          <g.icon size={16} strokeWidth={1.5} className="mt-0.5 shrink-0 text-ink-sub" />
-          <div><div className="text-xs font-semibold">{g.t}</div><div className="label !normal-case !tracking-normal">{g.k}</div></div>
+          <g.icon size={18} strokeWidth={1.6} className="mt-0.5 shrink-0 text-ink-sub" />
+          <div><div className="text-sm font-bold">{g.t}</div><div className="!text-[13px] text-ink-sub">{g.k}</div></div>
         </div>
       ))}
     </div>

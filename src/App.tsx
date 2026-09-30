@@ -83,7 +83,7 @@ function Hero({ children, onPick, away }: { children: (sep: MotionValue<number>)
   // centered stack: title, 160px, cartridges, 160px, console
   const top = (
     <section className="flex flex-col items-center px-5 pt-14 md:px-20">
-      <div className="grid w-full items-start gap-8 lg:grid-cols-[auto_minmax(320px,1fr)] lg:gap-12"><IntroCopy /><HowToPlay /></div>
+      <div className="grid w-full items-start gap-8 md:grid-cols-[7fr_3fr] lg:gap-12"><IntroCopy /><HowToPlay /></div>
       <div className="mt-14 w-full"><Cartridges onPick={onPick} width={rowW} away={away} /></div>
     </section>
   )
