@@ -1,17 +1,18 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { MotionValue, motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
+import { MotionValue, motion, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
 import { X } from 'lucide-react'
 import { ContactForm, Guestbook } from './components/layout/Forms'
 import { Music, SoundButton } from './components/layout/Music'
 import Console, { CANVAS } from './components/device/Console'
+import Logo from './components/Logo'
 import Screen, { AvatarContext, OpenContext } from './components/screen/Screens'
 import { projects } from './types'
 import { CardFace, Cartridges, chipScale, FallbackList, Footer, Header, HowToPlay, IntroCopy, Showcase } from './components/layout/Layout'
 import MobilePad from './components/layout/MobilePad'
 import { useControls } from './hooks/useControls'
 
-/** Scales the fixed-size console to its container's width, and to maxH if given. */
-function Scaled({ children, maxH = Infinity }: { children: React.ReactNode; maxH?: number }) {
+/** Scales the fixed-size console to its container's width, and to maxH if given. `dockY` lowers only the console; `overlay` (the dock) stays put. */
+function Scaled({ children, maxH = Infinity, dockY, screenOff, overlay }: { children: React.ReactNode; maxH?: number; dockY?: MotionValue<string>; screenOff?: MotionValue<number>; overlay?: React.ReactNode }) {
   const box = useRef<HTMLDivElement>(null)
   const [w, setW] = useState(CANVAS.w)
   useLayoutEffect(() => {
@@ -22,39 +23,62 @@ function Scaled({ children, maxH = Infinity }: { children: React.ReactNode; maxH
   const k = Math.min(w, maxH * (CANVAS.w / CANVAS.h)) / CANVAS.w
   return (
     <div ref={box} className="w-full" style={{ '--k': k } as React.CSSProperties}>
-      <div className="mx-auto" style={{ width: CANVAS.w * k, height: CANVAS.h * k }}>
-        <div style={{ width: CANVAS.w, height: CANVAS.h, transform: `scale(${k})`, transformOrigin: 'top left' }}>{children}</div>
+      <div className="relative mx-auto" style={{ width: CANVAS.w * k, height: CANVAS.h * k }}>
+        <motion.div className="absolute inset-0" style={dockY ? { y: dockY } : undefined}>
+          <div style={{ width: CANVAS.w, height: CANVAS.h, transform: `scale(${k})`, transformOrigin: 'top left' }}>{children}</div>
+          {screenOff && <motion.div aria-hidden className="pointer-events-none absolute bg-[#08080a]" style={{ opacity: screenOff, left: '18%', top: '9.35%', width: '63.5%', height: '81.7%' }} />}
+        </motion.div>
+        {overlay}
       </div>
     </div>
   )
 }
 
 const CAPTIONS = [
-  { a: 0.12, b: 0.46, t: 'Two halves, one maker.', d: '디자인과 개발, 두 손으로 만듭니다. 조이콘처럼 떼어도 붙여도 하나.' },
-  { a: 0.48, b: 0.64, t: 'Click.', d: '딱, 하고 맞물리는 순간.' },
-  { a: 0.7, b: 0.94, t: 'Big screen, big ideas.', d: '작은 화면 속 이야기 — 아래에서 직접 눌러보세요.' },
-]
+  { s: 'o', a: 0.12, b: 0.46, t: 'Two halves, one maker.', d: '디자인과 개발, 두 손으로 만듭니다. 조이콘처럼 떼어도 붙여도 하나.' },
+  { s: 'o', a: 0.48, b: 0.64, t: 'Click.', d: '딱, 하고 맞물리는 순간.' },
+  { s: 'q', a: 0.04, b: 0.4, t: 'Big screen, big ideas.', d: '독에 꽂으면, 작은 화면 속 이야기가 TV로 펼쳐집니다.', light: true },
+] as const
 
 function Fade({ p, keys, vals, children }: { p: MotionValue<number>; keys: number[]; vals: number[]; children: React.ReactNode }) {
   return <motion.div style={{ opacity: useTransform(p, keys, vals) }}>{children}</motion.div>
 }
 
-function Caption({ p, a, b, t, d }: { p: MotionValue<number>; a: number; b: number; t: string; d: string }) {
+function Caption({ p, a, b, t, d, light }: { p: MotionValue<number>; a: number; b: number; t: string; d: string; light?: boolean }) {
   const opacity = useTransform(p, [a, a + 0.03, b - 0.03, b], [0, 1, 1, 0])
   const y = useTransform(p, [a, a + 0.04], [16, 0])
   return (
-    <motion.div style={{ opacity, y }} className="absolute left-0 top-0">
+    <motion.div style={{ opacity, y }} className={`absolute left-0 top-0 ${light ? 'text-white' : ''}`}>
       <h2 className="font-display text-3xl font-black tracking-tight md:text-4xl">{t}</h2>
-      <p className="mt-2 text-sm text-ink-sub md:text-base">{d}</p>
+      <p className={`mt-2 text-sm md:text-base ${light ? 'text-white/70' : 'text-ink-sub'}`}>{d}</p>
     </motion.div>
+  )
+}
+
+/** The dock: a dark front panel that hides the lower console, with our logo on it and a cable running off to the right. */
+function Dock() {
+  return (
+    <div aria-hidden className="absolute z-20" style={{ left: '13.2%', width: '73.1%', top: '47%', height: '100%' }}>
+      <div className="absolute inset-0 overflow-hidden rounded-t-[7%/16%]"
+        style={{ background: 'linear-gradient(180deg,#3a3a3f 0%,#2b2b2f 12%,#242427 70%,#19191b 100%)', boxShadow: 'inset 0 2px 1px rgba(255,255,255,.14), 0 -8px 30px rgba(0,0,0,.35)' }}>
+        <div className="absolute inset-x-0 bottom-0 h-[16%] bg-[#141416]" style={{ boxShadow: 'inset 0 2px 3px rgba(0,0,0,.6)' }} />
+        <i className="absolute bottom-[6%] left-[2.2%] h-[1.4%] w-[0.9%] rounded-full bg-[#4be05f]" style={{ boxShadow: '0 0 6px #4be05f' }} />
+        <div className="absolute left-1/2 top-[22%] flex -translate-x-1/2 flex-col items-center text-white/90" style={{ width: '17%' }}>
+          <Logo drift={false} flat className="w-full" />
+          <span className="mt-[10%] whitespace-nowrap font-black tracking-[0.34em] text-white/85" style={{ fontSize: 'calc(var(--k, 1) * 22px)' }}>SEUNGWON.2</span>
+        </div>
+      </div>
+      <i className="absolute left-full h-[2px] rounded-full bg-white/25" style={{ bottom: '9%', width: '70vw' }} />
+    </div>
   )
 }
 
 /**
  * Hero. The console is playable from the first screen. Scrolling pins it and (1) detaches the Joy-Cons while it tilts
- * left/right, (2) snaps them back, (3) eases in toward the screen, then settles back to normal.
+ * left/right, (2) snaps them back, then (3) lowers it into a dock, (4) the view pulls back to a TV that fills the viewport
+ * and shows the console's screen. `po` is the old tilt story's progress, `q` the dock + TV story's.
  */
-function Hero({ children, onPick, away }: { children: (sep: MotionValue<number>) => React.ReactNode; onPick: (i: number, from: DOMRect) => void; away: number | null }) {
+function Hero({ children, tv, onPick, away }: { children: (sep: MotionValue<number>) => React.ReactNode; tv: React.ReactNode; onPick: (i: number, from: DOMRect) => void; away: number | null }) {
   const ref = useRef<HTMLDivElement>(null)
   const reduce = useReducedMotion()
   const [vh, setVh] = useState(innerHeight)
@@ -69,11 +93,28 @@ function Hero({ children, onPick, away }: { children: (sep: MotionValue<number>)
     return () => { removeEventListener('resize', f); ro.disconnect() }
   }, [])
   const { scrollYProgress: p } = useScroll({ target: ref, offset: ['start start', 'end end'] })
-  const soft = { stiffness: 55, damping: 24, mass: 1.2 } // slow, no overshoot: smooth zoom
+  const TOTAL = 650 // vh of scroll; the tilt story keeps its old pace (it used 450vh)
+  const po = useTransform(p, [0, 450 / TOTAL], [0, 1])
+  const q = useTransform(p, [0.46, 1], [0, 1])
+  const soft = { stiffness: 55, damping: 24, mass: 1.2 } // slow, no overshoot
   // low damping on purpose: re-attach overshoots a little, which reads as a "click"
-  const sep = useSpring(useTransform(p, [0.12, 0.28, 0.46, 0.6], [0, 320, 320, 0]), { stiffness: 140, damping: 13 })
-  const rotateY = useSpring(useTransform(p, [0.12, 0.24, 0.36, 0.48, 0.6], [0, -9, 9, -6, 0]), soft)
-  const scale = useSpring(useTransform(p, [0, 0.12, 0.28, 0.6, 0.72, 0.88, 0.95, 1], [1, 1, 0.92, 0.96, 1, 1.35, 1.35, 1]), soft)
+  const sep = useSpring(useTransform(po, [0.12, 0.28, 0.46, 0.6], [0, 320, 320, 0]), { stiffness: 140, damping: 13 })
+  const rotateY = useSpring(useTransform(po, [0.12, 0.24, 0.36, 0.48, 0.6], [0, -9, 9, -6, 0]), soft)
+  const scaleOld = useSpring(useTransform(po, [0, 0.12, 0.28, 0.6, 0.72], [1, 1, 0.92, 0.96, 1]), soft)
+  // dock + TV: the console lowers into the dock, the room goes dark, then the scene shrinks away and the TV grows to fill the viewport
+  const dockY = useSpring(useTransform(q, [0.05, 0.34], [0, 30]), soft)
+  const dockYPct = useTransform(dockY, v => `${v}%`)
+  const screenOff = useTransform(q, [0.24, 0.36], [0, 1])
+  const dockIn = useTransform(q, [0, 0.16], [0, 1])
+  const dockUp = useTransform(dockIn, v => `${(1 - v) * 40}%`)
+  const room = useTransform(q, [0, 0.16], [0, 1])
+  const sceneFade = useTransform(q, [0.42, 0.62], [1, 0])
+  const sceneShrink = useTransform(q, [0.4, 0.72], [1, 0.6])
+  const scale = useTransform([scaleOld, sceneShrink], ([a, b]: number[]) => a * b)
+  const tvO = useTransform(q, [0.42, 0.6], [0, 1])
+  const tvS = useTransform(q, [0.42, 0.8], [0.4, 1])
+  const [tvOn, setTvOn] = useState(false)
+  useMotionValueEvent(q, 'change', v => setTvOn(v > 0.42))
   // Once pinned, ease the console from its 80px-below-the-chips spot to the vertical center of the viewport.
   const maxH = Math.max(220, vh - topB - 80) // measured title + chips block (+56 frame padding, 24 breathing room): everything fits one viewport
   const est = Math.min(maxH, (innerWidth - (innerWidth >= 768 ? 160 : 40)) * (CANVAS.h / CANVAS.w)) // rendered console height
@@ -81,9 +122,10 @@ function Hero({ children, onPick, away }: { children: (sep: MotionValue<number>)
   const rowW = (est * CANVAS.w / CANVAS.h) * ((1520 - 233) / CANVAS.w)
   const centerY = useRef(0)
   centerY.current = Math.max(0, (vh - est) / 2 - 80)
-  const toCenter = useTransform(p, v => Math.min(1, v / 0.06) * centerY.current)
-  const zoomY = useTransform(p, [0.72, 0.88, 0.95, 1], [0, 60, 60, 0])
-  const y = useSpring(useTransform([toCenter, zoomY], ([a, b]: number[]) => a + b), soft)
+  const toCenter = useTransform(po, v => Math.min(1, v / 0.06) * centerY.current)
+  const y = useSpring(toCenter, soft)
+  // TV: the console's UI size (640×360) scaled to fill the viewport, with a thin bezel and a stand
+  const tk = Math.min((innerWidth - 16) / 640, (vh - 16 - 26) / 360)
 
   // centered stack: title, 160px, cartridges, 160px, console
   const top = (
@@ -97,13 +139,26 @@ function Hero({ children, onPick, away }: { children: (sep: MotionValue<number>)
   return (
     <>
       {top}
-      <div ref={ref} className="relative h-[450vh]" style={{ marginBottom: -Math.max(0, (vh - est) / 2 - 24) }} /* pull the next section up under the console's empty lower half */>
+      <div ref={ref} className="relative" style={{ height: `${TOTAL}vh` }}>
         <div className="sticky top-0 flex h-screen flex-col items-center overflow-hidden px-5 pt-14 md:px-20" style={{ perspective: 1800, '--chipw': `${90 * chipScale(rowW)}px` } as React.CSSProperties}>
+          <motion.div aria-hidden className="absolute inset-0" style={{ opacity: room, background: 'radial-gradient(120% 90% at 50% 40%,#46464b 0%,#323236 60%,#28282b 100%)' }} />
           <div className="pointer-events-none absolute left-5 top-20 z-10 w-[32rem] max-w-[85vw] md:left-20">
-            {CAPTIONS.map(c => <Caption key={c.t} p={p} {...c} />)}
+            {CAPTIONS.map(c => <Caption key={c.t} p={c.s === 'o' ? po : q} {...c} />)}
           </div>
-          <motion.div className="w-full" style={{ scale, rotateY, y }}>
-            <Scaled maxH={maxH}>{children(sep)}</Scaled>
+          <motion.div className="relative w-full" style={{ scale, rotateY, y, opacity: sceneFade }}>
+            <Scaled maxH={maxH} dockY={dockYPct} screenOff={screenOff}
+              overlay={<motion.div className="absolute inset-0" style={{ opacity: dockIn, y: dockUp }}><Dock /></motion.div>}>
+              {children(sep)}
+            </Scaled>
+          </motion.div>
+          <motion.div className="absolute inset-0 z-30 grid place-items-center" style={{ opacity: tvO, scale: tvS, pointerEvents: tvOn ? 'auto' : 'none' }}>
+            <div className="relative rounded-[6px] bg-[#0a0a0b] p-[8px] shadow-[0_20px_60px_rgba(0,0,0,.5)]" style={{ width: 640 * tk + 16, height: 360 * tk + 16, marginBottom: 26 }}>
+              <div className="relative overflow-hidden bg-black" style={{ width: 640 * tk, height: 360 * tk }}>
+                <div style={{ width: 640, height: 360, transform: `scale(${tk})`, transformOrigin: 'top left' }}>{tvOn && tv}</div>
+              </div>
+              <i className="absolute -bottom-[18px] left-[14%] h-[18px] w-[3%] rounded-b-[3px] bg-[#111113]" />
+              <i className="absolute -bottom-[18px] right-[14%] h-[18px] w-[3%] rounded-b-[3px] bg-[#111113]" />
+            </div>
           </motion.div>
           <p className="label mt-4 text-center sm:hidden">Tip: 가로 모드로 보면 더 커요</p>
         </div>
@@ -210,7 +265,7 @@ export default function App() {
     <OpenContext.Provider value={open}><AvatarContext.Provider value={setAvatar}>
       <Header />
       {fly && <Flying {...fly} onDone={() => { const n = fly.next; setFly(null); n?.() }} />}
-      <Hero onPick={insert} away={fly ? fly.i : inserted}>
+      <Hero onPick={insert} away={fly ? fly.i : inserted} tv={<Screen s={state} bootMs={bootMs} dark={dark} />}>
         {sep => (
           <Console pressed={pressed} press={press} sep={sep}>
             {!big && <Screen s={state} bootMs={bootMs} dark={dark} />}
