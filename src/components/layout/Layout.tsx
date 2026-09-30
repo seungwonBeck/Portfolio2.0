@@ -119,7 +119,7 @@ export const Cartridges = ({ onPick, width, away }: { onPick: (i: number, from: 
 /**
  * Game-case rack at the bottom of the TV scene, front view. The cases are tall, so the viewport's bottom edge crops them and only the upper
  * half shows, with the title running down the spine. Clear plastic shell, printed insert in its own color, gloss. A picked case pops up with a
- * small overshoot and settles back; the loaded case stays slightly raised, glowing, with a PLAY tag.
+ * smooth rise and fall; the loaded case stays slightly raised, glowing, with a PLAY tag.
  */
 const CASE = { w: 46, h: 212, gap: 6, lift: 62, held: 10 } // lift: pop height; held: how far the loaded case stays raised
 export const CASE_ROW_W = projects.length * (CASE.w + CASE.gap) - CASE.gap
@@ -147,12 +147,10 @@ export const CaseRack = ({ onPick, active, scale = 1 }: { onPick: (i: number) =>
                 <motion.button key={popping ? `p${pop!.n}` : 'rest'} type="button" onClick={() => pick(i)} aria-label={`${p.title} 케이스, TV에서 열기`}
                   className="absolute inset-0"
                   initial={false}
-                  animate={popping
-                    ? { y: [0, -lift * 1.07, -lift, -lift, 3, -held], rotate: [0, -1.2, -0.6, 0.6, 0, 0] }
-                    : { y: on ? -held : 0, rotate: 0 }}
+                  animate={popping ? { y: [0, -lift, -held] } : { y: on ? -held : 0 }}
                   transition={popping
-                    ? { duration: 1.6, times: [0, 0.2, 0.3, 0.56, 0.86, 1], ease: [[0.16, 0.9, 0.3, 1], [0.4, 0, 0.6, 1], 'linear', [0.5, 0, 0.75, 0.4], [0.3, 0, 0.3, 1]] }
-                    : { type: 'spring', stiffness: 260, damping: 24 }}
+                    ? { duration: 1.1, times: [0, 0.4, 1], ease: [[0.25, 0.8, 0.3, 1], [0.5, 0, 0.3, 1]] } // one smooth rise and fall: no overshoot, no hang
+                    : { type: 'spring', stiffness: 260, damping: 28 }}
                   whileHover={{ y: (on ? -held : 0) - 9, transition: { type: 'spring', stiffness: 380, damping: 22 } }}
                   style={{ filter: `drop-shadow(0 8px 6px rgba(0,0,0,.5))${on ? ' drop-shadow(0 0 9px rgba(43,212,255,.9))' : ''}` }}>
                   {on && <>

@@ -213,7 +213,7 @@ function Contact({ s }: { s: State }) {
       {contactItems.map((c, i) => (
         <div key={c.label} className={`mb-2 flex items-center justify-between rounded-xl bg-card px-4 py-2.5 text-[13px] font-bold
           ${i === s.contact ? 'ring-[3px] ring-accent-blue' : 'ring-1 ring-black/10'}`}>
-          {c.label}<span className="flex items-center gap-1 text-[11px] font-normal text-ink-sub">{c.label === 'Email' ? profile.email : 'A · open'}<ExternalLink size={12} /></span>
+          {c.label}<span className="flex items-center gap-1 text-[11px] font-normal text-ink-sub">{'handle' in c ? c.handle : profile.email}<ExternalLink size={12} /></span>
         </div>
       ))}
     </div>
