@@ -119,9 +119,9 @@ export const Cartridges = ({ onPick, width, away }: { onPick: (i: number, from: 
 /**
  * Game-case rack at the bottom of the TV scene, front view. The cases are tall, so the viewport's bottom edge crops them and only the upper
  * half shows, with the title running down the spine. Clear plastic shell, printed insert in its own color, gloss. A picked case pops up with a
- * smooth rise and fall; the loaded case stays slightly raised, glowing, with a PLAY tag.
+ * plain rise and fall back down; the loaded case glows with a PLAY tag.
  */
-const CASE = { w: 46, h: 212, gap: 6, lift: 62, held: 10 } // lift: pop height; held: how far the loaded case stays raised
+const CASE = { w: 46, h: 212, gap: 6, lift: 62 } // lift: how high a picked case rises before it lowers again
 export const CASE_ROW_W = projects.length * (CASE.w + CASE.gap) - CASE.gap
 // [highlight, mid, shadow, accent] per project: each print has its own color
 const PRINTS = [
@@ -130,7 +130,7 @@ const PRINTS = [
   ['#8fa0b8', '#51617a', '#1f2a3a', '#dbe4f2'],
 ]
 export const CaseRack = ({ onPick, active, scale = 1 }: { onPick: (i: number) => void; active?: number | null; scale?: number }) => {
-  const { w, h, gap, lift, held } = CASE
+  const { w, h, gap, lift } = CASE
   const W = CASE_ROW_W + 24
   const [pop, setPop] = useState<{ i: number; n: number } | null>(null) // n re-triggers the animation when the same case is picked again
   const pick = (i: number) => { setPop(s => ({ i, n: (s?.n ?? 0) + 1 })); onPick(i) }
@@ -147,11 +147,11 @@ export const CaseRack = ({ onPick, active, scale = 1 }: { onPick: (i: number) =>
                 <motion.button key={popping ? `p${pop!.n}` : 'rest'} type="button" onClick={() => pick(i)} aria-label={`${p.title} 케이스, TV에서 열기`}
                   className="absolute inset-0"
                   initial={false}
-                  animate={popping ? { y: [0, -lift, -held] } : { y: on ? -held : 0 }}
+                  animate={popping ? { y: [0, -lift, 0] } : { y: 0 }}
                   transition={popping
-                    ? { duration: 1.1, times: [0, 0.4, 1], ease: [[0.25, 0.8, 0.3, 1], [0.5, 0, 0.3, 1]] } // one smooth rise and fall: no overshoot, no hang
+                    ? { duration: 1.1, times: [0, 0.4, 1], ease: [[0.25, 0.8, 0.3, 1], [0.5, 0, 0.3, 1]] } // one plain rise and fall back to the resting spot
                     : { type: 'spring', stiffness: 260, damping: 28 }}
-                  whileHover={{ y: (on ? -held : 0) - 9, transition: { type: 'spring', stiffness: 380, damping: 22 } }}
+                  whileHover={{ y: -9, transition: { type: 'spring', stiffness: 380, damping: 22 } }}
                   style={{ filter: `drop-shadow(0 8px 6px rgba(0,0,0,.5))${on ? ' drop-shadow(0 0 9px rgba(43,212,255,.9))' : ''}` }}>
                   {on && <>
                     <span aria-hidden className="pointer-events-none absolute -inset-[4px] animate-[casePulse_1.6s_ease-in-out_infinite] rounded-t-[9px] border-2 border-[#2bd4ff]" style={{ boxShadow: '0 0 12px #2bd4ff, inset 0 0 8px rgba(43,212,255,.5)' }} />
