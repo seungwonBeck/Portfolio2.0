@@ -12,9 +12,10 @@ export default function MobilePad({ press }: { press: (b: Btn) => void }) {
     const place = () => { raf = 0; setTop(Math.min(el.getBoundingClientRect().bottom + 40, innerHeight - 140)) }
     const sched = () => { if (!raf) raf = requestAnimationFrame(place) }
     place(); addEventListener('scroll', sched, { passive: true }); addEventListener('resize', sched)
+    const ro = new ResizeObserver(sched); ro.observe(document.documentElement); ro.observe(el) // layout shifts (fonts, hero sizing) move the console without a scroll
     const io = new IntersectionObserver(([e]) => setShow(e.intersectionRatio > 0.3), { threshold: [0, 0.3, 0.6] })
     io.observe(el)
-    return () => { io.disconnect(); cancelAnimationFrame(raf); removeEventListener('scroll', sched); removeEventListener('resize', sched) }
+    return () => { io.disconnect(); ro.disconnect(); cancelAnimationFrame(raf); removeEventListener('scroll', sched); removeEventListener('resize', sched) }
   }, [])
 
   const b = (k: Btn, node: React.ReactNode, cls = '') => (

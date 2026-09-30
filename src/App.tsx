@@ -202,7 +202,7 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
           <motion.div className="absolute inset-0 flex flex-col items-center px-5 pt-14 md:px-20" style={{ x: pan }}>
             <motion.div className="relative w-full" style={{ scale, rotateY, y }}>
               <Scaled maxH={maxH} dockY={dockYPct} screenOff={screenOff}
-                overlay={<motion.div className="absolute inset-0" style={{ opacity: dockIn, y: dockUp }}><Dock /></motion.div>}>
+                overlay={<motion.div aria-hidden className="pointer-events-none absolute inset-0" style={{ opacity: dockIn, y: dockUp }}><Dock /></motion.div>}>
                 {children(sep)}
               </Scaled>
             </motion.div>
