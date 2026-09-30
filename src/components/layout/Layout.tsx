@@ -116,31 +116,47 @@ export const Cartridges = ({ onPick, width, away }: { onPick: (i: number, from: 
   )
 }
 
-/** Case rack under the TV (like a game-case stand): the cases stand with their spines showing, titles running top to bottom; the loaded one slides up out of the rack. */
+/**
+ * Game-case rack at the bottom of the TV scene. Each case is a real CSS 3D box (spine, top, right side) seen slightly from above; the row is
+ * cropped by the viewport's bottom edge so only the tops show. The loaded case slides up out of the rack.
+ */
+const CASE = { w: 40, h: 130, d: 62, gap: 7, lift: 40 }
+export const CASE_ROW_W = projects.length * (CASE.w + CASE.gap) - CASE.gap
 export const CaseRack = ({ onPick, active, scale = 1 }: { onPick: (i: number) => void; active?: number | null; scale?: number }) => {
-  const W = projects.length * 44 + 12
+  const { w, h, d, gap, lift } = CASE
+  const W = CASE_ROW_W + 40
   return (
-    <div style={{ width: W * scale, height: 190 * scale }}>
-      <div className="relative" style={{ width: W, height: 190, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
-        <ul className="absolute bottom-[18px] left-[6px] flex gap-[4px]">
-          {projects.map((p, i) => (
-            <li key={p.id} className="relative h-[130px] w-[40px]">
-              <button type="button" onClick={() => active !== i && onPick(i)} aria-label={`${p.title} 케이스, TV에서 열기`}
-                className={`absolute inset-0 overflow-hidden rounded-t-[4px] transition-transform duration-500 ease-out [filter:drop-shadow(0_3px_3px_rgba(0,0,0,.45))] ${active === i ? '-translate-y-[36px]' : 'hover:-translate-y-2 focus-visible:-translate-y-2'}`}
-                style={{ background: i % 2 ? 'linear-gradient(90deg,#2a7fa6,#1d86b3 50%,#17698b)' : 'linear-gradient(90deg,#c24232,#b3392b 50%,#93291d)' }}>
-                <span className="absolute inset-x-0 top-0 h-[5px] bg-white/35" />
-                <Logo drift={false} flat className="absolute left-1/2 top-[10px] h-[15px] w-[15px] -translate-x-1/2 opacity-95" />
-                <span className="screen-font absolute inset-x-0 bottom-[8px] top-[32px] grid justify-center overflow-hidden text-[11.5px] font-extrabold leading-none tracking-[0.02em] text-white" style={{ writingMode: 'vertical-rl' }}>
-                  <span className="max-h-full overflow-hidden text-ellipsis whitespace-nowrap">{p.title}</span>
-                </span>
-                <span className="absolute inset-y-0 right-0 w-[3px] bg-black/25" />
-              </button>
-            </li>
-          ))}
+    <div style={{ width: W * scale, height: (h + lift + 20) * scale }}>
+      <div className="relative" style={{ width: W, height: h + lift + 20, transform: `scale(${scale})`, transformOrigin: 'top left', perspective: 900, perspectiveOrigin: '50% -10%' }}>
+        <ul className="absolute bottom-0 flex" style={{ left: 20, gap, transformStyle: 'preserve-3d', transform: 'rotateX(-14deg) rotateY(-16deg)' }}>
+          {projects.map((p, i) => {
+            const blue = i % 2 === 1
+            const [c1, c2, c3] = blue ? ['#3a9cc4', '#1d86b3', '#135d7c'] : ['#d65646', '#b3392b', '#7f1f15']
+            return (
+              <li key={p.id} className="relative" style={{ width: w, height: h, transformStyle: 'preserve-3d' }}>
+                <button type="button" onClick={() => active !== i && onPick(i)} aria-label={`${p.title} 케이스, TV에서 열기`}
+                  className={`absolute inset-0 transition-transform duration-500 ease-out ${active === i ? '' : 'hover:[transform:translateY(-10px)] focus-visible:[transform:translateY(-10px)]'}`}
+                  style={{ transformStyle: 'preserve-3d', transform: active === i ? `translateY(-${lift}px)` : undefined }}>
+                  {/* spine (front) */}
+                  <span className="absolute inset-0 overflow-hidden rounded-t-[3px]" style={{ transform: `translateZ(${d / 2}px)`, background: `linear-gradient(90deg,${c1} 0%,${c2} 45%,${c3} 100%)`, boxShadow: 'inset 1px 0 0 rgba(255,255,255,.35), inset -1px 0 0 rgba(0,0,0,.35)' }}>
+                    <span className="absolute inset-x-0 top-0 h-[7px] bg-gradient-to-b from-white/45 to-white/5" />
+                    <span className="absolute inset-y-0 left-[5px] w-[2px] bg-white/15" />
+                    <Logo drift={false} flat className="absolute left-1/2 top-[14px] h-[16px] w-[16px] -translate-x-1/2" />
+                    <span className="screen-font absolute inset-x-0 bottom-[10px] top-[40px] grid justify-center overflow-hidden text-[12px] font-extrabold leading-none tracking-[0.03em] text-white [text-shadow:0_1px_1px_rgba(0,0,0,.45)]" style={{ writingMode: 'vertical-rl' }}>
+                      <span className="max-h-full overflow-hidden text-ellipsis whitespace-nowrap">{p.title}</span>
+                    </span>
+                  </span>
+                  {/* top */}
+                  <span className="absolute" style={{ left: 0, top: -d / 2, width: w, height: d, transform: 'rotateX(90deg)', background: `linear-gradient(180deg,#f4f5f7,${c1} 130%)` }}>
+                    <span className="absolute inset-x-[6px] top-[10px] h-[2px] rounded bg-black/25" />
+                  </span>
+                  {/* right side */}
+                  <span className="absolute" style={{ left: w - d / 2, top: 0, width: d, height: h, transform: 'rotateY(90deg)', background: `linear-gradient(90deg,${c3},#2a0d08 140%)` }} />
+                </button>
+              </li>
+            )
+          })}
         </ul>
-        {/* stepped tray */}
-        <div aria-hidden className="absolute inset-x-0 bottom-0 h-[26px]" style={{ clipPath: 'polygon(2.5% 0, 97.5% 0, 100% 100%, 0 100%)', background: 'linear-gradient(180deg,#eef0f3,#cfd3da 55%,#b9bec7)', boxShadow: 'inset 0 2px 0 rgba(255,255,255,.9)' }} />
-        <div aria-hidden className="absolute inset-x-[14px] bottom-[6px] h-[8px] opacity-60" style={{ background: 'repeating-linear-gradient(90deg,transparent 0 40px,rgba(0,0,0,.25) 40px 42px,transparent 42px 44px)' }} />
       </div>
     </div>
   )

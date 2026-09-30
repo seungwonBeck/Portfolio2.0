@@ -57,28 +57,39 @@ function Caption({ p, a, b, t, d, light }: { p: MotionValue<number>; a: number; 
   )
 }
 
-/** Controller halves at the bottom corners of the TV scene: a D-pad on the left, face buttons on the right. Hand-drawn style arrow above says what they are. */
-function SideCtrl({ side, press }: { side: 'l' | 'r'; press: (b: Btn) => void }) {
-  const btn = (b: Btn, node: React.ReactNode, cls = '') => (
-    <button type="button" aria-label={b} onPointerDown={e => { e.preventDefault(); press(b) }}
-      className={`grid h-9 w-9 touch-manipulation place-items-center rounded-full bg-[#1b1c1f] text-[13px] font-extrabold text-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,.14),0_2px_3px_rgba(0,0,0,.5)] active:scale-90 active:bg-[#0f1012] ${cls}`}>{node}</button>
+/** One controller at the bottom right of the TV scene (cut off by the viewport edge): D-pad, home, face buttons. Buttons are raised, they press down. */
+function TvPad({ press, scale }: { press: (b: Btn) => void; scale: number }) {
+  const hit = (b: Btn, node: React.ReactNode, cls = '', style?: React.CSSProperties) => (
+    <button type="button" aria-label={b} onPointerDown={e => { e.preventDefault(); press(b) }} style={style}
+      className={`group absolute grid touch-manipulation place-items-center text-white/90 ${cls}`}>{node}</button>
   )
-  const arrow = <svg aria-hidden viewBox="0 0 40 44" className="mx-auto h-11 w-10" fill="none" stroke="rgba(255,255,255,.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 3 C 16 14 24 22 20 36 M11 28 L20 38 L30 28" /></svg>
+  const round = 'rounded-full bg-[radial-gradient(circle_at_35%_28%,#55565c_0%,#2a2b2f_55%,#17181a_100%)] shadow-[0_4px_0_#09090a,0_7px_10px_rgba(0,0,0,.55),inset_0_1px_0_rgba(255,255,255,.22)] transition-[transform,box-shadow] duration-75 group-active:translate-y-[3px] group-active:shadow-[0_1px_0_#09090a,0_2px_3px_rgba(0,0,0,.5),inset_0_1px_0_rgba(255,255,255,.15)]'
   return (
-    <div className={`absolute bottom-0 z-10 flex flex-col items-center ${side === 'l' ? 'left-[6%]' : 'right-[6%]'}`} style={{ width: 132 }}>
-      <span className="text-[12px] font-bold text-white/70">{side === 'l' ? '방향키로 이동' : 'A 로 선택'}</span>
-      {arrow}
-      <div className="relative h-[150px] w-full overflow-hidden rounded-t-[66px]" style={{ background: 'linear-gradient(180deg,#3d3e42,#2a2b2e 40%,#1f2023)', boxShadow: 'inset 0 2px 0 rgba(255,255,255,.18), 0 -6px 24px rgba(0,0,0,.4)' }}>
-        <div className="absolute left-1/2 top-[26px] grid -translate-x-1/2 grid-cols-3 gap-[2px]">
-          {side === 'l' ? (<>
-            <span />{btn('up', <ChevronUp size={18} />)}<span />
-            {btn('left', <ChevronLeft size={18} />)}<span />{btn('right', <ChevronRight size={18} />)}
-            <span />{btn('down', <ChevronDown size={18} />)}<span />
-          </>) : (<>
-            <span />{btn('HOME', 'X')}<span />
-            {btn('Y', 'Y')}<span />{btn('A', 'A', '!bg-accent-red')}
-            <span />{btn('B', 'B')}<span />
-          </>)}
+    <div className="absolute z-10 flex flex-col items-center" style={{ right: '6%', bottom: -70 * scale, width: 330 * scale, height: 250 * scale }}>
+      <div className="flex flex-col items-center" style={{ width: 330, height: 250, transform: `scale(${scale})`, transformOrigin: 'top center' }}>
+        <span className="text-[13px] font-bold text-white/75">방향키로 이동 · A 로 선택</span>
+        <svg aria-hidden viewBox="0 0 40 44" className="h-11 w-10" fill="none" stroke="rgba(255,255,255,.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 3 C 16 14 24 22 20 36 M11 28 L20 38 L30 28" /></svg>
+        <div className="relative h-[200px] w-full" style={{ perspective: 700 }}>
+          <div className="absolute inset-0 rounded-t-[120px]" style={{ transform: 'rotateX(14deg)', transformOrigin: '50% 100%', background: 'linear-gradient(180deg,#46474c 0%,#303135 35%,#222327 100%)', boxShadow: 'inset 0 3px 0 rgba(255,255,255,.22), inset 0 -10px 30px rgba(0,0,0,.45), 0 -10px 34px rgba(0,0,0,.5)' }}>
+            {/* d-pad: a raised cross with four hit areas */}
+            <div className="absolute left-[38px] top-[54px] h-[92px] w-[92px]">
+              <span className="absolute left-[31px] top-0 h-full w-[30px] rounded-[6px] bg-gradient-to-b from-[#3b3c41] to-[#1c1d20] shadow-[0_4px_0_#09090a,0_8px_10px_rgba(0,0,0,.5),inset_0_1px_0_rgba(255,255,255,.25)]" />
+              <span className="absolute left-0 top-[31px] h-[30px] w-full rounded-[6px] bg-gradient-to-b from-[#3b3c41] to-[#1c1d20] shadow-[0_4px_0_#09090a,inset_0_1px_0_rgba(255,255,255,.25)]" />
+              {hit('up', <ChevronUp size={18} />, 'rounded-[6px] active:bg-white/10', { left: 31, top: 0, width: 30, height: 31 })}
+              {hit('down', <ChevronDown size={18} />, 'rounded-[6px] active:bg-white/10', { left: 31, top: 61, width: 30, height: 31 })}
+              {hit('left', <ChevronLeft size={18} />, 'rounded-[6px] active:bg-white/10', { left: 0, top: 31, width: 31, height: 30 })}
+              {hit('right', <ChevronRight size={18} />, 'rounded-[6px] active:bg-white/10', { left: 61, top: 31, width: 31, height: 30 })}
+            </div>
+            {/* home */}
+            {hit('HOME', <span className="h-[10px] w-[10px] rounded-[3px] border-2 border-white/70" />, `${round}`, { left: 147, top: 26, width: 36, height: 36 })}
+            {/* face buttons */}
+            <div className="absolute right-[34px] top-[44px] h-[112px] w-[112px]">
+              {hit('HOME', 'X', `${round} text-[14px] font-extrabold`, { left: 38, top: 0, width: 38, height: 38 })}
+              {hit('Y', 'Y', `${round} text-[14px] font-extrabold`, { left: 0, top: 37, width: 38, height: 38 })}
+              {hit('A', 'A', `${round} text-[14px] font-extrabold !bg-[radial-gradient(circle_at_35%_28%,#ff8a7d_0%,#e0402f_55%,#9c1f12_100%)]`, { left: 75, top: 37, width: 38, height: 38 })}
+              {hit('B', 'B', `${round} text-[14px] font-extrabold`, { left: 38, top: 74, width: 38, height: 38 })}
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -157,12 +168,11 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
   // TV: the console's UI size (640×360) scaled to fill the viewport, with a thin bezel and a stand
   // TV with a game-case rack underneath; the TV is sized so both fit the viewport
   const fw = innerWidth, cw = est * CANVAS.w / CANVAS.h
-  const rs = Math.max(0.7, Math.min(1.25, vh * 0.2 / 150)) // case rack scale
-  const rackH = 190 * rs
-  const tk = Math.min((fw * 0.86 - 16) / 640, 0.85 * (vh - 16 - rackH - 28 - 30) / 360)
+  const rs = Math.max(0.5, Math.min(1.3, vh / 720, fw / 1150)) // case rack + controller scale
+  const BOT = 175 * rs // the bottom band the rack and controller crop into
+  const tk = Math.min((fw * 0.86 - 16) / 640, 0.9 * (vh - BOT - 16 - 24) / 360)
   const tvW = 640 * tk + 16, tvBox = 360 * tk + 16
-  const groupH = tvBox + 24 + rackH
-  const tvTop = (vh - groupH) / 2
+  const tvTop = (vh - BOT - tvBox) / 2
   // cable: leaves the dock's lower right, runs right along the floor, then plugs into the TV's left side in the next "screen" of the world
   const cx0 = fw / 2 + cw * 0.363, cy0 = 56 + centerY.current + 1.38 * est
   const cx1 = fw * WORLD + (fw - tvW) / 2, cy1 = tvTop + tvBox * 0.78
@@ -200,16 +210,16 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
               <path d={cable} stroke="rgba(255,255,255,.28)" strokeWidth="2.5" strokeLinecap="round" />
             </motion.svg>
             <div className="absolute top-0 grid h-full w-full place-items-center" style={{ left: `${WORLD * 100}%` }}>
-              <div className="flex flex-col items-center" style={{ gap: 24 }}>
+              <div className="absolute left-1/2 -translate-x-1/2" style={{ top: tvTop }}>
                 <div className="relative rounded-[6px] bg-[#0a0a0b] p-[8px] shadow-[0_20px_60px_rgba(0,0,0,.5)]" style={{ width: tvW, height: tvBox }}>
                   <div className="relative overflow-hidden bg-black" style={{ width: 640 * tk, height: 360 * tk }}>
                     <div style={{ width: 640, height: 360, transform: `scale(${tk})`, transformOrigin: 'top left' }}>{tvOn && tv}</div>
                   </div>
                 </div>
-                <CaseRack onPick={onPickTv} active={away} scale={rs} />
               </div>
-              <SideCtrl side="l" press={onPress} />
-              <SideCtrl side="r" press={onPress} />
+              {/* cases and controller sit at the bottom edge and are cropped by it */}
+              <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: -58 * rs }}><CaseRack onPick={onPickTv} active={away} scale={rs} /></div>
+              <TvPad press={onPress} scale={rs} />
             </div>
           </motion.div>
           <p className="label mt-4 text-center sm:hidden">Tip: 가로 모드로 보면 더 커요</p>
