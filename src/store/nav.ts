@@ -21,7 +21,7 @@ export interface State {
   /** ABOUT screen: selected profile picture (0 = ID photo) */
   avatar: number
 }
-export const AVATAR_COUNT = 6
+export const AVATAR_COUNT = 7
 export const initial: State = { screen: 'BOOT', home: 0, proj: 0, contact: 0, hits: 0, only: null, row: 'tile', dock: 0, dir: 1, game: 0, gmode: null, pad: { n: 0, b: 'A' }, avatar: 0 }
 
 const clamp = (n: number, len: number) => Math.max(0, Math.min(len - 1, n))

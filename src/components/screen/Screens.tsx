@@ -99,7 +99,7 @@ function About({ s }: { s: State }) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="label mb-2">Edit character · {AVATARS[s.avatar].name}</div>
-          <div className="grid grid-cols-6 gap-2">
+          <div className="grid grid-cols-7 gap-1.5">
             {AVATARS.map((a, i) => (
               <button key={a.name} type="button" aria-label={a.name} onClick={() => pick(i)}
                 className={`grid aspect-square place-items-center rounded-lg bg-card p-1 ${i === s.avatar ? 'ring-[3px] ring-accent-blue' : 'ring-1 ring-black/10'}`}>
