@@ -7,7 +7,7 @@ import Console, { CANVAS } from './components/device/Console'
 import Logo from './components/Logo'
 import Screen, { AvatarContext, OpenContext } from './components/screen/Screens'
 import { projects } from './types'
-import { CardFace, Cartridges, chipScale, FallbackList, Footer, Header, HowToPlay, IntroCopy, Showcase } from './components/layout/Layout'
+import { CardFace, Cartridges, ChipRack, chipScale, FallbackList, Footer, Header, HowToPlay, IntroCopy, Showcase } from './components/layout/Layout'
 import MobilePad from './components/layout/MobilePad'
 import { useControls } from './hooks/useControls'
 
@@ -77,7 +77,7 @@ function Dock() {
  * left/right, (2) snaps them back, then (3) lowers it into a dock, (4) the view pulls back to a TV that fills the viewport
  * and shows the console's screen. `po` is the old tilt story's progress, `q` the dock + TV story's.
  */
-function Hero({ children, tv, onPick, away }: { children: (sep: MotionValue<number>) => React.ReactNode; tv: React.ReactNode; onPick: (i: number, from: DOMRect) => void; away: number | null }) {
+function Hero({ children, tv, onPick, onPickTv, away }: { children: (sep: MotionValue<number>) => React.ReactNode; tv: React.ReactNode; onPick: (i: number, from: DOMRect) => void; onPickTv: (i: number) => void; away: number | null }) {
   const ref = useRef<HTMLDivElement>(null)
   const reduce = useReducedMotion()
   const [vh, setVh] = useState(innerHeight)
@@ -122,12 +122,18 @@ function Hero({ children, tv, onPick, away }: { children: (sep: MotionValue<numb
   const toCenter = useTransform(po, v => Math.min(1, v / 0.06) * centerY.current)
   const y = useSpring(toCenter, soft)
   // TV: the console's UI size (640×360) scaled to fill the viewport, with a thin bezel and a stand
-  const tk = 0.78 * Math.min((innerWidth - 16) / 640, (vh - 16 - 26) / 360)
-  // cable: leaves the dock's lower right, runs right along the floor, then drops into the TV's left foot in the next "screen" of the world
+  const GAP = 28 // chip rack beside the TV; the rack grows with the TV (rs)
   const fw = innerWidth, cw = est * CANVAS.w / CANVAS.h
+  const tk0 = Math.min((fw * 0.9 - 194 - GAP - 16) / 640, 0.78 * (vh - 16 - 90) / 360)
+  const rs = Math.max(0.9, Math.min(1.5, tk0 / 1.3)), RACK = 194 * rs
+  const tk = Math.min(tk0, (fw * 0.9 - RACK - GAP - 16) / 640)
+  const tvW = 640 * tk + 16, tvBox = 360 * tk + 16, groupW = tvW + GAP + RACK
+  const shelfTop = (vh - 70) / 2 + tvBox / 2 // TV and rack stand on the shelf; its V legs run down from here
+  const legH = Math.max(30, Math.min(110, vh - shelfTop - 14 - 12))
+  // cable: leaves the dock's lower right, runs right along the floor, then drops onto the shelf's left end in the next "screen" of the world
   const cx0 = fw / 2 + cw * 0.363, cy0 = 56 + centerY.current + 1.38 * est
-  const tvBox = 360 * tk + 16, tvBottom = (vh - 26) / 2 + tvBox / 2, tvLeft = fw * WORLD + (fw - (640 * tk + 16)) / 2
-  const cx1 = tvLeft + (640 * tk + 16) * 0.155, cy1 = tvBottom + 10
+  const groupLeft = fw * WORLD + (fw - groupW) / 2
+  const cx1 = groupLeft + 26, cy1 = shelfTop + 7
   const cable = `M${cx0} ${cy0} H${cx1 - 90} C${cx1 - 30} ${cy0} ${cx1} ${cy1 - 40} ${cx1} ${cy1}`
 
   // centered stack: title, 160px, cartridges, 160px, console
@@ -159,12 +165,20 @@ function Hero({ children, tv, onPick, away }: { children: (sep: MotionValue<numb
               <path d={cable} stroke="rgba(255,255,255,.28)" strokeWidth="2.5" strokeLinecap="round" />
             </motion.svg>
             <div className="absolute top-0 grid h-full w-full place-items-center" style={{ left: `${WORLD * 100}%` }}>
-              <div className="relative rounded-[6px] bg-[#0a0a0b] p-[8px] shadow-[0_20px_60px_rgba(0,0,0,.5)]" style={{ width: 640 * tk + 16, height: 360 * tk + 16, marginBottom: 26 }}>
-                <div className="relative overflow-hidden bg-black" style={{ width: 640 * tk, height: 360 * tk }}>
-                  <div style={{ width: 640, height: 360, transform: `scale(${tk})`, transformOrigin: 'top left' }}>{tvOn && tv}</div>
+              <div className="relative flex items-end" style={{ gap: GAP, marginBottom: 70 }}>
+                <div className="relative rounded-[6px] bg-[#0a0a0b] p-[8px] shadow-[0_20px_60px_rgba(0,0,0,.5)]" style={{ width: tvW, height: tvBox }}>
+                  <div className="relative overflow-hidden bg-black" style={{ width: 640 * tk, height: 360 * tk }}>
+                    <div style={{ width: 640, height: 360, transform: `scale(${tk})`, transformOrigin: 'top left' }}>{tvOn && tv}</div>
+                  </div>
                 </div>
-                <i className="absolute -bottom-[18px] left-[14%] h-[18px] w-[3%] rounded-b-[3px] bg-[#111113]" />
-                <i className="absolute -bottom-[18px] right-[14%] h-[18px] w-[3%] rounded-b-[3px] bg-[#111113]" />
+                <ChipRack onPick={onPickTv} away={away} scale={rs} />
+                {/* shelf with V-shaped legs */}
+                <div aria-hidden className="absolute -inset-x-4 top-full h-[14px] rounded-[3px]" style={{ background: 'linear-gradient(180deg,#48484d 0%,#2c2c30 40%,#1d1d20 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.2), 0 10px 30px rgba(0,0,0,.5)' }} />
+                {[8, 92].map(x => (
+                  <svg key={x} aria-hidden className="absolute overflow-visible" style={{ left: `${x}%`, top: `calc(100% + 14px)`, width: 60, height: legH, marginLeft: -30 }} viewBox={`0 0 60 ${legH}`} fill="none">
+                    <path d={`M4 0 L30 ${legH} L56 0`} stroke="#3c3c42" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                ))}
               </div>
             </div>
           </motion.div>
@@ -273,7 +287,7 @@ export default function App() {
     <OpenContext.Provider value={open}><AvatarContext.Provider value={setAvatar}>
       <Header />
       {fly && <Flying {...fly} onDone={() => { const n = fly.next; setFly(null); n?.() }} />}
-      <Hero onPick={insert} away={fly ? fly.i : inserted} tv={<Screen s={state} bootMs={bootMs} dark={dark} />}>
+      <Hero onPick={insert} onPickTv={i => { if (fly || i === inserted) return; setInserted(i); setOnly(i); pick(i) }} away={fly ? fly.i : inserted} tv={<Screen s={state} bootMs={bootMs} dark={dark} />}>
         {sep => (
           <Console pressed={pressed} press={press} sep={sep}>
             {!big && <Screen s={state} bootMs={bootMs} dark={dark} />}
