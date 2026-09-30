@@ -18,13 +18,16 @@ export interface State {
   only: number | null; row: 'tile' | 'dock'; dock: number; dir: 1 | -1
   /** GAME screen: game (menu focus), gmode (running game, null = menu), pad (last button pressed inside a game; n counts presses) */
   game: number; gmode: number | null; pad: { n: number; b: Btn }
+  /** ABOUT screen: selected profile picture (0 = ID photo) */
+  avatar: number
 }
-export const initial: State = { screen: 'BOOT', home: 0, proj: 0, contact: 0, hits: 0, only: null, row: 'tile', dock: 0, dir: 1, game: 0, gmode: null, pad: { n: 0, b: 'A' } }
+export const AVATAR_COUNT = 6
+export const initial: State = { screen: 'BOOT', home: 0, proj: 0, contact: 0, hits: 0, only: null, row: 'tile', dock: 0, dir: 1, game: 0, gmode: null, pad: { n: 0, b: 'A' }, avatar: 0 }
 
 const clamp = (n: number, len: number) => Math.max(0, Math.min(len - 1, n))
 
 /** pick: cartridge inserted → title splash (LOAD). loaded: splash finished → project detail (ignored if the user already left). */
-export type Action = Btn | { pick: number } | { loaded: true } | { only: number | null } | { open: { row: 'tile' | 'dock'; i: number } }
+export type Action = Btn | { pick: number } | { loaded: true } | { only: number | null } | { open: { row: 'tile' | 'dock'; i: number } } | { avatar: number }
 
 export const GAMES = 3
 
@@ -37,6 +40,7 @@ export function reducer(s: State, b: Action): State {
 function step(s: State, b: Action): State {
   if (typeof b === 'object') {
     if ('only' in b) return { ...s, only: b.only }
+    if ('avatar' in b) return { ...s, avatar: clamp(b.avatar, AVATAR_COUNT) }
     if ('open' in b) { // mouse/touch on a tile or dock icon: same as focusing it and pressing A
       const { row, i } = b.open
       if (s.screen !== 'HOME') return s
@@ -60,6 +64,7 @@ function step(s: State, b: Action): State {
   const d = b === 'left' || b === 'up' ? -1 : 1
   switch (b) {
     case 'left': case 'right':
+      if (s.screen === 'ABOUT') return { ...s, avatar: clamp(s.avatar + d, AVATAR_COUNT) }
       if (s.screen !== 'HOME') return s
       return s.row === 'tile' ? { ...s, home: clamp(s.home + d, TILES.length) } : { ...s, dock: clamp(s.dock + d, DOCK.length) }
     case 'up': case 'down':

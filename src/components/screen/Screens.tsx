@@ -2,6 +2,7 @@ import { ReactNode, RefObject, createContext, useContext, useEffect, useRef, use
 import { AnimatePresence, motion } from 'framer-motion'
 import { BatteryFull, ExternalLink, FolderOpen, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, Rocket, User } from 'lucide-react'
 import { contactItems, DOCK, State, TILES } from '../../store/nav'
+import { Avatar, AVATARS } from './avatars'
 import { profile, projects, skills } from '../../types'
 
 const tileIcon = { ABOUT: User, PROJECTS: FolderOpen, SKILLS: Gauge, CONTACT: Mail, GAME: Gamepad2 }
@@ -31,6 +32,7 @@ export function Boot({ ms }: { ms: number }) {
 }
 
 /** Lets tiles and dock icons be clicked/tapped (provided by App). */
+export const AvatarContext = createContext<(i: number) => void>(() => {})
 export const OpenContext = createContext<(row: 'tile' | 'dock', i: number) => void>(() => {})
 
 const dockColor = { ABOUT: '#ff4b3e', PROJECTS: '#ff9f43', SKILLS: '#34c759', CONTACT: '#1fb6e8', GAME: '#8a8b90' }
@@ -84,10 +86,33 @@ function Home({ s }: { s: State }) {
   )
 }
 
-function About() {
+function About({ s }: { s: State }) {
+  const pick = useContext(AvatarContext)
   return (
     <Scroll>
       <Title>ABOUT ME</Title>
+      <div className="mb-4 flex items-center gap-6">
+        <div className="shrink-0 text-center">
+          <Avatar i={s.avatar} className="h-[112px] w-[112px] ring-4 ring-white" />
+          <div className="mt-1.5 text-[12px] font-extrabold">{profile.name}</div>
+          <div className="text-[10px] text-ink-sub">{profile.role}</div>
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="label mb-2">Edit character · {AVATARS[s.avatar].name}</div>
+          <div className="grid grid-cols-6 gap-2">
+            {AVATARS.map((a, i) => (
+              <button key={a.name} type="button" aria-label={a.name} onClick={() => pick(i)}
+                className={`grid aspect-square place-items-center rounded-lg bg-card p-1 ${i === s.avatar ? 'ring-[3px] ring-accent-blue' : 'ring-1 ring-black/10'}`}>
+                <Avatar i={i} className="h-full w-full" />
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-ink-sub">
+            <span className="rounded bg-card px-1.5 py-0.5 font-bold text-ink ring-1 ring-black/10">◀ ▶</span>
+            키로 고르거나 직접 눌러서 프로필 사진을 바꿔보세요
+          </p>
+        </div>
+      </div>
       <p className="mb-4 text-[13px] leading-relaxed">{profile.intro}</p>
       <div className="label mb-2">Timeline</div>
       {profile.timeline.map(t => (
@@ -581,7 +606,7 @@ export default function Screen({ s, bootMs, dark }: { s: State; bootMs: number; 
       {chrome && (
         <motion.div className="flex items-center justify-between px-5 py-3 text-[11px] font-semibold" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
           <span className="flex items-center gap-2">
-            <span className="grid h-6 w-6 place-items-center rounded-full bg-device-body text-[11px] text-white">{profile.name[0]}</span>
+            <Avatar i={s.avatar} className="h-6 w-6" />
             {profile.name}
           </span>
           <span className="flex items-center gap-2">

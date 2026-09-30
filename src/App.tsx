@@ -4,7 +4,7 @@ import { X } from 'lucide-react'
 import { ContactForm, Guestbook } from './components/layout/Forms'
 import { Music, SoundButton } from './components/layout/Music'
 import Console, { CANVAS } from './components/device/Console'
-import Screen, { OpenContext } from './components/screen/Screens'
+import Screen, { AvatarContext, OpenContext } from './components/screen/Screens'
 import { projects } from './types'
 import { CardFace, Cartridges, chipScale, FallbackList, Footer, Header, HowToPlay, IntroCopy, Showcase } from './components/layout/Layout'
 import MobilePad from './components/layout/MobilePad'
@@ -174,7 +174,7 @@ function TvMode({ children, onClose }: { children: React.ReactNode; onClose: () 
 }
 
 export default function App() {
-  const { state, pressed, press, pick, goHome, setOnly, open, bootMs, sound, big, setBig, dark, toggleSound } = useControls()
+  const { state, pressed, press, pick, goHome, setOnly, setAvatar, open, bootMs, sound, big, setBig, dark, toggleSound } = useControls()
   type Fly = { i: number; from: DOMRect; to: { x: number; y: number }; eject?: boolean; next?: () => void }
   const [fly, setFly] = useState<Fly | null>(null)
   const [inserted, setInserted] = useState<number | null>(null) // the cartridge currently in the console; its pocket stays empty
@@ -199,7 +199,7 @@ export default function App() {
     } else start()
   }
   return (
-    <OpenContext.Provider value={open}>
+    <OpenContext.Provider value={open}><AvatarContext.Provider value={setAvatar}>
       <Header />
       {fly && <Flying {...fly} onDone={() => { const n = fly.next; setFly(null); n?.() }} />}
       <Hero onPick={insert} away={fly ? fly.i : inserted}>
@@ -215,6 +215,6 @@ export default function App() {
       <MobilePad press={press} />
       <SoundButton sound={sound} onToggle={toggleSound} />
       {big && <TvMode onClose={() => setBig(false)}><Screen s={state} bootMs={bootMs} dark={dark} /></TvMode>}
-    </OpenContext.Provider>
+    </AvatarContext.Provider></OpenContext.Provider>
   )
 }
