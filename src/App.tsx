@@ -168,7 +168,7 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
   // TV: the console's UI size (640×360) scaled to fill the viewport, with a thin bezel and a stand
   // TV with a game-case rack underneath; the TV is sized so both fit the viewport
   const fw = innerWidth, cw = est * CANVAS.w / CANVAS.h
-  const rs = Math.max(0.5, Math.min(1.3, vh / 720, fw / 1150)) // case rack + controller scale
+  const rs = Math.max(0.5, Math.min(1.3, vh / 720, fw / 1250)) // case rack + controller scale
   const BOT = 246 * rs // the bottom band: the whole controller, and the tops of the cases cropped by the bottom edge
   const tk = Math.min((fw * 0.86 - 16) / 640, 0.9 * (vh - BOT - 16 - 24) / 360)
   const tvW = 640 * tk + 16, tvBox = 360 * tk + 16
@@ -218,7 +218,7 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
                 </div>
               </div>
               {/* cases and controller sit at the bottom edge and are cropped by it */}
-              <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: -62 * rs }}><CaseRack onPick={onPickTv} active={away} scale={rs} /></div>
+              <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: -(212 - 155) * rs }}><CaseRack onPick={onPickTv} active={away} scale={rs} /></div>
               <TvPad press={onPress} scale={rs} />
             </div>
           </motion.div>

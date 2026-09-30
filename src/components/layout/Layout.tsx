@@ -117,10 +117,10 @@ export const Cartridges = ({ onPick, width, away }: { onPick: (i: number, from: 
 }
 
 /**
- * Game-case rack at the bottom of the TV scene, front view: case spines side by side, cropped by the viewport's bottom edge so only the tops
- * show. Every case is a clear plastic shell around a printed spine insert. The loaded case slides up out of the rack.
+ * Game-case rack at the bottom of the TV scene, front view. The cases are tall, so the viewport's bottom edge crops them and only the upper
+ * ~75% shows, with the title running down the spine. Clear plastic shell, printed insert, gloss. The loaded case slides up out of the rack.
  */
-const CASE = { w: 44, h: 132, gap: 6, lift: 44 }
+const CASE = { w: 46, h: 212, gap: 6, lift: 44 }
 export const CASE_ROW_W = projects.length * (CASE.w + CASE.gap) - CASE.gap
 export const CaseRack = ({ onPick, active, scale = 1 }: { onPick: (i: number) => void; active?: number | null; scale?: number }) => {
   const { w, h, gap, lift } = CASE
@@ -131,25 +131,30 @@ export const CaseRack = ({ onPick, active, scale = 1 }: { onPick: (i: number) =>
         <ul className="absolute bottom-0 flex" style={{ left: 12, gap }}>
           {projects.map((p, i) => {
             const blue = i % 2 === 1
-            const [hi, mid, lo] = blue ? ['#46a9d2', '#1d86b3', '#0f5573'] : ['#e0624f', '#b8392b', '#7a1d12']
+            const [hi, mid, lo] = blue ? ['#58b8df', '#1f8ab8', '#0b4d69'] : ['#ee7361', '#bd3c2d', '#6f180f']
+            const on = active === i
             return (
               <li key={p.id} className="relative" style={{ width: w, height: h }}>
-                <button type="button" onClick={() => active !== i && onPick(i)} aria-label={`${p.title} 케이스, TV에서 열기`}
-                  className={`absolute inset-0 transition-transform duration-500 ease-out ${active === i ? '' : 'hover:-translate-y-2.5 focus-visible:-translate-y-2.5'}`}
-                  style={{ transform: active === i ? `translateY(-${lift}px)` : undefined, filter: 'drop-shadow(0 6px 5px rgba(0,0,0,.55))' }}>
-                  {/* clear outer shell */}
-                  <span className="absolute inset-0 rounded-t-[5px]" style={{ background: 'linear-gradient(90deg,rgba(255,255,255,.9),rgba(235,238,242,.55) 10%,rgba(235,238,242,.35) 90%,rgba(255,255,255,.8))', boxShadow: 'inset 0 1px 0 #fff, 0 0 0 1px rgba(0,0,0,.35)' }} />
-                  {/* printed spine */}
-                  <span className="absolute inset-[3px] top-[4px] overflow-hidden rounded-t-[3px]" style={{ background: `linear-gradient(90deg,${hi} 0%,${mid} 38%,${lo} 100%)`, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.25)' }}>
-                    <span className="absolute inset-x-0 top-0 h-[22px] bg-[#16171a]" />
-                    <Logo drift={false} flat className="absolute left-1/2 top-[4px] h-[14px] w-[14px] -translate-x-1/2" />
-                    <span className="absolute inset-x-0 top-[22px] h-[2px] bg-white/60" />
-                    <span className="screen-font absolute inset-x-0 bottom-[14px] top-[30px] grid justify-center overflow-hidden text-[12.5px] font-extrabold leading-none tracking-[0.04em] text-white [text-shadow:0_1px_1px_rgba(0,0,0,.5)]" style={{ writingMode: 'vertical-rl' }}>
+                <button type="button" onClick={() => !on && onPick(i)} aria-label={`${p.title} 케이스, TV에서 열기`}
+                  className={`absolute inset-0 transition-[transform,filter] duration-[650ms] ease-[cubic-bezier(.22,1.15,.36,1)] ${on ? '' : 'hover:-translate-y-2.5 focus-visible:-translate-y-2.5'}`}
+                  style={{ transform: on ? `translateY(-${lift}px)` : undefined, filter: `drop-shadow(0 ${on ? 14 : 7}px ${on ? 10 : 6}px rgba(0,0,0,${on ? .6 : .5}))` }}>
+                  {/* clear outer shell: bright rim, inner bevel */}
+                  <span className="absolute inset-0 rounded-t-[6px]" style={{ background: 'linear-gradient(90deg,rgba(255,255,255,.95),rgba(232,236,241,.6) 9%,rgba(232,236,241,.3) 91%,rgba(255,255,255,.85))', boxShadow: 'inset 0 1.5px 0 #fff, inset 0 -1px 0 rgba(0,0,0,.2), 0 0 0 1px rgba(0,0,0,.4)' }} />
+                  <span className="absolute inset-x-[2px] top-[2px] h-[6px] rounded-t-[4px] bg-gradient-to-b from-white to-white/30" />
+                  {/* printed insert */}
+                  <span className="absolute inset-x-[4px] bottom-0 top-[8px] overflow-hidden rounded-t-[2px]" style={{ background: `linear-gradient(90deg,${hi} 0%,${mid} 40%,${lo} 100%)`, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.3), inset 0 2px 3px rgba(0,0,0,.25)' }}>
+                    {/* header plate */}
+                    <span className="absolute inset-x-0 top-0 h-[30px]" style={{ background: 'linear-gradient(180deg,#26272b,#121316)', boxShadow: '0 1px 0 rgba(255,255,255,.55)' }} />
+                    <Logo drift={false} flat className="absolute left-1/2 top-[6px] h-[17px] w-[17px] -translate-x-1/2" />
+                    <span className="absolute inset-x-0 top-[31px] h-[3px] bg-gradient-to-b from-white/70 to-white/10" />
+                    <span className="absolute inset-x-[3px] top-[38px] text-center text-[8.5px] font-bold leading-none tracking-[0.08em] text-white/75">{String(i + 1).padStart(2, '0')}</span>
+                    <span className="screen-font absolute inset-x-0 bottom-[16px] top-[54px] grid justify-center overflow-hidden text-[13.5px] font-extrabold leading-none tracking-[0.05em] text-white [text-shadow:0_1px_1px_rgba(0,0,0,.55)]" style={{ writingMode: 'vertical-rl' }}>
                       <span className="max-h-full overflow-hidden text-ellipsis whitespace-nowrap">{p.title}</span>
                     </span>
-                    <span className="absolute bottom-[4px] left-1/2 h-[6px] w-[14px] -translate-x-1/2 bg-[repeating-linear-gradient(90deg,#fff_0_1px,transparent_1px_3px)] opacity-70" />
-                    {/* glossy highlight */}
-                    <span className="absolute inset-0" style={{ background: 'linear-gradient(105deg,rgba(255,255,255,.4) 0%,rgba(255,255,255,.08) 28%,transparent 45%,rgba(0,0,0,.18) 100%)' }} />
+                    {/* fine print texture and gloss */}
+                    <span className="absolute inset-0 opacity-[.07]" style={{ background: 'repeating-linear-gradient(45deg,#fff 0 1px,transparent 1px 3px)' }} />
+                    <span className="absolute inset-0" style={{ background: 'linear-gradient(104deg,rgba(255,255,255,.42) 0%,rgba(255,255,255,.1) 26%,transparent 44%,rgba(0,0,0,.22) 100%)' }} />
+                    <span className="absolute inset-y-0 left-[3px] w-[2px] bg-gradient-to-b from-white/60 via-white/20 to-transparent" />
                   </span>
                 </button>
               </li>
