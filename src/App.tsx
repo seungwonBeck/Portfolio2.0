@@ -110,6 +110,9 @@ function Hero({ children, tv, onPick, onPickTv, away }: { children: (sep: Motion
   const room = useTransform(q, [0, 0.16], [0, 1])
   // once docked, the camera follows the cable to the right (scroll goes down, the view goes right) and the TV comes into view
   const pan = useTransform(q, [0.4, 0.9], ['0%', `${-WORLD * 100}%`])
+  // headline over the long cable stretch, fixed to the viewport while the world slides by
+  const linkO = useTransform(q, [0.46, 0.54, 0.74, 0.82], [0, 1, 1, 0])
+  const linkY = useTransform(q, [0.46, 0.54, 0.74, 0.82], [28, 0, 0, -28])
   const [tvOn, setTvOn] = useState(false)
   useMotionValueEvent(q, 'change', v => setTvOn(v > 0.34))
   // Once pinned, ease the console from its 80px-below-the-chips spot to the vertical center of the viewport.
@@ -154,6 +157,9 @@ function Hero({ children, tv, onPick, onPickTv, away }: { children: (sep: Motion
           <div className="pointer-events-none absolute left-5 top-20 z-10 w-[32rem] max-w-[85vw] md:left-20">
             {CAPTIONS.map(c => <Caption key={c.t} p={c.s === 'o' ? po : q} {...c} />)}
           </div>
+          <motion.div aria-hidden className="pointer-events-none absolute inset-x-0 top-[20%] z-20 px-6 text-center text-white" style={{ opacity: linkO, y: linkY }}>
+            <p className="text-[clamp(1.75rem,5.2vw,4.5rem)] font-extrabold leading-[1.25] tracking-tight [word-break:keep-all]">독을 연결하면<br />큰 화면으로 프로젝트가 펼쳐집니다</p>
+          </motion.div>
           <motion.div className="absolute inset-0 flex flex-col items-center px-5 pt-14 md:px-20" style={{ x: pan }}>
             <motion.div className="relative w-full" style={{ scale, rotateY, y }}>
               <Scaled maxH={maxH} dockY={dockYPct} screenOff={screenOff}
