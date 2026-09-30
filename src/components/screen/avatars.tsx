@@ -42,7 +42,7 @@ const SIZE = 120, DEPTH = 14 // px
 export function Coin({ rot, front, photo, onClick }: { rot: number; front: number; photo: boolean; onClick: () => void }) {
   const face = { backfaceVisibility: 'hidden' } as const
   return (
-    <button type="button" aria-label="프로필 뒤집기" onClick={onClick} className="relative block cursor-pointer" style={{ width: SIZE, height: SIZE, perspective: 600 }}>
+    <button type="button" aria-label="프로필 뒤집기" onClick={onClick} className="relative block cursor-pointer outline-none focus:outline-none focus-visible:outline-none" style={{ width: SIZE, height: SIZE, perspective: 600 }}>
       <span className="absolute -bottom-3 left-1/2 h-3 w-[70%] -translate-x-1/2 rounded-full bg-black/20 blur-[6px]" />
       <span className="absolute inset-0 block transition-transform duration-[900ms] ease-[cubic-bezier(.3,1.4,.5,1)]" style={{ transformStyle: 'preserve-3d', transform: `rotateY(${rot}deg)`, willChange: 'transform' }}>
         {Array.from({ length: DEPTH }, (_, k) => (
