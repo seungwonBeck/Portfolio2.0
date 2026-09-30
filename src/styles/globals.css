@@ -1,0 +1,53 @@
+﻿@import 'tailwindcss';
+
+/* Paperlogy — drop the woff2 files into /public/fonts (see README) */
+@font-face { font-family: 'Paperlogy'; font-weight: 300; font-display: swap; src: url('/fonts/Paperlogy-3Light.ttf') format('truetype'); }
+@font-face { font-family: 'Paperlogy'; font-weight: 400; font-display: swap; src: url('/fonts/Paperlogy-4Regular.ttf') format('truetype'); }
+@font-face { font-family: 'Paperlogy'; font-weight: 500; font-display: swap; src: url('/fonts/Paperlogy-5Medium.ttf') format('truetype'); }
+@font-face { font-family: 'Paperlogy'; font-weight: 600; font-display: swap; src: url('/fonts/Paperlogy-6SemiBold.ttf') format('truetype'); }
+@font-face { font-family: 'Paperlogy'; font-weight: 700; font-display: swap; src: url('/fonts/Paperlogy-7Bold.ttf') format('truetype'); }
+@font-face { font-family: 'Paperlogy'; font-weight: 800; font-display: swap; src: url('/fonts/Paperlogy-8ExtraBold.ttf') format('truetype'); }
+@font-face { font-family: 'Paperlogy'; font-weight: 900; font-display: swap; src: url('/fonts/Paperlogy-9Black.ttf') format('truetype'); }
+
+/* KBL 점프체: Regular covers weights up to 500, Bold covers 600 and up */
+@font-face { font-family: 'KBL Jump'; font-weight: 100 500; font-display: swap; src: url('/fonts/KBLJump_R.ttf') format('truetype'); }
+@font-face { font-family: 'KBL Jump'; font-weight: 600 900; font-display: swap; src: url('/fonts/KBLJump_B.ttf') format('truetype'); }
+
+/* Extra-bold display faces: Jump Extended for big headlines, Court for labels and tile names */
+@font-face { font-family: 'KBL Jump Extended'; font-weight: 100 900; font-display: swap; src: url('/fonts/KBLJump_EB_Extended.ttf') format('truetype'); }
+@font-face { font-family: 'KBL Court'; font-weight: 100 900; font-display: swap; src: url('/fonts/KBLCourt_EB.ttf') format('truetype'); }
+
+@theme {
+  --font-display: 'KBL Jump Extended', 'KBL Jump', 'Paperlogy', system-ui, sans-serif;
+  --font-court: 'KBL Court', 'KBL Jump', 'Paperlogy', system-ui, sans-serif;
+  --font-sans: 'KBL Jump', 'Paperlogy', 'Pretendard', 'Malgun Gothic', system-ui, sans-serif;
+  --color-device-body: #1c1d21;
+  --color-device-edge: #2a2b30;
+  --color-accent-blue: #1fb6e8;
+  --color-accent-red: #ff4b3e;
+  --color-bg: #f3f2ee;
+  --color-ink: #16171a;
+  --color-ink-sub: #8a8b90;
+  --color-screen: #ededed;
+  --color-card: #ffffff;
+}
+
+/* everything inside the device screen uses Paperlogy (beats the .font-display / .font-court / .label overrides) */
+.screen-font, .screen-font * { font-family: 'Paperlogy', 'Pretendard', 'Malgun Gothic', system-ui, sans-serif !important; }
+
+/* device screen dark theme: same tokens, overridden below the .screen-dark node */
+.screen-dark { --color-screen: #2d2d30; --color-card: #3a3a3f; --color-ink: #f2f2f2; --color-ink-sub: #a0a1a6; }
+
+body { background: var(--color-bg); color: var(--color-ink); font-family: var(--font-sans); font-weight: 400; }
+
+.label { font-family: var(--font-court); font-size: 10px; font-weight: 300; letter-spacing: 0.15em; text-transform: uppercase; color: var(--color-ink-sub); }
+
+:focus-visible { outline: 2px solid var(--color-accent-blue); outline-offset: 2px; }
+
+/* Showcase strip: slide left by one full copy of the list, forever */
+@keyframes marquee { to { transform: translateX(-50%); } }
+.marquee { animation: marquee 60s linear infinite; }
+.marquee:hover { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .marquee { animation: none !important; } }
+
+@media (prefers-reduced-motion: reduce) { * { transition-duration: 0s !important; animation-duration: 0s !important; } }
