@@ -65,14 +65,14 @@ function TvPad({ press, scale }: { press: (b: Btn) => void; scale: number }) {
   )
   const round = 'rounded-full bg-[radial-gradient(circle_at_35%_28%,#55565c_0%,#2a2b2f_55%,#17181a_100%)] shadow-[0_4px_0_#09090a,0_7px_10px_rgba(0,0,0,.55),inset_0_1px_0_rgba(255,255,255,.22)] transition-[transform,box-shadow] duration-75 group-active:translate-y-[3px] group-active:shadow-[0_1px_0_#09090a,0_2px_3px_rgba(0,0,0,.5),inset_0_1px_0_rgba(255,255,255,.15)]'
   return (
-    <div className="absolute z-10 flex flex-col items-center" style={{ right: '6%', bottom: -70 * scale, width: 330 * scale, height: 250 * scale }}>
-      <div className="flex flex-col items-center" style={{ width: 330, height: 250, transform: `scale(${scale})`, transformOrigin: 'top center' }}>
+    <div className="absolute z-10 flex flex-col items-center" style={{ right: '5%', bottom: 10 * scale, width: 330 * scale, height: 232 * scale }}>
+      <div className="flex flex-col items-center" style={{ width: 330, height: 232, transform: `scale(${scale})`, transformOrigin: 'top center' }}>
         <span className="text-[13px] font-bold text-white/75">방향키로 이동 · A 로 선택</span>
         <svg aria-hidden viewBox="0 0 40 44" className="h-11 w-10" fill="none" stroke="rgba(255,255,255,.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 3 C 16 14 24 22 20 36 M11 28 L20 38 L30 28" /></svg>
-        <div className="relative h-[200px] w-full" style={{ perspective: 700 }}>
-          <div className="absolute inset-0 rounded-t-[120px]" style={{ transform: 'rotateX(14deg)', transformOrigin: '50% 100%', background: 'linear-gradient(180deg,#46474c 0%,#303135 35%,#222327 100%)', boxShadow: 'inset 0 3px 0 rgba(255,255,255,.22), inset 0 -10px 30px rgba(0,0,0,.45), 0 -10px 34px rgba(0,0,0,.5)' }}>
+        <div className="relative h-[170px] w-full" style={{ perspective: 700 }}>
+          <div className="absolute inset-0 rounded-[70px_70px_26px_26px]" style={{ transform: 'rotateX(10deg)', transformOrigin: '50% 100%', background: 'linear-gradient(180deg,#46474c 0%,#303135 35%,#222327 100%)', boxShadow: 'inset 0 3px 0 rgba(255,255,255,.22), inset 0 -10px 30px rgba(0,0,0,.45), 0 -10px 34px rgba(0,0,0,.5)' }}>
             {/* d-pad: a raised cross with four hit areas */}
-            <div className="absolute left-[38px] top-[54px] h-[92px] w-[92px]">
+            <div className="absolute left-[38px] top-[38px] h-[92px] w-[92px]">
               <span className="absolute left-[31px] top-0 h-full w-[30px] rounded-[6px] bg-gradient-to-b from-[#3b3c41] to-[#1c1d20] shadow-[0_4px_0_#09090a,0_8px_10px_rgba(0,0,0,.5),inset_0_1px_0_rgba(255,255,255,.25)]" />
               <span className="absolute left-0 top-[31px] h-[30px] w-full rounded-[6px] bg-gradient-to-b from-[#3b3c41] to-[#1c1d20] shadow-[0_4px_0_#09090a,inset_0_1px_0_rgba(255,255,255,.25)]" />
               {hit('up', <ChevronUp size={18} />, 'rounded-[6px] active:bg-white/10', { left: 31, top: 0, width: 30, height: 31 })}
@@ -81,9 +81,9 @@ function TvPad({ press, scale }: { press: (b: Btn) => void; scale: number }) {
               {hit('right', <ChevronRight size={18} />, 'rounded-[6px] active:bg-white/10', { left: 61, top: 31, width: 31, height: 30 })}
             </div>
             {/* home */}
-            {hit('HOME', <span className="h-[10px] w-[10px] rounded-[3px] border-2 border-white/70" />, `${round}`, { left: 147, top: 26, width: 36, height: 36 })}
+            {hit('HOME', <span className="h-[10px] w-[10px] rounded-[3px] border-2 border-white/70" />, `${round}`, { left: 147, top: 22, width: 36, height: 36 })}
             {/* face buttons */}
-            <div className="absolute right-[34px] top-[44px] h-[112px] w-[112px]">
+            <div className="absolute right-[34px] top-[28px] h-[112px] w-[112px]">
               {hit('HOME', 'X', `${round} text-[14px] font-extrabold`, { left: 38, top: 0, width: 38, height: 38 })}
               {hit('Y', 'Y', `${round} text-[14px] font-extrabold`, { left: 0, top: 37, width: 38, height: 38 })}
               {hit('A', 'A', `${round} text-[14px] font-extrabold !bg-[radial-gradient(circle_at_35%_28%,#ff8a7d_0%,#e0402f_55%,#9c1f12_100%)]`, { left: 75, top: 37, width: 38, height: 38 })}
@@ -169,7 +169,7 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
   // TV with a game-case rack underneath; the TV is sized so both fit the viewport
   const fw = innerWidth, cw = est * CANVAS.w / CANVAS.h
   const rs = Math.max(0.5, Math.min(1.3, vh / 720, fw / 1150)) // case rack + controller scale
-  const BOT = 175 * rs // the bottom band the rack and controller crop into
+  const BOT = 246 * rs // the bottom band: the whole controller, and the tops of the cases cropped by the bottom edge
   const tk = Math.min((fw * 0.86 - 16) / 640, 0.9 * (vh - BOT - 16 - 24) / 360)
   const tvW = 640 * tk + 16, tvBox = 360 * tk + 16
   const tvTop = (vh - BOT - tvBox) / 2
@@ -218,7 +218,7 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
                 </div>
               </div>
               {/* cases and controller sit at the bottom edge and are cropped by it */}
-              <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: -58 * rs }}><CaseRack onPick={onPickTv} active={away} scale={rs} /></div>
+              <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: -62 * rs }}><CaseRack onPick={onPickTv} active={away} scale={rs} /></div>
               <TvPad press={onPress} scale={rs} />
             </div>
           </motion.div>

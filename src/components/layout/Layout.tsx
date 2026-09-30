@@ -117,41 +117,40 @@ export const Cartridges = ({ onPick, width, away }: { onPick: (i: number, from: 
 }
 
 /**
- * Game-case rack at the bottom of the TV scene. Each case is a real CSS 3D box (spine, top, right side) seen slightly from above; the row is
- * cropped by the viewport's bottom edge so only the tops show. The loaded case slides up out of the rack.
+ * Game-case rack at the bottom of the TV scene, front view: case spines side by side, cropped by the viewport's bottom edge so only the tops
+ * show. Every case is a clear plastic shell around a printed spine insert. The loaded case slides up out of the rack.
  */
-const CASE = { w: 40, h: 130, d: 62, gap: 7, lift: 40 }
+const CASE = { w: 44, h: 132, gap: 6, lift: 44 }
 export const CASE_ROW_W = projects.length * (CASE.w + CASE.gap) - CASE.gap
 export const CaseRack = ({ onPick, active, scale = 1 }: { onPick: (i: number) => void; active?: number | null; scale?: number }) => {
-  const { w, h, d, gap, lift } = CASE
-  const W = CASE_ROW_W + 40
+  const { w, h, gap, lift } = CASE
+  const W = CASE_ROW_W + 24
   return (
-    <div style={{ width: W * scale, height: (h + lift + 20) * scale }}>
-      <div className="relative" style={{ width: W, height: h + lift + 20, transform: `scale(${scale})`, transformOrigin: 'top left', perspective: 900, perspectiveOrigin: '50% -10%' }}>
-        <ul className="absolute bottom-0 flex" style={{ left: 20, gap, transformStyle: 'preserve-3d', transform: 'rotateX(-14deg) rotateY(-16deg)' }}>
+    <div style={{ width: W * scale, height: (h + lift + 10) * scale }}>
+      <div className="relative" style={{ width: W, height: h + lift + 10, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+        <ul className="absolute bottom-0 flex" style={{ left: 12, gap }}>
           {projects.map((p, i) => {
             const blue = i % 2 === 1
-            const [c1, c2, c3] = blue ? ['#3a9cc4', '#1d86b3', '#135d7c'] : ['#d65646', '#b3392b', '#7f1f15']
+            const [hi, mid, lo] = blue ? ['#46a9d2', '#1d86b3', '#0f5573'] : ['#e0624f', '#b8392b', '#7a1d12']
             return (
-              <li key={p.id} className="relative" style={{ width: w, height: h, transformStyle: 'preserve-3d' }}>
+              <li key={p.id} className="relative" style={{ width: w, height: h }}>
                 <button type="button" onClick={() => active !== i && onPick(i)} aria-label={`${p.title} 케이스, TV에서 열기`}
-                  className={`absolute inset-0 transition-transform duration-500 ease-out ${active === i ? '' : 'hover:[transform:translateY(-10px)] focus-visible:[transform:translateY(-10px)]'}`}
-                  style={{ transformStyle: 'preserve-3d', transform: active === i ? `translateY(-${lift}px)` : undefined }}>
-                  {/* spine (front) */}
-                  <span className="absolute inset-0 overflow-hidden rounded-t-[3px]" style={{ transform: `translateZ(${d / 2}px)`, background: `linear-gradient(90deg,${c1} 0%,${c2} 45%,${c3} 100%)`, boxShadow: 'inset 1px 0 0 rgba(255,255,255,.35), inset -1px 0 0 rgba(0,0,0,.35)' }}>
-                    <span className="absolute inset-x-0 top-0 h-[7px] bg-gradient-to-b from-white/45 to-white/5" />
-                    <span className="absolute inset-y-0 left-[5px] w-[2px] bg-white/15" />
-                    <Logo drift={false} flat className="absolute left-1/2 top-[14px] h-[16px] w-[16px] -translate-x-1/2" />
-                    <span className="screen-font absolute inset-x-0 bottom-[10px] top-[40px] grid justify-center overflow-hidden text-[12px] font-extrabold leading-none tracking-[0.03em] text-white [text-shadow:0_1px_1px_rgba(0,0,0,.45)]" style={{ writingMode: 'vertical-rl' }}>
+                  className={`absolute inset-0 transition-transform duration-500 ease-out ${active === i ? '' : 'hover:-translate-y-2.5 focus-visible:-translate-y-2.5'}`}
+                  style={{ transform: active === i ? `translateY(-${lift}px)` : undefined, filter: 'drop-shadow(0 6px 5px rgba(0,0,0,.55))' }}>
+                  {/* clear outer shell */}
+                  <span className="absolute inset-0 rounded-t-[5px]" style={{ background: 'linear-gradient(90deg,rgba(255,255,255,.9),rgba(235,238,242,.55) 10%,rgba(235,238,242,.35) 90%,rgba(255,255,255,.8))', boxShadow: 'inset 0 1px 0 #fff, 0 0 0 1px rgba(0,0,0,.35)' }} />
+                  {/* printed spine */}
+                  <span className="absolute inset-[3px] top-[4px] overflow-hidden rounded-t-[3px]" style={{ background: `linear-gradient(90deg,${hi} 0%,${mid} 38%,${lo} 100%)`, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.25)' }}>
+                    <span className="absolute inset-x-0 top-0 h-[22px] bg-[#16171a]" />
+                    <Logo drift={false} flat className="absolute left-1/2 top-[4px] h-[14px] w-[14px] -translate-x-1/2" />
+                    <span className="absolute inset-x-0 top-[22px] h-[2px] bg-white/60" />
+                    <span className="screen-font absolute inset-x-0 bottom-[14px] top-[30px] grid justify-center overflow-hidden text-[12.5px] font-extrabold leading-none tracking-[0.04em] text-white [text-shadow:0_1px_1px_rgba(0,0,0,.5)]" style={{ writingMode: 'vertical-rl' }}>
                       <span className="max-h-full overflow-hidden text-ellipsis whitespace-nowrap">{p.title}</span>
                     </span>
+                    <span className="absolute bottom-[4px] left-1/2 h-[6px] w-[14px] -translate-x-1/2 bg-[repeating-linear-gradient(90deg,#fff_0_1px,transparent_1px_3px)] opacity-70" />
+                    {/* glossy highlight */}
+                    <span className="absolute inset-0" style={{ background: 'linear-gradient(105deg,rgba(255,255,255,.4) 0%,rgba(255,255,255,.08) 28%,transparent 45%,rgba(0,0,0,.18) 100%)' }} />
                   </span>
-                  {/* top */}
-                  <span className="absolute" style={{ left: 0, top: -d / 2, width: w, height: d, transform: 'rotateX(90deg)', background: `linear-gradient(180deg,#f4f5f7,${c1} 130%)` }}>
-                    <span className="absolute inset-x-[6px] top-[10px] h-[2px] rounded bg-black/25" />
-                  </span>
-                  {/* right side */}
-                  <span className="absolute" style={{ left: w - d / 2, top: 0, width: d, height: h, transform: 'rotateY(90deg)', background: `linear-gradient(90deg,${c3},#2a0d08 140%)` }} />
                 </button>
               </li>
             )
