@@ -10,7 +10,7 @@ const K = '#16171a', W = '#ffffff'
 
 type Entry = { name: string; bg: string; src?: string; fit?: 'cover' | 'contain'; rows?: string[]; pal?: Record<string, string> }
 export const AVATARS: Entry[] = [
-  { name: 'ME', bg: '#96cdff', src: img('me.webp') },
+  { name: 'ME', bg: '#ffffff', src: img('me.webp') },
   { name: 'PHOTO', bg: '#ffffff', src: img('photo.webp'), fit: 'contain' },
   { name: 'BLOB', bg: '#ff9f43', rows: BLOB, pal: { b: '#1fb6e8', w: W, e: K, r: '#ff4b3e' } },
   { name: 'ROBOT', bg: '#3b6cff', rows: ROBOT, pal: { a: '#c4ccd6', b: '#6b7683', r: '#ff4b3e', w: W, k: K } },

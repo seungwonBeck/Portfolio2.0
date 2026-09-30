@@ -108,7 +108,11 @@ function About({ s }: { s: State }) {
     <Scroll>
       <Title>ABOUT ME</Title>
       <div className="mb-5 flex items-center gap-7">
-        <div className="shrink-0 pb-3"><Coin rot={rot} front={front.current} photo={photo} onClick={() => pick(s.avatar === 1 ? front.current : 1)} /></div>
+        <div className="shrink-0 text-center">
+          <div className="pb-3"><Coin rot={rot} front={front.current} photo={photo} onClick={() => pick(s.avatar === 1 ? front.current : 1)} /></div>
+          {/* only while my own character is picked */}
+          <div className="h-4 text-[10px] font-bold text-accent-blue">{s.avatar === 0 && '↻ 동전을 돌려보세요'}</div>
+        </div>
         <div className="min-w-0 flex-1">
           <div className="text-[18px] font-extrabold leading-tight">{profile.name}</div>
           <div className="text-[12px] text-ink-sub">{profile.role}</div>
@@ -122,9 +126,6 @@ function About({ s }: { s: State }) {
             ))}
           </div>
           <p className="mt-2 text-[11px] text-ink-sub"><span className="rounded bg-card px-1.5 py-0.5 font-bold text-ink ring-1 ring-black/10">◀ ▶</span> 캐릭터 고르기</p>
-          <div className="mt-1.5 inline-flex items-center gap-2 rounded-lg border-2 border-dashed border-black/20 px-2.5 py-1 text-[11px] font-bold text-accent-blue">
-            <span className="text-[14px] font-extrabold text-ink-sub">?</span> 내 프로필은 ↻ 동전을 돌리면 나와요
-          </div>
         </div>
       </div>
       <p className="mb-4 text-[13px] leading-relaxed">{profile.intro}</p>
