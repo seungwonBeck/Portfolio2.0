@@ -7,6 +7,7 @@ import Console, { CANVAS } from './components/device/Console'
 import Screen, { OpenContext } from './components/screen/Screens'
 import { projects } from './types'
 import { CardFace, Cartridges, chipScale, FallbackList, Footer, Header, HowToPlay, IntroCopy, Showcase } from './components/layout/Layout'
+import MobilePad from './components/layout/MobilePad'
 import { useControls } from './hooks/useControls'
 
 /** Scales the fixed-size console to its container's width, and to maxH if given. */
@@ -211,6 +212,7 @@ export default function App() {
       <Showcase />
       <Footer sound={sound} onToggle={toggleSound} />
       <Music on={sound} />
+      <MobilePad press={press} />
       <SoundButton sound={sound} onToggle={toggleSound} />
       {big && <TvMode onClose={() => setBig(false)}><Screen s={state} bootMs={bootMs} dark={dark} /></TvMode>}
     </OpenContext.Provider>
