@@ -327,7 +327,7 @@ export default function App() {
     <OpenContext.Provider value={open}><AvatarContext.Provider value={setAvatar}>
       <Header />
       {fly && <Flying {...fly} onDone={() => { const n = fly.next; setFly(null); n?.() }} />}
-      <Hero onPick={insert} onPress={press} onPickTv={i => { if (fly || i === inserted) return; setInserted(i); setOnly(i); pick(i) }} away={fly ? fly.i : inserted} tv={<Screen s={state} bootMs={bootMs} dark={dark} />}>
+      <Hero onPick={insert} onPress={press} onPickTv={i => { if (fly || i === inserted) return; setInserted(i); pick(i); setTimeout(() => setOnly(i), 1600) /* like the console: the title only shows once the loading splash is over */ }} away={fly ? fly.i : inserted} tv={<Screen s={state} bootMs={bootMs} dark={dark} />}>
         {sep => (
           <Console pressed={pressed} press={press} sep={sep}>
             {!big && <Screen s={state} bootMs={bootMs} dark={dark} />}
