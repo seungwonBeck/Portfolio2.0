@@ -1,6 +1,6 @@
 import { ReactNode, RefObject, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { BatteryFull, Bomb, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, Rocket, User } from 'lucide-react'
+import { BatteryFull, Bomb, CircleDot, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
 import { AVATAR_ORDER, Btn, contactItems, DOCK, State, TILES } from '../../store/nav'
 import { Avatar, AVATARS, Coin } from './avatars'
 import Logo from '../Logo'
@@ -658,38 +658,51 @@ function Mines({ s }: { s: State }) {
   }, [])
 
   const left = MINES - board.filter(c => c.flag).length
+  const msg = phase === 'won' ? '클리어! 🎉' : phase === 'dead' ? '펑! 지뢰를 밟았어요' : phase === 'idle' ? '아무 칸이나 열어 시작' : '지뢰를 피해 모두 열어요'
+  const help = [
+    { Icon: Move, t: '방향키로 칸 이동' },
+    { Icon: CircleDot, t: 'A 로 열기', d: '숫자 위 A: 주변 열기' },
+    { Icon: MousePointerClick, t: '클릭 열기', d: '우클릭 깃발' },
+    { Icon: Flag, t: 'F 깃발 모드', d: '터치는 이 모드로 깃발' },
+  ]
   return (
     <div className="px-7">
       <div className="flex items-baseline justify-between">
         <Title>MINES</Title>
         <span className="label">Time {time} · Best {best || '-'}</span>
       </div>
-      <div className="flex gap-5">
-        <div className="grid shrink-0 rounded-xl bg-[#c9cdd5] p-1 ring-1 ring-black/10" style={{ gridTemplateColumns: `repeat(${MW}, 20px)`, gap: 2 }} onContextMenu={e => e.preventDefault()}>
+      <div className="flex items-center justify-between gap-3">
+        {/* left: status + buttons */}
+        <div className="flex w-[165px] shrink-0 flex-col gap-3">
+          <div className="flex items-center gap-2 text-[22px] font-extrabold leading-none"><Flag size={20} className="fill-accent-red text-accent-red" />{left}</div>
+          <div className="text-[13px] font-bold leading-snug [word-break:keep-all]">{msg}</div>
+          <button type="button" tabIndex={-1} onClick={() => setFlagMode(v => !v)} aria-pressed={flagMode}
+            className={`flex items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-bold ring-1 ${flagMode ? 'bg-accent-red text-white ring-accent-red' : 'bg-card ring-black/10'}`}>
+            <Flag size={13} />깃발 모드 {flagMode ? 'ON' : 'OFF'}
+          </button>
+          <button type="button" tabIndex={-1} onClick={restart} className="rounded-full bg-card px-3 py-1.5 text-[12px] font-bold ring-1 ring-black/10">다시 시작</button>
+        </div>
+        {/* center: the board */}
+        <div className="grid shrink-0 rounded-xl bg-[#c9cdd5] p-1 ring-1 ring-black/10" style={{ gridTemplateColumns: `repeat(${MW}, 24px)`, gap: 2 }} onContextMenu={e => e.preventDefault()}>
           {board.map((c, i) => (
             <button key={i} type="button" aria-label={`칸 ${i + 1}`} tabIndex={-1}
               onClick={() => { setCur(i); act(i) }} onContextMenu={e => { e.preventDefault(); setCur(i); flag(i) }}
-              className={`grid h-5 w-5 place-items-center rounded-[3px] text-[12px] font-extrabold leading-none
+              className={`grid h-6 w-6 place-items-center rounded-[4px] text-[14px] font-extrabold leading-none
                 ${c.open ? (c.mine ? 'bg-accent-red text-white' : 'bg-[#f3f4f6]') : 'bg-gradient-to-b from-white to-[#dfe3ea] shadow-[0_1px_0_rgba(0,0,0,.25)] hover:to-white'}
                 ${i === cur ? 'ring-2 ring-accent-blue' : ''}`}>
-              {c.open ? (c.mine ? <Bomb size={12} /> : c.n ? <span style={{ color: MCOLORS[c.n] }}>{c.n}</span> : null) : c.flag ? <Flag size={11} className="fill-accent-red text-accent-red" /> : null}
+              {c.open ? (c.mine ? <Bomb size={14} /> : c.n ? <span style={{ color: MCOLORS[c.n] }}>{c.n}</span> : null) : c.flag ? <Flag size={13} className="fill-accent-red text-accent-red" /> : null}
             </button>
           ))}
         </div>
-        <div className="flex min-w-0 flex-1 flex-col justify-between py-0.5 text-[11px]">
-          <div>
-            <div className="flex items-center gap-1.5 text-[13px] font-extrabold"><Flag size={13} className="fill-accent-red text-accent-red" />{left}</div>
-            <div className="mt-2 text-[12px] font-bold">{phase === 'won' ? '클리어! 🎉' : phase === 'dead' ? '펑! 지뢰를 밟았어요' : phase === 'idle' ? '아무 칸이나 열어 시작' : '지뢰를 피해 모두 열어요'}</div>
-          </div>
-          <div className="flex flex-col items-start gap-1.5">
-            <button type="button" tabIndex={-1} onClick={() => setFlagMode(v => !v)} aria-pressed={flagMode}
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold ring-1 ${flagMode ? 'bg-accent-red text-white ring-accent-red' : 'bg-card ring-black/10'}`}>
-              <Flag size={12} />깃발 모드 {flagMode ? 'ON' : 'OFF'} <span className="opacity-60">F</span>
-            </button>
-            <button type="button" tabIndex={-1} onClick={restart} className="rounded-full bg-card px-3 py-1 text-[11px] font-bold ring-1 ring-black/10">다시 시작</button>
-          </div>
-          <p className="text-[10px] leading-snug text-ink-sub">◀▶▲▼ 이동 · A 열기 · 숫자 위 A 주변 열기<br />클릭 열기 · 우클릭 깃발</p>
-        </div>
+        {/* right: controls */}
+        <ul className="flex w-[165px] shrink-0 flex-col gap-3">
+          {help.map(h => (
+            <li key={h.t} className="flex items-start gap-2.5">
+              <h.Icon size={18} strokeWidth={2} className="mt-px shrink-0 text-accent-blue" />
+              <div className="text-[12px] leading-tight"><div className="font-extrabold">{h.t}</div>{h.d && <div className="mt-0.5 text-[10.5px] text-ink-sub">{h.d}</div>}</div>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   )
