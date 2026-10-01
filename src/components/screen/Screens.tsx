@@ -1,6 +1,6 @@
 import { ReactNode, RefObject, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { BatteryFull, ExternalLink, FolderOpen, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, Rocket, User } from 'lucide-react'
+import { BatteryFull, Bomb, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, Rocket, User } from 'lucide-react'
 import { AVATAR_ORDER, Btn, contactItems, DOCK, State, TILES } from '../../store/nav'
 import { Avatar, AVATARS, Coin } from './avatars'
 import Logo from '../Logo'
@@ -564,10 +564,142 @@ function Starfighter({ s }: { s: State }) {
   return <Arcade title="STAR FIGHTER" score={score} best={best} cv={cv} hint={phase === 'idle' ? 'A로 시작 · ◀▶ 조종(계속 이동) · ▼ 정지 · A 발사' : phase === 'play' ? 'A 발사 · ◀▶ 방향 전환' : '격추당했어요! A로 다시 도전'} />
 }
 
+const MW = 9, MH = 9, MINES = 10
+type MCell = { mine: boolean; open: boolean; flag: boolean; n: number }
+const MCOLORS = ['', '#2a7bf0', '#2ea44f', '#e5473a', '#7a45d6', '#a3362c', '#12a3a3', '#16171a', '#6b6f78']
+const mkBoard = (): MCell[] => Array.from({ length: MW * MH }, () => ({ mine: false, open: false, flag: false, n: 0 }))
+const around = (i: number) => {
+  const x = i % MW, y = Math.floor(i / MW), out: number[] = []
+  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+    const nx = x + dx, ny = y + dy
+    if ((dx || dy) && nx >= 0 && nx < MW && ny >= 0 && ny < MH) out.push(ny * MW + nx)
+  }
+  return out
+}
+
+/** Minesweeper, 9x9 with 10 mines. Pad: ◀▶▲▼ move the cursor, A opens (on a number: opens the rest around it once enough flags are placed).
+ *  Mouse: click opens, right-click flags. F (or the flag button) switches taps to flagging, for touch. The first open is always safe. */
+function Mines({ s }: { s: State }) {
+  const [board, setBoard] = useState(mkBoard)
+  const [phase, setPhase] = useState<'idle' | 'play' | 'won' | 'dead'>('idle')
+  const [cur, setCur] = useState(40)
+  const [flagMode, setFlagMode] = useState(false)
+  const [time, setTime] = useState(0)
+  const [best, setBest] = useState(() => { try { return +(localStorage.getItem('folio-mines-best') ?? 0) } catch { return 0 } })
+  const seen = useRef(s.pad.n)
+  const over = phase === 'won' || phase === 'dead'
+
+  const finish = (b: MCell[], hit: boolean) => {
+    if (hit) {
+      b.forEach(c => { if (c.mine) c.open = true })
+      setPhase('dead')
+    } else if (b.every(c => c.mine || c.open)) {
+      b.forEach(c => { if (c.mine) c.flag = true })
+      setPhase('won')
+      if (!best || time < best) { setBest(time); try { localStorage.setItem('folio-mines-best', String(time)) } catch { /* private mode */ } }
+    }
+    setBoard(b)
+  }
+  const flood = (b: MCell[], from: number[]) => {
+    const stack = [...from]; let hit = false
+    while (stack.length) {
+      const k = stack.pop()!, c = b[k]
+      if (c.open || c.flag) continue
+      c.open = true
+      if (c.mine) hit = true
+      else if (c.n === 0) stack.push(...around(k))
+    }
+    finish(b, hit)
+  }
+  const reveal = (i: number) => {
+    if (over || board[i].flag || board[i].open) return
+    const b = board.map(c => ({ ...c }))
+    if (phase === 'idle') { // first open is always safe: mines go anywhere except there and around it
+      const ban = new Set([i, ...around(i)]), free = b.map((_, k) => k).filter(k => !ban.has(k))
+      for (let m = 0; m < MINES; m++) b[free.splice(Math.floor(Math.random() * free.length), 1)[0]].mine = true
+      b.forEach((c, k) => { c.n = around(k).filter(a => b[a].mine).length })
+      setPhase('play'); setTime(0)
+    }
+    flood(b, [i])
+  }
+  const chord = (i: number) => {
+    const c = board[i], ring = around(i)
+    if (over || !c.open || !c.n || ring.filter(a => board[a].flag).length !== c.n) return
+    flood(board.map(x => ({ ...x })), ring)
+  }
+  const flag = (i: number) => {
+    if (over || board[i].open) return
+    setBoard(board.map((c, k) => (k === i ? { ...c, flag: !c.flag } : c)))
+  }
+  const act = (i: number) => (board[i].open ? chord(i) : flagMode ? flag(i) : reveal(i))
+  const restart = () => { setBoard(mkBoard()); setPhase('idle'); setTime(0) }
+
+  useEffect(() => { // pad
+    if (s.pad.n === seen.current) return
+    seen.current = s.pad.n
+    const b = s.pad.b, x = cur % MW, y = Math.floor(cur / MW)
+    if (b === 'A') return over ? restart() : act(cur)
+    if (b === 'left') setCur(y * MW + Math.max(0, x - 1))
+    else if (b === 'right') setCur(y * MW + Math.min(MW - 1, x + 1))
+    else if (b === 'up') setCur(Math.max(0, y - 1) * MW + x)
+    else if (b === 'down') setCur(Math.min(MH - 1, y + 1) * MW + x)
+  }, [s.pad.n])
+
+  useEffect(() => {
+    if (phase !== 'play') return
+    const id = setInterval(() => setTime(t => Math.min(999, t + 1)), 1000)
+    return () => clearInterval(id)
+  }, [phase])
+
+  useEffect(() => { // F toggles flag mode
+    const k = (e: KeyboardEvent) => { if ((e.key === 'f' || e.key === 'F' || e.code === 'KeyF') && !e.metaKey && !e.ctrlKey) setFlagMode(v => !v) }
+    addEventListener('keydown', k)
+    return () => removeEventListener('keydown', k)
+  }, [])
+
+  const left = MINES - board.filter(c => c.flag).length
+  return (
+    <div className="px-7">
+      <div className="flex items-baseline justify-between">
+        <Title>MINES</Title>
+        <span className="label">Time {time} · Best {best || '-'}</span>
+      </div>
+      <div className="flex gap-5">
+        <div className="grid shrink-0 rounded-xl bg-[#c9cdd5] p-1 ring-1 ring-black/10" style={{ gridTemplateColumns: `repeat(${MW}, 20px)`, gap: 2 }} onContextMenu={e => e.preventDefault()}>
+          {board.map((c, i) => (
+            <button key={i} type="button" aria-label={`칸 ${i + 1}`} tabIndex={-1}
+              onClick={() => { setCur(i); act(i) }} onContextMenu={e => { e.preventDefault(); setCur(i); flag(i) }}
+              className={`grid h-5 w-5 place-items-center rounded-[3px] text-[12px] font-extrabold leading-none
+                ${c.open ? (c.mine ? 'bg-accent-red text-white' : 'bg-[#f3f4f6]') : 'bg-gradient-to-b from-white to-[#dfe3ea] shadow-[0_1px_0_rgba(0,0,0,.25)] hover:to-white'}
+                ${i === cur ? 'ring-2 ring-accent-blue' : ''}`}>
+              {c.open ? (c.mine ? <Bomb size={12} /> : c.n ? <span style={{ color: MCOLORS[c.n] }}>{c.n}</span> : null) : c.flag ? <Flag size={11} className="fill-accent-red text-accent-red" /> : null}
+            </button>
+          ))}
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col justify-between py-0.5 text-[11px]">
+          <div>
+            <div className="flex items-center gap-1.5 text-[13px] font-extrabold"><Flag size={13} className="fill-accent-red text-accent-red" />{left}</div>
+            <div className="mt-2 text-[12px] font-bold">{phase === 'won' ? '클리어! 🎉' : phase === 'dead' ? '펑! 지뢰를 밟았어요' : phase === 'idle' ? '아무 칸이나 열어 시작' : '지뢰를 피해 모두 열어요'}</div>
+          </div>
+          <div className="flex flex-col items-start gap-1.5">
+            <button type="button" tabIndex={-1} onClick={() => setFlagMode(v => !v)} aria-pressed={flagMode}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold ring-1 ${flagMode ? 'bg-accent-red text-white ring-accent-red' : 'bg-card ring-black/10'}`}>
+              <Flag size={12} />깃발 모드 {flagMode ? 'ON' : 'OFF'} <span className="opacity-60">F</span>
+            </button>
+            <button type="button" tabIndex={-1} onClick={restart} className="rounded-full bg-card px-3 py-1 text-[11px] font-bold ring-1 ring-black/10">다시 시작</button>
+          </div>
+          <p className="text-[10px] leading-snug text-ink-sub">◀▶▲▼ 이동 · A 열기 · 숫자 위 A 주변 열기<br />클릭 열기 · 우클릭 깃발</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const ARCADE = [
   { name: 'SIDE QUEST', sub: 'A · 점프', color: '#1fb6e8', Icon: Footprints, View: Runner },
   { name: 'BLOCKS', sub: '떨어지는 블록 쌓기', color: '#a45cff', Icon: LayoutGrid, View: Blocks },
   { name: 'STAR FIGHTER', sub: '우주 슈팅', color: '#ff4b3e', Icon: Rocket, View: Starfighter },
+  { name: 'MINES', sub: '지뢰찾기', color: '#2ea44f', Icon: Bomb, View: Mines },
 ]
 
 /** GAME tab: pick one of the mini games (◀▶ + A); B goes back to this menu. */
@@ -577,9 +709,9 @@ function Game({ s }: { s: State }) {
   return (
     <div className="px-7">
       <Title>ARCADE</Title>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-2.5">
         {ARCADE.map((a, i) => (
-          <div key={a.name} role="button" tabIndex={-1} onClick={() => pickRow('GAME', i)} className={`flex h-[120px] cursor-pointer flex-col justify-between rounded-2xl p-4 text-white transition-transform hover:scale-[1.02] ${i === s.game ? 'ring-[3px] ring-accent-blue ring-offset-2' : ''}`} style={{ background: a.color }}>
+          <div key={a.name} role="button" tabIndex={-1} onClick={() => pickRow('GAME', i)} className={`flex h-[120px] cursor-pointer flex-col justify-between rounded-2xl p-3 text-white transition-transform hover:scale-[1.02] ${i === s.game ? 'ring-[3px] ring-accent-blue ring-offset-2' : ''}`} style={{ background: a.color }}>
             <a.Icon size={28} strokeWidth={2.2} />
             <div><div className="text-[14px] font-extrabold leading-tight">{a.name}</div><div className="text-[10px] opacity-80">{a.sub}</div></div>
           </div>

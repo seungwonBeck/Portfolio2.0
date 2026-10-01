@@ -30,7 +30,7 @@ const clamp = (n: number, len: number) => Math.max(0, Math.min(len - 1, n))
 /** pick: cartridge inserted → title splash (LOAD). loaded: splash finished → project detail (ignored if the user already left). */
 export type Action = Btn | { pick: number } | { loaded: true } | { only: number | null } | { open: { row: 'tile' | 'dock'; i: number } } | { avatar: number } | { rowPick: { screen: 'PROJECTS' | 'CONTACT' | 'GAME'; i: number } }
 
-export const GAMES = 3
+export const GAMES = 4
 
 /** Entering GAME always lands on the game menu. */
 export function reducer(s: State, b: Action): State {
