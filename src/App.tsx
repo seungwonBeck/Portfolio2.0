@@ -127,7 +127,14 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
   const topRef = useRef<HTMLElement>(null)
   const [topB, setTopB] = useState(480) // page-y of the title+chips block's bottom edge
   useEffect(() => {
-    const f = () => { setVh(innerHeight); force(n => n + 1) } // width changes matter too (console size)
+    // Mobile browsers fire `resize` every time the address bar slides in/out while scrolling (height only, ~50-100px). Reacting to that
+    // re-sizes the whole stage mid-scroll, which showed up as shaking when scrolling up. Only real changes (width, rotation, big height jumps) count.
+    let w0 = innerWidth, h0 = innerHeight
+    const f = () => {
+      if (innerWidth === w0 && Math.abs(innerHeight - h0) < 160) return
+      w0 = innerWidth; h0 = innerHeight
+      setVh(innerHeight); force(n => n + 1) // width changes matter too (console size)
+    }
     const m = () => setTopB(Math.round((topRef.current?.getBoundingClientRect().bottom ?? 0) + scrollY))
     const ro = new ResizeObserver(m); if (topRef.current) ro.observe(topRef.current); m()
     addEventListener('resize', f)
@@ -139,8 +146,8 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
   const po = useTransform(p, [0, 450 / TOTAL], [0, 1])
   const q = useTransform(p, [450 * 0.72 / TOTAL, 1], [0, 1])
   const soft = { stiffness: 55, damping: 24, mass: 1.2 } // slow, no overshoot
-  // low damping on purpose: re-attach overshoots a little, which reads as a "click"
-  const sep = useSpring(useTransform(po, [0.12, 0.28, 0.46, 0.6], [0, 320, 320, 0]), { stiffness: 140, damping: 13 })
+  // just under critical damping: the re-attach still lands with a hint of a "click" but no longer rings back and forth when scrolling up
+  const sep = useSpring(useTransform(po, [0.12, 0.28, 0.46, 0.6], [0, 320, 320, 0]), { stiffness: 140, damping: 20 })
   const rotateY = useSpring(useTransform(po, [0.12, 0.24, 0.36, 0.48, 0.6], [0, -9, 9, -6, 0]), soft)
   const scale = useSpring(useTransform(po, [0, 0.12, 0.28, 0.6, 0.72], [1, 1, 0.92, 0.96, 1]), soft)
   // dock + TV: the console lowers into the dock, the room goes dark, then the scene shrinks away and the TV grows to fill the viewport
@@ -207,7 +214,7 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
             <p className="text-[clamp(1.75rem,5.2vw,4.5rem)] font-extrabold leading-[1.25] tracking-tight [word-break:keep-all]">독을 연결하면<br />큰 화면으로 프로젝트가 펼쳐집니다</p>
           </motion.div>
           <motion.div className={`absolute inset-0 flex flex-col items-center ${short ? 'px-3 pt-2' : 'px-5 pt-14 md:px-20'}`} style={{ x: pan }}>
-            <motion.div className="relative w-full" style={{ scale, rotateY, y }}>
+            <motion.div className="relative w-full will-change-transform" style={{ scale, rotateY, y }}>
               <Scaled maxH={maxH} dockY={dockYPct} screenOff={screenOff}
                 overlay={<motion.div aria-hidden className="pointer-events-none absolute inset-0" style={{ opacity: dockIn, y: dockUp }}><Dock /></motion.div>}>
                 {children(sep)}
