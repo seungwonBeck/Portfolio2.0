@@ -1,7 +1,7 @@
 import { ReactNode, RefObject, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { BatteryFull, ExternalLink, FolderOpen, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, Rocket, User } from 'lucide-react'
-import { AVATAR_ORDER, contactItems, DOCK, State, TILES } from '../../store/nav'
+import { AVATAR_ORDER, Btn, contactItems, DOCK, State, TILES } from '../../store/nav'
 import { Avatar, AVATARS, Coin } from './avatars'
 import Logo from '../Logo'
 import { profile, projects, skills } from '../../types'
@@ -36,6 +36,9 @@ export function Boot({ ms }: { ms: number }) {
 /** Lets tiles and dock icons be clicked/tapped (provided by App). */
 export const AvatarContext = createContext<(i: number) => void>(() => {})
 export const OpenContext = createContext<(row: 'tile' | 'dock', i: number) => void>(() => {})
+/** Clicking a project / contact row or an arcade card, and the A / B / H hints in the footer bar. */
+export const RowContext = createContext<(screen: 'PROJECTS' | 'CONTACT' | 'GAME', i: number) => void>(() => {})
+export const PressContext = createContext<(b: Btn) => void>(() => {})
 
 const dockColor = { ABOUT: '#ff4b3e', PROJECTS: '#ff9f43', SKILLS: '#34c759', CONTACT: '#1fb6e8', GAME: '#8a8b90' }
 
@@ -145,12 +148,14 @@ function About({ s }: { s: State }) {
 }
 
 function Projects({ s }: { s: State }) {
+  const pickRow = useContext(RowContext)
   return (
     <div className="h-full overflow-y-auto px-7 pb-4 [scrollbar-width:none]">
       <Title>PROJECTS</Title>
       {projects.map((p, i) => (
         <div key={p.id} ref={el => { if (i === s.proj) el?.scrollIntoView({ block: 'nearest' }) }}
-          className={`mb-2 flex items-center justify-between rounded-xl bg-card px-4 py-2.5
+          role="button" tabIndex={-1} onClick={() => pickRow('PROJECTS', i)}
+          className={`mb-2 flex cursor-pointer items-center justify-between rounded-xl bg-card px-4 py-2.5 transition-transform hover:scale-[1.01]
           ${i === s.proj ? 'ring-[3px] ring-accent-blue' : 'ring-1 ring-black/10'}`}>
           <div>
             <div className="text-[13px] font-bold">{p.title}</div>
@@ -179,7 +184,7 @@ function Detail({ s }: { s: State }) {
       <div className="mb-3 flex flex-wrap gap-1.5">
         {p.tags.map(t => <span key={t} className="rounded-full bg-card px-2 py-0.5 text-[10px] font-semibold ring-1 ring-black/10">{t}</span>)}
       </div>
-      {p.links.demo && <div className="inline-flex items-center gap-1 rounded-full bg-accent-blue px-3 py-1 text-[11px] font-bold text-white">A · 보러가기 <ExternalLink size={12} /></div>}
+      {p.links.demo && <a href={p.links.demo} target="_blank" rel="noopener" className="inline-flex items-center gap-1 rounded-full bg-accent-blue px-3 py-1 text-[11px] font-bold text-white">A · 보러가기 <ExternalLink size={12} /></a>}
     </Scroll>
   )
 }
@@ -207,11 +212,13 @@ function Skills() {
 }
 
 function Contact({ s }: { s: State }) {
+  const pickRow = useContext(RowContext)
   return (
     <div className="px-7">
       <Title>CONTACT</Title>
       {contactItems.map((c, i) => (
-        <div key={c.label} className={`mb-2 flex items-center justify-between rounded-xl bg-card px-4 py-2.5 text-[13px] font-bold
+        <div key={c.label} role="link" tabIndex={-1} onClick={() => { pickRow('CONTACT', i); window.open(c.url, '_blank', 'noopener') }}
+          className={`mb-2 flex cursor-pointer items-center justify-between rounded-xl bg-card px-4 py-2.5 text-[13px] font-bold transition-transform hover:scale-[1.01]
           ${i === s.contact ? 'ring-[3px] ring-accent-blue' : 'ring-1 ring-black/10'}`}>
           {c.label}<span className="flex items-center gap-1 text-[11px] font-normal text-ink-sub">{'handle' in c ? c.handle : profile.email}<ExternalLink size={12} /></span>
         </div>
@@ -565,13 +572,14 @@ const ARCADE = [
 
 /** GAME tab: pick one of the mini games (◀▶ + A); B goes back to this menu. */
 function Game({ s }: { s: State }) {
+  const pickRow = useContext(RowContext)
   if (s.gmode !== null) { const V = ARCADE[s.gmode].View; return <V s={s} /> }
   return (
     <div className="px-7">
       <Title>ARCADE</Title>
       <div className="grid grid-cols-3 gap-3">
         {ARCADE.map((a, i) => (
-          <div key={a.name} className={`flex h-[120px] flex-col justify-between rounded-2xl p-4 text-white ${i === s.game ? 'ring-[3px] ring-accent-blue ring-offset-2' : ''}`} style={{ background: a.color }}>
+          <div key={a.name} role="button" tabIndex={-1} onClick={() => pickRow('GAME', i)} className={`flex h-[120px] cursor-pointer flex-col justify-between rounded-2xl p-4 text-white transition-transform hover:scale-[1.02] ${i === s.game ? 'ring-[3px] ring-accent-blue ring-offset-2' : ''}`} style={{ background: a.color }}>
             <a.Icon size={28} strokeWidth={2.2} />
             <div><div className="text-[14px] font-extrabold leading-tight">{a.name}</div><div className="text-[10px] opacity-80">{a.sub}</div></div>
           </div>
@@ -607,6 +615,7 @@ const views = { HOME: Home, ABOUT: About, PROJECTS: Projects, DETAIL: Detail, SK
 type Motion = { d: number; cut: boolean }
 
 export default function Screen({ s, bootMs, dark, instantLoad = false }: { s: State; bootMs: number; dark: boolean; instantLoad?: boolean }) {
+  const press = useContext(PressContext)
   // The black loading splash is an overlay that fades in over the old screen and fades out over the new one.
   // `base` is the screen underneath: it stays on the old screen until the overlay is opaque, then swaps to the project unseen.
   const loading = s.screen === 'LOAD'
@@ -657,7 +666,10 @@ export default function Screen({ s, bootMs, dark, instantLoad = false }: { s: St
       </div>
       {chrome && (
         <div className="flex gap-4 px-5 py-2 text-[10px] font-semibold text-ink-sub">
-          <span>◀▶▲▼ 이동</span><span>A 선택</span><span>B 뒤로</span><span>H 홈</span>
+          <span>◀▶▲▼ 이동</span>
+          {([['A 선택', 'A'], ['B 뒤로', 'B'], ['H 홈', 'HOME']] as const).map(([t, b]) => (
+            <button key={b} type="button" onClick={() => press(b)} className="-my-1 rounded px-1.5 py-1 hover:bg-black/10 hover:text-ink">{t}</button>
+          ))}
         </div>
       )}
       <AnimatePresence>

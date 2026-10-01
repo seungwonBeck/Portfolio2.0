@@ -82,7 +82,8 @@ export function useControls() {
   const goHome = useCallback(() => dispatch('HOME'), [])
   const open = useCallback((row: 'tile' | 'dock', i: number) => dispatch({ open: { row, i } }), [])
   const setAvatar = useCallback((i: number) => dispatch({ avatar: i }), [])
+  const pickRow = useCallback((screen: 'PROJECTS' | 'CONTACT' | 'GAME', i: number) => dispatch({ rowPick: { screen, i } }), [])
   const setOnly =useCallback((i: number | null) => dispatch({ only: i }), [])
 
-  return { state, pressed, press, pick, goHome, setOnly, setAvatar, open, bootMs, sound, big, setBig, dark, toggleSound: () => press('minus') }
+  return { state, pressed, press, pick, goHome, setOnly, setAvatar, open, pickRow, bootMs, sound, big, setBig, dark, toggleSound: () => press('minus') }
 }

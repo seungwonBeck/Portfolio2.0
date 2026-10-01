@@ -28,7 +28,7 @@ export const initial: State = { screen: 'BOOT', home: 0, proj: 0, contact: 0, hi
 const clamp = (n: number, len: number) => Math.max(0, Math.min(len - 1, n))
 
 /** pick: cartridge inserted → title splash (LOAD). loaded: splash finished → project detail (ignored if the user already left). */
-export type Action = Btn | { pick: number } | { loaded: true } | { only: number | null } | { open: { row: 'tile' | 'dock'; i: number } } | { avatar: number }
+export type Action = Btn | { pick: number } | { loaded: true } | { only: number | null } | { open: { row: 'tile' | 'dock'; i: number } } | { avatar: number } | { rowPick: { screen: 'PROJECTS' | 'CONTACT' | 'GAME'; i: number } }
 
 export const GAMES = 3
 
@@ -48,6 +48,13 @@ function step(s: State, b: Action): State {
       if (row === 'dock') return { ...s, row, dock: i, screen: DOCK[i], hits: 0, dir: 1 }
       if (TILES[i] === 'PROJECTS' && s.only !== null) return { ...s, row, home: i, screen: 'DETAIL', proj: s.only, dir: 1 }
       return { ...s, row, home: i, screen: TILES[i], hits: 0, dir: 1 }
+    }
+    if ('rowPick' in b) { // mouse/touch on a project row, contact row or arcade card: same as moving the cursor there and pressing A
+      const { screen, i } = b.rowPick
+      if (s.screen !== screen) return s
+      if (screen === 'PROJECTS') return { ...s, proj: clamp(i, projects.length), screen: 'DETAIL', dir: 1 }
+      if (screen === 'CONTACT') return { ...s, contact: clamp(i, contactItems.length) }
+      return s.gmode === null ? { ...s, game: clamp(i, GAMES), gmode: clamp(i, GAMES), hits: 0 } : s
     }
     if ('loaded' in b) return s.screen === 'LOAD' ? { ...s, screen: 'DETAIL', dir: 1 } : s
     return { ...s, screen: 'LOAD', proj: clamp(b.pick, projects.length), dir: 1 }
