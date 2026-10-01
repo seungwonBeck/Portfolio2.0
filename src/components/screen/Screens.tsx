@@ -671,19 +671,20 @@ function Mines({ s }: { s: State }) {
         <Title>MINES</Title>
         <span className="label">Time {time} · Best {best || '-'}</span>
       </div>
-      <div className="flex items-center justify-between gap-3">
+      {/* three columns: the two side panels are equal width and centred in their column, so both sit the same distance from the board */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
         {/* left: status + buttons */}
-        <div className="flex w-[165px] shrink-0 flex-col gap-3">
-          <div className="flex items-center gap-2 text-[22px] font-extrabold leading-none"><Flag size={20} className="fill-accent-red text-accent-red" />{left}</div>
+        <div className="mx-auto flex w-[138px] flex-col items-center gap-3 text-center">
+          <div className="flex items-center justify-center gap-2 text-[22px] font-extrabold leading-none"><Flag size={20} className="fill-accent-red text-accent-red" />{left}</div>
           <div className="text-[13px] font-bold leading-snug [word-break:keep-all]">{msg}</div>
           <button type="button" tabIndex={-1} onClick={() => setFlagMode(v => !v)} aria-pressed={flagMode}
-            className={`flex items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-bold ring-1 ${flagMode ? 'bg-accent-red text-white ring-accent-red' : 'bg-card ring-black/10'}`}>
+            className={`flex w-full items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-bold ring-1 ${flagMode ? 'bg-accent-red text-white ring-accent-red' : 'bg-card ring-black/10'}`}>
             <Flag size={13} />깃발 모드 {flagMode ? 'ON' : 'OFF'}
           </button>
-          <button type="button" tabIndex={-1} onClick={restart} className="rounded-full bg-card px-3 py-1.5 text-[12px] font-bold ring-1 ring-black/10">다시 시작</button>
+          <button type="button" tabIndex={-1} onClick={restart} className="w-full rounded-full bg-card px-3 py-1.5 text-[12px] font-bold ring-1 ring-black/10">다시 시작</button>
         </div>
         {/* center: the board */}
-        <div className="grid shrink-0 rounded-xl bg-[#c9cdd5] p-1 ring-1 ring-black/10" style={{ gridTemplateColumns: `repeat(${MW}, 24px)`, gap: 2 }} onContextMenu={e => e.preventDefault()}>
+        <div className="grid rounded-xl bg-[#c9cdd5] p-1 ring-1 ring-black/10" style={{ gridTemplateColumns: `repeat(${MW}, 24px)`, gap: 2 }} onContextMenu={e => e.preventDefault()}>
           {board.map((c, i) => (
             <button key={i} type="button" aria-label={`칸 ${i + 1}`} tabIndex={-1}
               onClick={() => { setCur(i); act(i) }} onContextMenu={e => { e.preventDefault(); setCur(i); flag(i) }}
@@ -695,7 +696,7 @@ function Mines({ s }: { s: State }) {
           ))}
         </div>
         {/* right: controls */}
-        <ul className="flex w-[165px] shrink-0 flex-col gap-3">
+        <ul className="mx-auto flex w-[138px] flex-col gap-3">
           {help.map(h => (
             <li key={h.t} className="flex items-start gap-2.5">
               <h.Icon size={18} strokeWidth={2} className="mt-px shrink-0 text-accent-blue" />
