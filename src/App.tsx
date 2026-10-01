@@ -158,12 +158,15 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
   const [tvOn, setTvOn] = useState(false)
   useMotionValueEvent(q, 'change', v => setTvOn(v > 0.34))
   // Once pinned, ease the console from its 80px-below-the-chips spot to the vertical center of the viewport.
-  const maxH = Math.max(220, vh - topB - 80) // measured title + chips block (+56 frame padding, 24 breathing room): everything fits one viewport
-  const est = Math.min(maxH, (innerWidth - (innerWidth >= 768 ? 160 : 40)) * (CANVAS.h / CANVAS.w)) // rendered console height
+  // Phone held sideways (short viewport): the pinned stage gets almost the whole screen, so the console fills it instead of sharing it with the top block.
+  const short = vh <= 500 && innerWidth > vh
+  const PT = short ? 8 : 56 // stage top padding
+  const maxH = short ? vh - PT - 12 : Math.max(220, vh - topB - 80) // measured title + chips block (+56 frame padding, 24 breathing room): everything fits one viewport
+  const est = Math.min(maxH, (innerWidth - (short ? 24 : innerWidth >= 768 ? 160 : 40)) * (CANVAS.h / CANVAS.w)) // rendered console height
   // chip row spans the console from Joy-Con seam to Joy-Con seam (233..1520 of the 1760px canvas)
   const rowW = (est * CANVAS.w / CANVAS.h) * ((1520 - 233) / CANVAS.w)
   const centerY = useRef(0)
-  centerY.current = Math.max(0, (vh - est) / 2 - 80)
+  centerY.current = short ? 0 : Math.max(0, (vh - est) / 2 - 80)
   const toCenter = useTransform(po, v => Math.min(1, v / 0.06) * centerY.current)
   const y = useSpring(toCenter, soft)
   // TV: the console's UI size (640×360) scaled to fill the viewport, with a thin bezel and a stand
@@ -175,7 +178,7 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
   const tvW = 640 * tk + 16, tvBox = 360 * tk + 16
   const tvTop = (vh - BOT - tvBox) / 2
   // cable: leaves the dock's lower right, runs right along the floor, then plugs into the TV's left side in the next "screen" of the world
-  const cx0 = fw / 2 + cw * 0.363, cy0 = 56 + centerY.current + 1.38 * est
+  const cx0 = fw / 2 + cw * 0.363, cy0 = PT + centerY.current + 1.38 * est
   const cx1 = fw * WORLD + (fw - tvW) / 2, cy1 = tvTop + tvBox * 0.78
   const cable = `M${cx0} ${cy0} H${cx1 - 110} C${cx1 - 40} ${cy0} ${cx1 - 30} ${cy1} ${cx1} ${cy1}`
 
@@ -194,15 +197,16 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
     <>
       {top}
       <div ref={ref} className="relative" style={{ height: `${TOTAL}vh` }}>
-        <div className="sticky top-0 flex h-screen flex-col items-center overflow-hidden px-5 pt-14 md:px-20" style={{ perspective: 1800, '--chipw': `${90 * chipScale(rowW)}px` } as React.CSSProperties}>
+        <div className={`sticky top-0 flex h-screen flex-col items-center overflow-hidden ${short ? 'px-3 pt-2' : 'px-5 pt-14 md:px-20'}`} style={{ perspective: 1800, '--chipw': `${90 * chipScale(rowW)}px` } as React.CSSProperties}>
           <motion.div aria-hidden className="absolute inset-0" style={{ opacity: room, background: 'radial-gradient(120% 90% at 50% 40%,#2c2c30 0%,#1d1d20 60%,#131315 100%)' }} />
-          <div className="pointer-events-none absolute left-5 top-20 z-10 w-[32rem] max-w-[85vw] md:left-20">
+          {/* the story captions would sit on top of the big sideways-phone console, so they are skipped there */}
+          {!short && <div className="pointer-events-none absolute left-5 top-20 z-10 w-[32rem] max-w-[85vw] md:left-20">
             {CAPTIONS.map(c => <Caption key={c.t} p={c.s === 'o' ? po : q} {...c} />)}
-          </div>
+          </div>}
           <motion.div aria-hidden className="pointer-events-none absolute inset-x-0 top-[20%] z-20 px-6 text-center text-white" style={{ opacity: linkO, y: linkY }}>
             <p className="text-[clamp(1.75rem,5.2vw,4.5rem)] font-extrabold leading-[1.25] tracking-tight [word-break:keep-all]">독을 연결하면<br />큰 화면으로 프로젝트가 펼쳐집니다</p>
           </motion.div>
-          <motion.div className="absolute inset-0 flex flex-col items-center px-5 pt-14 md:px-20" style={{ x: pan }}>
+          <motion.div className={`absolute inset-0 flex flex-col items-center ${short ? 'px-3 pt-2' : 'px-5 pt-14 md:px-20'}`} style={{ x: pan }}>
             <motion.div className="relative w-full" style={{ scale, rotateY, y }}>
               <Scaled maxH={maxH} dockY={dockYPct} screenOff={screenOff}
                 overlay={<motion.div aria-hidden className="pointer-events-none absolute inset-0" style={{ opacity: dockIn, y: dockUp }}><Dock /></motion.div>}>
