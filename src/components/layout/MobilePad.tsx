@@ -26,7 +26,7 @@ export default function MobilePad({ press }: { press: (b: Btn) => void }) {
     </button>
   )
   return (
-    <div aria-label="controller" className={`fixed inset-x-0 z-30 flex items-end justify-between px-5 transition-opacity duration-300 md:hidden ${show ? 'opacity-100' : 'pointer-events-none opacity-0'}`} style={{ top }}>
+    <div aria-label="controller" className={`fixed inset-x-0 z-30 flex items-end justify-between px-5 transition-opacity duration-300 md:hidden portrait:hidden ${show ? 'opacity-100' : 'pointer-events-none opacity-0'}`} style={{ top }}>
       <div className="grid grid-cols-3 grid-rows-3 gap-0.5">
         <span />{b('up', <ChevronUp size={22} />)}<span />
         {b('left', <ChevronLeft size={22} />)}<span />{b('right', <ChevronRight size={22} />)}
