@@ -9,6 +9,7 @@ import Screen, { AvatarContext, OpenContext } from './components/screen/Screens'
 import { projects } from './types'
 import { CardFace, Cartridges, CaseRack, chipScale, FallbackList, Footer, Header, HowToPlay, Showcase } from './components/layout/Layout'
 import MobilePad from './components/layout/MobilePad'
+import RotateNotice from './components/layout/RotateNotice'
 import { useControls } from './hooks/useControls'
 import type { Btn } from './store/nav'
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react'
@@ -224,7 +225,6 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
               <TvPad press={onPress} scale={rs} />
             </div>
           </motion.div>
-          <p className="label mt-4 text-center sm:hidden">Tip: 가로 모드로 보면 더 커요</p>
         </div>
       </div>
       {guide}
@@ -340,6 +340,7 @@ export default function App() {
       <Footer sound={sound} onToggle={toggleSound} />
       <Music on={sound} />
       <MobilePad press={press} />
+      <RotateNotice />
       <SoundButton sound={sound} onToggle={toggleSound} />
       {big && <TvMode onClose={() => setBig(false)}><Screen s={state} bootMs={bootMs} dark={dark} /></TvMode>}
     </AvatarContext.Provider></OpenContext.Provider>
