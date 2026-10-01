@@ -7,7 +7,7 @@ import Console, { CANVAS } from './components/device/Console'
 import Logo from './components/Logo'
 import Screen, { AvatarContext, OpenContext } from './components/screen/Screens'
 import { projects } from './types'
-import { CardFace, Cartridges, CaseRack, chipScale, FallbackList, Footer, Header, HowToPlay, IntroCopy, Showcase } from './components/layout/Layout'
+import { CardFace, Cartridges, CaseRack, chipScale, FallbackList, Footer, Header, HowToPlay, Showcase } from './components/layout/Layout'
 import MobilePad from './components/layout/MobilePad'
 import { useControls } from './hooks/useControls'
 import type { Btn } from './store/nav'
@@ -180,9 +180,11 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
 
   // centered stack: title, 160px, cartridges, 160px, console
   const top = (
-    <section ref={topRef} className="flex flex-col items-center px-5 pt-14 md:px-20">
-      <div className="grid w-full items-start gap-8 md:grid-cols-[7fr_3fr] lg:gap-12"><IntroCopy /><HowToPlay /></div>
-      <div className="mt-14 w-full"><Cartridges onPick={onPick} width={rowW} away={away} /></div>
+    <section ref={topRef} className="relative flex flex-col items-center px-5 pt-14 md:px-20">
+      {/* title + tagline are hidden so the console gets the room; "Portfolio" now sits on the device's screen */}
+      <div className="w-full xl:hidden"><HowToPlay /></div>
+      <div className="absolute right-20 top-14 hidden w-[24rem] xl:block"><HowToPlay /></div>
+      <div className="mt-6 w-full xl:mt-0"><Cartridges onPick={onPick} width={rowW} away={away} /></div>
     </section>
   )
   const guide = null // how-to-play now sits beside the title
