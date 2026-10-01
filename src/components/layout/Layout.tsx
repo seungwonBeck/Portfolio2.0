@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
 import { ArrowUpRight, CircleDot, Move, Home, Volume2, VolumeX } from 'lucide-react'
 import { profile, projects, skills } from '../../types'
@@ -31,19 +31,42 @@ const guide = [
   { icon: CircleDot, t: 'Y · 테마', k: 'Y 키' },
   { icon: CircleDot, t: '+ / −', k: 'P 확대 · M 소리' },
 ]
-export const HowToPlay = () => (
-  <aside className="hidden md:block">
-    <div className="label mb-3 border-t border-black/10 pt-3">How to play</div>
-    <div className="grid grid-cols-2 gap-x-5 gap-y-3">
-      {guide.map(g => (
-        <div key={g.t} className="flex items-start gap-2">
-          <g.icon size={18} strokeWidth={1.6} className="mt-0.5 shrink-0 text-ink-sub" />
-          <div><div className="text-sm font-bold">{g.t}</div><div className="!text-[13px] text-ink-sub">{g.k}</div></div>
+/** Text-only "How to play" label; click (or Enter) opens the controls in a speech bubble, click outside / Esc closes it. */
+export const HowToPlay = () => {
+  const [open, setOpen] = useState(false)
+  const box = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const down = (e: MouseEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false) }
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    addEventListener('mousedown', down); addEventListener('keydown', key)
+    return () => { removeEventListener('mousedown', down); removeEventListener('keydown', key) }
+  }, [open])
+  return (
+    <div ref={box} className="relative inline-block">
+      <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open} aria-controls="how-to-play"
+        className="label flex items-center gap-1.5 rounded-full border border-black/20 bg-white/70 px-4 py-2 !text-[12px] !text-ink transition-colors hover:bg-white focus-visible:bg-white">
+        How to play<span aria-hidden className={`transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
+      </button>
+      {open && (
+        <div id="how-to-play" role="dialog" aria-label="조작 방법" className="absolute right-0 top-full z-50 mt-3 w-[22rem] max-w-[calc(100vw-2.5rem)]">
+          {/* tail pointing back up at the label */}
+          <span aria-hidden className="absolute -top-[7px] right-8 h-3.5 w-3.5 rotate-45 rounded-[3px] border-l border-t border-black/10 bg-white" />
+          <div className="relative rounded-2xl bg-white p-5 text-ink shadow-[0_18px_50px_-12px_rgba(0,0,0,.35)] ring-1 ring-black/10">
+            <div className="grid grid-cols-2 gap-x-5 gap-y-4">
+              {guide.map(g => (
+                <div key={g.t} className="flex items-start gap-2.5">
+                  <g.icon size={20} strokeWidth={1.8} className="mt-0.5 shrink-0 text-accent-blue" />
+                  <div><div className="text-[15px] font-extrabold leading-tight">{g.t}</div><div className="mt-0.5 text-[13px] leading-snug text-ink-sub">{g.k}</div></div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      ))}
+      )}
     </div>
-  </aside>
-)
+  )
+}
 
 /** Game-cartridge shelf: one cartridge per project; clicking loads it on the device screen. */
 const CARD_CLIP = 'polygon(0 0, 80% 0, 100% 15%, 100% 100%, 0 100%)' // notched corner

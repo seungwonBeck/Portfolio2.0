@@ -622,7 +622,8 @@ export default function Screen({ s, bootMs, dark, instantLoad = false }: { s: St
   return (
     <div className={`relative screen-font flex h-full flex-col bg-screen text-ink ${dark ? 'screen-dark' : ''}`}>
       {chrome && (
-        <motion.div className="flex items-center justify-between px-5 py-3 text-[11px] font-semibold" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+        <motion.div className="relative flex items-center justify-between px-5 py-3 text-[11px] font-semibold" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+          <span aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-display text-[15px] font-black tracking-tight">Portfolio</span>
           <span className="flex items-center gap-2">
             <Avatar i={s.avatar} className="h-6 w-6" />
             {profile.name}
