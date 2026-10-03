@@ -222,18 +222,18 @@ function Photo({ src, i, k, className = '', plain = false }: { src?: string; i: 
   )
 }
 
-const CARD = 'rounded-2xl bg-card p-4 shadow-[0_14px_34px_-14px_rgba(20,30,60,.28)] ring-1 ring-black/[.04]'
 const Eyebrow = ({ children, dark = false }: { children: ReactNode; dark?: boolean }) => (
   <div className={`mb-1 text-[9px] font-bold tracking-wide ${dark ? 'text-[#4aa3ff]' : 'text-[#0a6cff]'}`}>{children}</div>
 )
 
 /**
- * Project page, laid out like the "Apple Concept" template sketch. First view: a centred hero (small blue label, big title, blurb,
- * blue "사이트 보기" pill) and under it the big photo, which takes about two thirds of the screen and runs off the bottom edge.
- * Scrolling reveals cards of different sizes staggered left / right on a soft tinted background: an overview card with a panel,
- * a narrower one with two small photos, a wide one with big numbers, and a dark closing card. Each card has its own text:
- * `sections[n]` in projects.json ({ title, text }) overrides it, otherwise it is built from the project's data.
- * Photos come from `images` (0 = hero, 1 = overview, 2-3 = the two small ones, 4 = numbers card, 5 = dark card).
+ * Project page, laid out like the "Apple Concept" template sketch, as full-width bands (no side margin on the bands themselves,
+ * only a small padding for the text inside). First view: a left-aligned header (small blue label, big title, blurb, then, with some
+ * air above it, the blue "사이트 보기" pill) and right under it the big photo, edge to edge, so title, button and photo are all on
+ * the first screen. Scrolling goes through four bands, each with its own background and its own text, laid out differently:
+ * overview (white, text + photo), keywords (grey, photos left / text right), role (white, big numbers), closing (dark).
+ * `sections[n]` in projects.json ({ title, text }) overrides a band's text, otherwise it is built from the project's data.
+ * Photos come from `images` (0 = hero, 1 = overview, 2-3 = keywords, 4 = role, 5 = closing).
  */
 function Detail({ s }: { s: State }) {
   const p = projects[s.proj]
@@ -252,73 +252,69 @@ function Detail({ s }: { s: State }) {
     <span aria-disabled className="inline-block cursor-not-allowed rounded-full bg-black/[.08] px-3.5 py-1 text-[11px] font-bold text-ink-sub">링크 준비 중</span>
   )
   return (
-    <div data-scroll className="h-full overflow-y-auto bg-[#f4f6fb] [scrollbar-width:none]">
-      {/* hero: label, title, blurb, button, then the big photo */}
-      <section className="flex h-full flex-col items-center">
-        <div className="flex shrink-0 flex-col items-center px-7 pb-2.5 pt-0.5 text-center">
+    <div data-scroll className="h-full overflow-y-auto bg-white [scrollbar-width:none]">
+      {/* hero: left-aligned text with the button set apart from the title, then the photo edge to edge */}
+      <section className="flex h-full flex-col bg-[#f4f6fb]">
+        <div className="shrink-0 px-4 pb-3 pt-0.5">
           <div className="text-[10px] font-bold text-[#0a6cff]">{p.role}</div>
-          <h2 className="text-[25px] font-extrabold leading-tight tracking-tight text-[#16171a]">{p.title}</h2>
-          <p className="mb-2 line-clamp-1 text-[11px] text-[#6b6f78]">{p.summary}</p>
-          {site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}
+          <h2 className="text-[24px] font-extrabold leading-tight tracking-tight text-[#16171a]">{p.title}</h2>
+          <p className="line-clamp-1 text-[11px] text-[#6b6f78]">{p.summary}</p>
+          <div className="mt-3">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}</div>
         </div>
-        <Photo src={imgs[0] ?? p.thumbnail} i={s.proj} k={0} plain className="mx-7 min-h-0 w-[calc(100%-3.5rem)] flex-1 rounded-b-none rounded-t-2xl" />
+        <Photo src={imgs[0] ?? p.thumbnail} i={s.proj} k={0} plain className="min-h-0 w-full flex-1 !rounded-none" />
       </section>
 
-      {/* soft tinted stage with the staggered cards */}
-      <div className="relative flex flex-col gap-5 overflow-hidden px-7 pb-7 pt-6">
-        <span aria-hidden className="pointer-events-none absolute -left-12 top-24 h-44 w-44 rounded-full bg-[#ffd9cc]/70 blur-3xl" />
-        <span aria-hidden className="pointer-events-none absolute -right-10 top-[420px] h-48 w-48 rounded-full bg-[#cfe2ff]/80 blur-3xl" />
+      {/* band 1: white, text and a photo on a grey panel */}
+      <section className="bg-white px-4 py-5">
+        <Eyebrow>Overview</Eyebrow>
+        <h3 className="mb-2.5 text-[16px] font-extrabold leading-snug tracking-tight text-[#16171a]">{sec[0].title}</h3>
+        <div className="flex items-center gap-4 rounded-xl bg-[#f1f2f7] p-3">
+          <p className="flex-1 text-[10px] leading-relaxed text-[#3c3f46]">{sec[0].text}</p>
+          <Photo src={imgs[1]} i={s.proj} k={1} plain className="aspect-[4/3] w-[42%] shrink-0" />
+        </div>
+      </section>
 
-        {/* overview: heading, then a grey panel with the text and a photo */}
-        <article className={`relative w-[92%] self-start ${CARD}`}>
-          <Eyebrow>Overview</Eyebrow>
-          <h3 className="mb-2.5 text-[16px] font-extrabold leading-snug tracking-tight text-[#16171a]">{sec[0].title}</h3>
-          <div className="flex items-center gap-3 rounded-xl bg-[#f1f2f7] p-3">
-            <p className="flex-1 text-[10px] leading-relaxed text-[#3c3f46]">{sec[0].text}</p>
-            <Photo src={imgs[1]} i={s.proj} k={1} plain className="aspect-[4/3] w-[42%] shrink-0" />
-          </div>
-        </article>
-
-        {/* narrower card on the right: two small photos */}
-        <article className={`relative w-[62%] self-end ${CARD}`}>
+      {/* band 2: light grey, two photos on the left and the text on the right */}
+      <section className="flex items-center gap-4 bg-[#eceef4] px-4 py-5">
+        <div className="grid w-[56%] shrink-0 grid-cols-2 gap-2">
+          <Photo src={imgs[2]} i={s.proj} k={2} plain className="aspect-[4/5] rounded-lg" />
+          <Photo src={imgs[3]} i={s.proj} k={3} plain className="aspect-[4/5] rounded-lg" />
+        </div>
+        <div className="min-w-0 flex-1">
           <Eyebrow>Keywords</Eyebrow>
-          <h3 className="mb-1 text-[14px] font-extrabold leading-snug tracking-tight text-[#16171a]">{sec[1].title}</h3>
-          <p className="mb-2.5 text-[10px] leading-relaxed text-[#3c3f46]">{sec[1].text}</p>
-          <div className="grid grid-cols-2 gap-2">
-            <Photo src={imgs[2]} i={s.proj} k={2} plain className="aspect-[4/3] rounded-lg" />
-            <Photo src={imgs[3]} i={s.proj} k={3} plain className="aspect-[4/3] rounded-lg" />
-          </div>
-        </article>
+          <h3 className="mb-1 text-[15px] font-extrabold leading-snug tracking-tight text-[#16171a]">{sec[1].title}</h3>
+          <p className="text-[10px] leading-relaxed text-[#3c3f46]">{sec[1].text}</p>
+        </div>
+      </section>
 
-        {/* wide card: text and big numbers on the left, photo panel on the right */}
-        <article className={`relative flex w-full items-stretch gap-4 self-center ${CARD}`}>
-          <div className="flex min-w-0 flex-1 flex-col">
-            <Eyebrow>Role</Eyebrow>
-            <h3 className="mb-1 text-[16px] font-extrabold leading-snug tracking-tight text-[#16171a]">{sec[2].title}</h3>
-            <p className="text-[10px] leading-relaxed text-[#3c3f46]">{sec[2].text}</p>
-            <div className="mt-auto flex gap-6 pt-3">
-              <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.period}</div><div className="mt-1 text-[9px] text-[#6b6f78]">작업 기간</div></div>
-              <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.tags.length}</div><div className="mt-1 text-[9px] text-[#6b6f78]">키워드</div></div>
-            </div>
+      {/* band 3: white, text and big numbers on the left, photo panel on the right */}
+      <section className="flex items-stretch gap-4 bg-white px-4 py-5">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Eyebrow>Role</Eyebrow>
+          <h3 className="mb-1 text-[16px] font-extrabold leading-snug tracking-tight text-[#16171a]">{sec[2].title}</h3>
+          <p className="text-[10px] leading-relaxed text-[#3c3f46]">{sec[2].text}</p>
+          <div className="mt-auto flex gap-6 pt-3">
+            <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.period}</div><div className="mt-1 text-[9px] text-[#6b6f78]">작업 기간</div></div>
+            <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.tags.length}</div><div className="mt-1 text-[9px] text-[#6b6f78]">키워드</div></div>
           </div>
-          <div className="w-[42%] shrink-0 self-center rounded-xl bg-[#f1f2f7] p-2.5">
-            <Photo src={imgs[4]} i={s.proj} k={4} plain className="aspect-[4/3] w-full" />
-          </div>
-        </article>
+        </div>
+        <div className="w-[44%] shrink-0 self-center rounded-xl bg-[#f1f2f7] p-2.5">
+          <Photo src={imgs[4]} i={s.proj} k={4} plain className="aspect-[4/3] w-full" />
+        </div>
+      </section>
 
-        {/* dark closing card */}
-        <article className="relative w-[94%] self-start rounded-2xl bg-[#0b0b0d] p-4 text-white shadow-[0_14px_34px_-14px_rgba(0,0,0,.6)]">
-          <Eyebrow dark>Next</Eyebrow>
-          <div className="flex items-end justify-between gap-4">
-            <div className="min-w-0">
-              <h3 className="mb-1 text-[16px] font-extrabold leading-snug tracking-tight">{sec[3].title}</h3>
-              <p className="mb-2.5 text-[10px] leading-relaxed text-white/65">{sec[3].text}</p>
-              {site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}
-            </div>
-            <Photo src={imgs[5]} i={s.proj} k={5} plain className="aspect-[4/3] w-[40%] shrink-0 rounded-lg" />
+      {/* band 4: dark closing band */}
+      <section className="bg-[#0b0b0d] px-4 py-5 text-white">
+        <Eyebrow dark>Next</Eyebrow>
+        <div className="flex items-end justify-between gap-4">
+          <div className="min-w-0">
+            <h3 className="mb-1 text-[16px] font-extrabold leading-snug tracking-tight">{sec[3].title}</h3>
+            <p className="mb-2.5 text-[10px] leading-relaxed text-white/65">{sec[3].text}</p>
+            {site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}
           </div>
-        </article>
-      </div>
+          <Photo src={imgs[5]} i={s.proj} k={5} plain className="aspect-[4/3] w-[40%] shrink-0 rounded-lg" />
+        </div>
+      </section>
     </div>
   )
 }
