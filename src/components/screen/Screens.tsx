@@ -224,8 +224,8 @@ function Photo({ src, i, k, className = '' }: { src?: string; i: number; k: numb
 
 /**
  * Project page, two sections like the layout sketch. Section 1 is the big photo (two thirds of the screen) with the title, the site
- * button and a one-line blurb in the first view, and its description right below it as you scroll. Section 2 is two photos side by
- * side with its own description. Every section carries its own text: `sections[n]` in projects.json ({ title, text }) overrides it,
+ * button and a one-line blurb in the first view, and right below it (still section 1) a small photo beside the description. Section 2
+ * is two photos side by side with its own description. Every section carries its own text: `sections[n]` in projects.json ({ title, text }) overrides it,
  * otherwise it is built from the project's data. Photos come from `images`.
  */
 function Detail({ s }: { s: State }) {
@@ -239,7 +239,7 @@ function Detail({ s }: { s: State }) {
   ]
   return (
     <div data-scroll className="h-full overflow-y-auto [scrollbar-width:none]">
-      {/* section 1: big photo, title + site button, blurb … then the description (`contents` so the first block's h-full is the screen height) */}
+      {/* section 1: big photo, title + site button, blurb … then the small photo + description (`contents` so the first block's h-full is the screen height) */}
       <section className="contents">
         <div className="flex h-full flex-col px-7 pb-2 pt-0.5">
           <Photo src={imgs[0] ?? p.thumbnail} i={s.proj} k={0} className="h-[66%] shrink-0" />
@@ -257,20 +257,24 @@ function Detail({ s }: { s: State }) {
             <p className="mt-0.5 line-clamp-2 text-[12px] leading-snug text-ink-sub">{p.summary}</p>
           </div>
         </div>
-        <div className="px-7 pb-5 pt-1">
-          <h3 className="mb-1.5 text-[15px] font-extrabold tracking-tight">{sec[0].title}</h3>
-          <p className="mb-3 text-[12px] leading-relaxed">{sec[0].text}</p>
-          <div className="mb-2 flex gap-6 text-[11px]"><div><div className="label">Role</div>{p.role}</div><div><div className="label">Period</div>{p.period}</div></div>
-          <div className="flex flex-wrap gap-1.5">
-            {p.tags.map(t => <span key={t} className="rounded-full bg-card px-2 py-0.5 text-[10px] font-semibold ring-1 ring-black/10">{t}</span>)}
+        {/* still section 1: right under the big photo, a smaller photo on the left and the description on the right */}
+        <div className="flex items-start gap-4 px-7 pb-5 pt-3">
+          <Photo src={imgs[1]} i={s.proj} k={1} className="aspect-[4/3] w-[36%] shrink-0" />
+          <div className="min-w-0 flex-1">
+            <h3 className="mb-1.5 text-[15px] font-extrabold tracking-tight">{sec[0].title}</h3>
+            <p className="mb-2.5 text-[11px] leading-relaxed">{sec[0].text}</p>
+            <div className="mb-2 flex gap-6 text-[11px]"><div><div className="label">Role</div>{p.role}</div><div><div className="label">Period</div>{p.period}</div></div>
+            <div className="flex flex-wrap gap-1.5">
+              {p.tags.map(t => <span key={t} className="rounded-full bg-card px-2 py-0.5 text-[10px] font-semibold ring-1 ring-black/10">{t}</span>)}
+            </div>
           </div>
         </div>
       </section>
       {/* section 2: two photos side by side, with their own description */}
       <section className="flex h-full flex-col justify-center border-t border-black/[.07] px-7 py-3">
         <div className="mb-3 grid grid-cols-2 gap-4">
-          <Photo src={imgs[1]} i={s.proj} k={1} className="aspect-[16/10]" />
           <Photo src={imgs[2]} i={s.proj} k={2} className="aspect-[16/10]" />
+          <Photo src={imgs[3]} i={s.proj} k={3} className="aspect-[16/10]" />
         </div>
         <h3 className="mb-1 text-[15px] font-extrabold tracking-tight">{sec[1].title}</h3>
         <p className="text-[12px] leading-relaxed">{sec[1].text}</p>
