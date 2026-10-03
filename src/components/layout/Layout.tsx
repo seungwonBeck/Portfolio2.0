@@ -45,7 +45,7 @@ export const HowToPlay = () => {
   return (
     <div ref={box} className="relative inline-block">
       <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open} aria-controls="how-to-play"
-        className="flex items-center gap-2 rounded-full bg-accent-blue py-2.5 pl-3.5 pr-4 font-court text-[14px] font-black uppercase tracking-[0.1em] text-white shadow-[0_8px_18px_-6px_rgba(31,182,232,.75)] ring-2 ring-white transition-[filter,transform] hover:brightness-110 active:scale-95">
+        className="flex items-center gap-2 rounded-full bg-[#ffc21f] py-2.5 pl-3.5 pr-4 font-court text-[14px] font-black uppercase tracking-[0.1em] text-ink shadow-[0_8px_18px_-6px_rgba(255,170,0,.8)] ring-2 ring-white transition-[filter,transform] hover:brightness-105 active:scale-95">
         <CircleHelp size={20} strokeWidth={2.4} />How to play<span aria-hidden className={`text-[12px] transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
       </button>
       {open && (
@@ -109,9 +109,12 @@ export const Cartridges = ({ onPick, width, away }: { onPick: (i: number, from: 
   return (
   <div className="text-center">
     {/* the shelf is the project list: say so loudly */}
-    <div className="mb-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
-      <span className="rounded-full bg-ink px-4 py-1.5 font-court text-[15px] font-black tracking-[0.2em] text-white shadow-[0_6px_14px_-6px_rgba(0,0,0,.6)]">PROJECTS</span>
-      <span className="text-[13px] font-bold text-ink">{projects.length}개의 작품 <span className="font-medium text-ink-sub">· 카트리지를 콘솔에 꽂아보세요</span></span>
+    <div className="mb-3 flex flex-col items-center gap-1.5">
+      <div className="flex items-center gap-3">
+        <span className="rounded-full bg-accent-red px-4 py-1.5 font-court text-[15px] font-black tracking-[0.2em] text-white shadow-[0_8px_16px_-6px_rgba(255,75,62,.7)]">PROJECTS</span>
+        <span className="text-[14px] font-extrabold text-ink">{projects.length}개의 작품</span>
+      </div>
+      <span className="text-[13px] font-semibold text-ink-sub">카트리지를 클릭해서 콘솔에 꽂아보세요</span>
     </div>
     <div className="mx-auto" style={{ width, height: HOLDER_H * k }}>
     <div style={{ width: k < 1 ? natural : width, transform: `scale(${k})`, transformOrigin: 'top left' }}>
