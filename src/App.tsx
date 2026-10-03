@@ -58,14 +58,14 @@ function Caption({ p, a, b, t, d, light }: { p: MotionValue<number>; a: number; 
 }
 
 /** One controller at the bottom right of the TV scene (cut off by the viewport edge): D-pad, home, face buttons. Buttons are raised, they press down. */
-function TvPad({ press, scale }: { press: (b: Btn) => void; scale: number }) {
+function TvPad({ press, scale, right = '5%', lift = 0 }: { press: (b: Btn) => void; scale: number; right?: number | string; lift?: number }) {
   const hit = (b: Btn, node: React.ReactNode, cls = '', style?: React.CSSProperties) => (
     <button type="button" aria-label={b} onPointerDown={e => { e.preventDefault(); press(b) }} style={style}
       className={`group absolute grid touch-manipulation place-items-center text-white/90 ${cls}`}>{node}</button>
   )
   const round = 'rounded-full bg-[radial-gradient(circle_at_35%_28%,#55565c_0%,#2a2b2f_55%,#17181a_100%)] shadow-[0_4px_0_#09090a,0_7px_10px_rgba(0,0,0,.55),inset_0_1px_0_rgba(255,255,255,.22)] transition-[transform,box-shadow] duration-75 group-active:translate-y-[3px] group-active:shadow-[0_1px_0_#09090a,0_2px_3px_rgba(0,0,0,.5),inset_0_1px_0_rgba(255,255,255,.15)]'
   return (
-    <div className="absolute z-10 flex flex-col items-center" style={{ right: '5%', bottom: 10 * scale, width: 330 * scale, height: 232 * scale }}>
+    <div className="absolute z-10 flex flex-col items-center" style={{ right, bottom: 10 * scale + lift, width: 330 * scale, height: 232 * scale }}>
       <div className="flex flex-col items-center" style={{ width: 330, height: 232, transform: `scale(${scale})`, transformOrigin: 'top center' }}>
         <span className="text-[13px] font-bold text-white/75">방향키로 이동 · A 로 선택</span>
         <svg aria-hidden viewBox="0 0 40 44" className="h-11 w-10" fill="none" stroke="rgba(255,255,255,.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 3 C 16 14 24 22 20 36 M11 28 L20 38 L30 28" /></svg>
@@ -179,14 +179,21 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
   // TV with a game-case rack underneath; the TV is sized so both fit the viewport
   const fw = innerWidth, cw = est * CANVAS.w / CANVAS.h
   // case rack + controller scale: kept smallish so the TV can take almost the whole viewport (it must come out bigger than the handheld's screen)
-  const rs = Math.max(0.45, Math.min(0.95, vh / 1100, fw / 1700))
-  const BOT = 246 * rs // the bottom band: the whole controller, and the tops of the cases cropped by the bottom edge
-  const tk = Math.min((fw * 0.9 - 16) / 640, (vh - BOT - 16 - 20) / 360)
-  const tvW = 640 * tk + 16, tvBox = 360 * tk + 16
+  const phonePortrait = fw < 768 && vh > fw
+  const bez = phonePortrait ? 3 : 8 // TV bezel per side: thinner on a phone so the screen gets the width
+  const rs0 = Math.max(0.45, Math.min(0.95, vh / 1100, fw / 1700))
+  // Phone held sideways: no room under the TV, so it takes the full height, the controller sits beside it and the case rack is dropped.
+  const BOT = short ? 0 : 246 * rs0 // the bottom band: the whole controller, and the tops of the cases cropped by the bottom edge
+  const tk = short
+    ? Math.min((vh - 2 * bez - 12) / 360, (fw - 2 * bez - 24 - 150) / 640)
+    : Math.min((fw * (phonePortrait ? 1 : 0.9) - 2 * bez) / 640, (vh - BOT - 2 * bez - 20) / 360)
+  const tvW = 640 * tk + 2 * bez, tvBox = 360 * tk + 2 * bez
+  const TV_LEFT = 12
+  const rs = short ? Math.max(0.3, Math.min(0.55, (fw - tvW - TV_LEFT - 12) / 330)) : rs0
   const tvTop = (vh - BOT - tvBox) / 2
   // cable: leaves the dock's lower right, runs right along the floor, then plugs into the TV's left side in the next "screen" of the world
   const cx0 = fw / 2 + cw * 0.363, cy0 = PT + centerY.current + 1.38 * est
-  const cx1 = fw * WORLD + (fw - tvW) / 2, cy1 = tvTop + tvBox * 0.78
+  const cx1 = fw * WORLD + (short ? TV_LEFT : (fw - tvW) / 2), cy1 = tvTop + tvBox * 0.78
   const cable = `M${cx0} ${cy0} H${cx1 - 110} C${cx1 - 40} ${cy0} ${cx1 - 30} ${cy1} ${cx1} ${cy1}`
 
   // centered stack: title, 160px, cartridges, 160px, console
@@ -224,16 +231,16 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
               <path d={cable} stroke="rgba(255,255,255,.28)" strokeWidth="2.5" strokeLinecap="round" />
             </motion.svg>
             <div className="absolute top-0 grid h-full w-full place-items-center" style={{ left: `${WORLD * 100}%` }}>
-              <div className="absolute left-1/2 -translate-x-1/2" style={{ top: tvTop }}>
-                <div className="relative rounded-[6px] bg-[#0a0a0b] p-[8px] shadow-[0_20px_60px_rgba(0,0,0,.5)]" style={{ width: tvW, height: tvBox }}>
+              <div className={short ? 'absolute' : 'absolute left-1/2 -translate-x-1/2'} style={short ? { top: tvTop, left: TV_LEFT } : { top: tvTop }}>
+                <div className="relative rounded-[6px] bg-[#0a0a0b] shadow-[0_20px_60px_rgba(0,0,0,.5)]" style={{ width: tvW, height: tvBox, padding: bez }}>
                   <div className="relative overflow-hidden bg-black" style={{ width: 640 * tk, height: 360 * tk }}>
                     <div style={{ width: 640, height: 360, transform: `scale(${tk})`, transformOrigin: 'top left' }}>{tvOn && tv}</div>
                   </div>
                 </div>
               </div>
               {/* cases and controller sit at the bottom edge and are cropped by it */}
-              <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: -(212 - 105) * rs }}><CaseRack onPick={onPickTv} active={away} scale={rs} /></div>
-              <TvPad press={onPress} scale={rs} />
+              {!short && <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: -(212 - 105) * rs }}><CaseRack onPick={onPickTv} active={away} scale={rs} /></div>}
+              <TvPad press={onPress} scale={rs} right={short ? 8 : undefined} lift={short ? 56 : 0} />
             </div>
           </motion.div>
         </div>
