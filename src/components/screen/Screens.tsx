@@ -223,51 +223,57 @@ function Photo({ src, i, k, className = '' }: { src?: string; i: number; k: numb
 }
 
 /**
- * Project page: three "frames" like the layout sketch. The first one fills the visible screen and stays the same for every project
- * (a photo taking two thirds of the height, then title, blurb and the site button); scrolling down gives two differently laid-out
- * frames (small photo beside text, then two photos side by side). Photos come from `images` in projects.json.
+ * Project page, two sections like the layout sketch. Section 1 is the big photo (two thirds of the screen) with the title, the site
+ * button and a one-line blurb in the first view, and its description right below it as you scroll. Section 2 is two photos side by
+ * side with its own description. Every section carries its own text: `sections[n]` in projects.json ({ title, text }) overrides it,
+ * otherwise it is built from the project's data. Photos come from `images`.
  */
 function Detail({ s }: { s: State }) {
   const p = projects[s.proj]
   const imgs = (p as { images?: string[] }).images ?? []
+  const own = (p as { sections?: { title?: string; text?: string }[] }).sections ?? []
   const site = p.links.demo
+  const sec = [
+    { title: own[0]?.title || '프로젝트 소개', text: own[0]?.text || p.description },
+    { title: own[1]?.title || '역할과 도구', text: own[1]?.text || `역할은 ${p.role}, 작업 기간은 ${p.period}입니다. 함께 쓴 키워드는 ${p.tags.join(', ')}입니다.` },
+  ]
   return (
     <div data-scroll className="h-full overflow-y-auto [scrollbar-width:none]">
-      {/* frame 1: big photo (2/3 of the screen), title, blurb, site button */}
-      <section className="flex h-full flex-col px-7 pb-2 pt-0.5">
-        <Photo src={imgs[0] ?? p.thumbnail} i={s.proj} k={0} className="h-[66%] shrink-0" />
-        <div className="flex min-h-0 flex-1 flex-col justify-center pt-2">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="truncate text-[17px] font-extrabold leading-tight tracking-tight">{p.title}</h2>
-            {site ? (
-              <a href={site} target="_blank" rel="noopener" className="flex shrink-0 items-center gap-1 rounded-full bg-accent-blue px-3 py-1 text-[11px] font-bold text-white shadow-[0_3px_8px_-2px_rgba(31,182,232,.6)] hover:brightness-110">
-                사이트 보기 <ExternalLink size={12} />
-              </a>
-            ) : (
-              <span aria-disabled className="shrink-0 cursor-not-allowed rounded-full bg-black/[.08] px-3 py-1 text-[11px] font-bold text-ink-sub">링크 준비 중</span>
-            )}
+      {/* section 1: big photo, title + site button, blurb … then the description (`contents` so the first block's h-full is the screen height) */}
+      <section className="contents">
+        <div className="flex h-full flex-col px-7 pb-2 pt-0.5">
+          <Photo src={imgs[0] ?? p.thumbnail} i={s.proj} k={0} className="h-[66%] shrink-0" />
+          <div className="flex min-h-0 flex-1 flex-col justify-center pt-2">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="truncate text-[17px] font-extrabold leading-tight tracking-tight">{p.title}</h2>
+              {site ? (
+                <a href={site} target="_blank" rel="noopener" className="flex shrink-0 items-center gap-1 rounded-full bg-accent-blue px-3 py-1 text-[11px] font-bold text-white shadow-[0_3px_8px_-2px_rgba(31,182,232,.6)] hover:brightness-110">
+                  사이트 보기 <ExternalLink size={12} />
+                </a>
+              ) : (
+                <span aria-disabled className="shrink-0 cursor-not-allowed rounded-full bg-black/[.08] px-3 py-1 text-[11px] font-bold text-ink-sub">링크 준비 중</span>
+              )}
+            </div>
+            <p className="mt-0.5 line-clamp-2 text-[12px] leading-snug text-ink-sub">{p.summary}</p>
           </div>
-          <p className="mt-0.5 line-clamp-2 text-[12px] leading-snug text-ink-sub">{p.summary}</p>
         </div>
-      </section>
-      {/* frame 2: small photo on the left, text on the right */}
-      <section className="flex h-full items-center gap-4 border-t border-black/[.07] px-7 py-3">
-        <Photo src={imgs[1]} i={s.proj} k={1} className="aspect-[4/3] w-[36%] shrink-0" />
-        <div className="min-w-0 flex-1">
-          <h3 className="mb-1.5 text-[15px] font-extrabold leading-snug tracking-tight">{p.summary}</h3>
-          <p className="mb-2.5 text-[11px] leading-relaxed">{p.description}</p>
+        <div className="px-7 pb-5 pt-1">
+          <h3 className="mb-1.5 text-[15px] font-extrabold tracking-tight">{sec[0].title}</h3>
+          <p className="mb-3 text-[12px] leading-relaxed">{sec[0].text}</p>
           <div className="mb-2 flex gap-6 text-[11px]"><div><div className="label">Role</div>{p.role}</div><div><div className="label">Period</div>{p.period}</div></div>
           <div className="flex flex-wrap gap-1.5">
             {p.tags.map(t => <span key={t} className="rounded-full bg-card px-2 py-0.5 text-[10px] font-semibold ring-1 ring-black/10">{t}</span>)}
           </div>
         </div>
       </section>
-      {/* frame 3: two photos side by side */}
-      <section className="flex h-full flex-col justify-center gap-3 border-t border-black/[.07] px-7 py-3">
-        <div className="grid grid-cols-2 gap-4">
+      {/* section 2: two photos side by side, with their own description */}
+      <section className="flex h-full flex-col justify-center border-t border-black/[.07] px-7 py-3">
+        <div className="mb-3 grid grid-cols-2 gap-4">
+          <Photo src={imgs[1]} i={s.proj} k={1} className="aspect-[16/10]" />
           <Photo src={imgs[2]} i={s.proj} k={2} className="aspect-[16/10]" />
-          <Photo src={imgs[3]} i={s.proj} k={3} className="aspect-[16/10]" />
         </div>
+        <h3 className="mb-1 text-[15px] font-extrabold tracking-tight">{sec[1].title}</h3>
+        <p className="text-[12px] leading-relaxed">{sec[1].text}</p>
       </section>
     </div>
   )
@@ -873,21 +879,24 @@ export default function Screen({ s, bootMs, dark, instantLoad = false }: { s: St
       {/* soft light from the top and a faint vignette, so the flat grey reads as a lit screen */}
       <div aria-hidden className={`pointer-events-none absolute inset-0 ${dark ? 'bg-[radial-gradient(110%_80%_at_50%_0%,rgba(255,255,255,.07),transparent_70%)]' : 'bg-[radial-gradient(110%_80%_at_50%_0%,rgba(255,255,255,.75),transparent_70%),linear-gradient(180deg,transparent_70%,rgba(0,0,0,.05))]'}`} />
       {chrome && (
-        <motion.div className="relative flex items-center justify-between px-6 py-2.5 text-[11px] font-semibold" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-          <span aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-display text-[15px] font-black tracking-tight">Portfolio</span>
-          <span className="flex items-center gap-2">
-            <Avatar i={s.avatar} className="h-[26px] w-[26px] ring-2 ring-white shadow-[0_2px_5px_rgba(0,0,0,.3)]" />
-            {profile.name}
+        <motion.div className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-6 py-2.5 text-[11px] font-semibold" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+          {/* three columns, so the inserted cartridge's name (right column) can only shrink/truncate and never runs into "Portfolio" in the middle */}
+          <span className="flex min-w-0 items-center gap-2">
+            <Avatar i={s.avatar} className="h-[26px] w-[26px] shrink-0 ring-2 ring-white shadow-[0_2px_5px_rgba(0,0,0,.3)]" />
+            <span className="truncate">{profile.name}</span>
           </span>
-          <span className="flex items-center gap-4">
+          <span aria-hidden className="pointer-events-none font-display text-[15px] font-black tracking-tight">Portfolio</span>
+          <span className="flex min-w-0 items-center justify-end gap-3.5">
             {/* the cartridge in the console, next to the clock */}
             {s.only !== null && (
-              <span className="mr-1 flex max-w-[190px] items-center gap-1.5 rounded-full bg-card px-2.5 py-1 ring-1 ring-black/10">
+              <span className="flex min-w-0 items-center gap-1.5 rounded-full bg-card px-2.5 py-1 ring-1 ring-black/10">
                 <span className="h-3 w-2.5 shrink-0 bg-accent-blue" style={{ clipPath: 'polygon(0 0, 70% 0, 100% 20%, 100% 100%, 0 100%)', borderRadius: 1 }} />
                 <span className="truncate text-[10px] font-bold">{projects[s.only].title}</span>
               </span>
             )}
-            <Wifi size={14} strokeWidth={2.2} className="text-ink-sub" /><Clock /><span className="flex items-center gap-1.5"><BatteryFull size={16} /><span className="text-[10px] font-bold text-ink-sub">100%</span></span>
+            <span className="flex shrink-0 items-center gap-3.5">
+              <Wifi size={14} strokeWidth={2.2} className="text-ink-sub" /><Clock /><span className="flex items-center gap-1.5"><BatteryFull size={16} /><span className="text-[10px] font-bold text-ink-sub">100%</span></span>
+            </span>
           </span>
         </motion.div>
       )}
