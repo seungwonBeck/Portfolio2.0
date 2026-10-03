@@ -1,6 +1,6 @@
 import { ReactNode, RefObject, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { BatteryFull, Bomb, CircleDot, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
+import { BatteryFull, Bomb, Wifi, CircleDot, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
 import { AVATAR_ORDER, Btn, contactItems, DOCK, State, TILES } from '../../store/nav'
 import { Avatar, AVATARS, Coin } from './avatars'
 import Logo from '../Logo'
@@ -41,51 +41,75 @@ export const RowContext = createContext<(screen: 'PROJECTS' | 'CONTACT' | 'GAME'
 export const PressContext = createContext<(b: Btn) => void>(() => {})
 
 const dockColor = { ABOUT: '#ff4b3e', PROJECTS: '#ff9f43', SKILLS: '#34c759', CONTACT: '#1fb6e8', GAME: '#8a8b90' }
+/** Box-art colours per tile (light, dark) and the one-line blurb shown under the focused tile, like a game's title on the Switch home. */
+const TILE_ART = { ABOUT: ['#ff7a6b', '#b3261a'], PROJECTS: ['#ffb54d', '#c4630a'], SKILLS: ['#4fd98a', '#12803f'], CONTACT: ['#3cc6f2', '#0b6f98'], GAME: ['#b07bff', '#4a21a8'] } as const
+const TILE_SUB = { ABOUT: '프로필과 타임라인', PROJECTS: `${projects.length}개의 작품`, SKILLS: '쓸 수 있는 도구들', CONTACT: '연락하는 방법', GAME: '쉬어가는 미니게임' } as const
 
 /**
- * Console-style home: a row of large colored tiles — ABOUT, the project in the console (its title; "PROJECTS" if none),
- * CONTACT, GAME — followed by an empty slot that runs off the edge.
+ * Console-style home, modelled on the Switch home screen: a row of square "game" tiles with soft drop shadows (the focused one
+ * grows and gets a pulsing white + cyan frame), the focused tile's title and blurb underneath, and a row of round coloured
+ * system icons at the bottom (the focused one gets the blue ring and its name below).
  */
 function Home({ s }: { s: State }) {
   const label = (t: (typeof TILES)[number]) => (t === 'PROJECTS' && s.only !== null ? projects[s.only].title : t)
   const tileFocus = s.row === 'tile'
   const open = useContext(OpenContext)
+  const cur = TILES[s.home]
   return (
     <div className="relative h-full">
-      <div className="absolute inset-x-0 top-2 overflow-hidden py-3 pl-7">
-      {/* the row slides left so the focused tile stays on screen (one tile = 132px + 12px gap) */}
-      <motion.div className="flex gap-3" animate={{ x: -Math.max(0, s.home - 2) * 144 }} transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}>
+      <div className="absolute inset-x-0 top-0 overflow-hidden py-4 pl-7">
+      {/* the row slides left so the focused tile stays on screen (one tile = 132px + 14px gap) */}
+      <motion.div className="flex gap-3.5 py-1" animate={{ x: -Math.max(0, s.home - 2) * 146 }} transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}>
         {TILES.map((t, i) => {
           const sel = tileFocus && i === s.home
+          const [hi, lo] = TILE_ART[t]
+          const Icon = tileIcon[t]
           return (
             <div key={t} className="shrink-0">
-              <motion.button aria-label={label(t)} onClick={() => open('tile', i)} animate={{ scale: sel ? 1.04 : 1 }}
-                className={`relative block h-[132px] w-[132px] overflow-hidden rounded-xl text-left ${sel ? 'ring-[3px] ring-accent-blue ring-offset-[3px] ring-offset-white' : 'ring-1 ring-black/10'}`}>
-                <Thumb i={i} className="absolute inset-0" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 p-3 text-[15px] font-semibold leading-tight text-white">{label(t)}</div>
+              <motion.button aria-label={label(t)} onClick={() => open('tile', i)} animate={{ scale: sel ? 1.07 : 1, y: sel ? -3 : 0 }} transition={{ type: 'spring', stiffness: 380, damping: 26 }}
+                className={`relative block h-[132px] w-[132px] overflow-hidden rounded-[14px] text-left ${sel ? 'animate-[tileGlow_1.6s_ease-in-out_infinite]' : 'shadow-[0_8px_16px_-6px_rgba(0,0,0,.35)]'}`}
+                style={{ background: `linear-gradient(155deg, ${hi} 0%, ${lo} 100%)` }}>
+                {/* big faint glyph as the box art, a sheen from the top-left, a rim light, then the title on a scrim */}
+                <Icon aria-hidden size={92} strokeWidth={1.2} className="absolute -right-3 -top-2 text-white/25" />
+                <span aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.06) 38%, transparent 52%)' }} />
+                <span aria-hidden className="absolute inset-0 rounded-[14px]" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,.28), inset 0 -26px 34px -18px rgba(0,0,0,.5)' }} />
+                <span className="absolute left-3 top-3 grid h-7 w-7 place-items-center rounded-lg bg-white/90 shadow-[0_2px_4px_rgba(0,0,0,.25)]"><Icon size={16} strokeWidth={2.2} style={{ color: lo }} /></span>
+                <span className="absolute inset-x-0 bottom-0 p-3 text-[15px] font-bold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,.45)]">{label(t)}</span>
               </motion.button>
             </div>
           )
         })}
-        <div className="shrink-0"><div className="h-[132px] w-[132px] rounded-xl bg-card ring-1 ring-black/10" /></div>
+        <div className="shrink-0"><div className="h-[132px] w-[132px] rounded-[14px] bg-black/[.06] shadow-[inset_0_2px_6px_rgba(0,0,0,.12)] ring-1 ring-black/5" /></div>
       </motion.div>
       </div>
-      {/* dock: the five menus */}
+      {/* the focused tile's name and blurb */}
+      <div className="absolute inset-x-0 top-[176px] h-10 pl-7 pr-7">
+        <AnimatePresence mode="wait" initial={false}>
+          {tileFocus && (
+            <motion.div key={cur} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.16 }}>
+              <div className="text-[15px] font-extrabold leading-tight">{label(cur)}</div>
+              <div className="text-[11px] text-ink-sub">{s.only !== null && cur === 'PROJECTS' ? projects[s.only].summary : TILE_SUB[cur]}</div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+      {/* dock: the five menus as round coloured icons */}
       <div className="absolute inset-x-0 bottom-1 flex flex-col items-center">
-        <div className="flex items-center gap-4 rounded-full bg-card px-5 py-2 ring-1 ring-black/10">
+        <div className="flex items-center gap-[18px]">
           {DOCK.map((t, i) => {
             const Icon = tileIcon[t]
             const sel = !tileFocus && i === s.dock
             return (
-              <motion.button key={t} aria-label={t} onClick={() => open('dock', i)} animate={{ scale: sel ? 1.15 : 1 }}
-                className={`grid h-9 w-9 place-items-center rounded-full ${sel ? 'ring-[3px] ring-accent-blue ring-offset-[2px] ring-offset-white' : ''}`}>
-                <Icon size={22} strokeWidth={1.8} style={{ color: dockColor[t] }} />
+              <motion.button key={t} aria-label={t} onClick={() => open('dock', i)} animate={{ scale: sel ? 1.18 : 1 }} transition={{ type: 'spring', stiffness: 380, damping: 24 }}
+                className={`relative grid h-[38px] w-[38px] place-items-center rounded-full shadow-[0_4px_8px_-2px_rgba(0,0,0,.35)] ${sel ? 'ring-[3px] ring-accent-blue ring-offset-[3px] ring-offset-screen' : 'ring-2 ring-white/80'}`}
+                style={{ background: `linear-gradient(160deg, ${dockColor[t]}, ${dockColor[t]}cc)` }}>
+                <span aria-hidden className="absolute inset-x-1 top-0.5 h-1/2 rounded-full bg-gradient-to-b from-white/45 to-transparent" />
+                <Icon size={19} strokeWidth={2} className="relative text-white" />
               </motion.button>
             )
           })}
         </div>
-        <div className="mt-1 h-4 text-[11px] font-semibold text-accent-blue">{tileFocus ? '' : DOCK[s.dock]}</div>
+        <div className="mt-1.5 h-4 text-[12px] font-bold text-accent-blue">{tileFocus ? '' : DOCK[s.dock]}</div>
       </div>
     </div>
   )
@@ -684,14 +708,14 @@ function Mines({ s }: { s: State }) {
           <button type="button" tabIndex={-1} onClick={restart} className="w-full rounded-full bg-card px-3 py-1.5 text-[12px] font-bold ring-1 ring-black/10">다시 시작</button>
         </div>
         {/* center: the board */}
-        <div className="grid rounded-xl bg-[#c9cdd5] p-1 ring-1 ring-black/10" style={{ gridTemplateColumns: `repeat(${MW}, 24px)`, gap: 2 }} onContextMenu={e => e.preventDefault()}>
+        <div className="grid rounded-xl bg-[#c9cdd5] p-1 ring-1 ring-black/10" style={{ gridTemplateColumns: `repeat(${MW}, 22px)`, gap: 2 }} onContextMenu={e => e.preventDefault()}>
           {board.map((c, i) => (
             <button key={i} type="button" aria-label={`칸 ${i + 1}`} tabIndex={-1}
               onClick={() => { setCur(i); act(i) }} onContextMenu={e => { e.preventDefault(); setCur(i); flag(i) }}
-              className={`grid h-6 w-6 place-items-center rounded-[4px] text-[14px] font-extrabold leading-none
+              className={`grid h-[22px] w-[22px] place-items-center rounded-[4px] text-[13px] font-extrabold leading-none
                 ${c.open ? (c.mine ? 'bg-accent-red text-white' : 'bg-[#f3f4f6]') : 'bg-gradient-to-b from-white to-[#dfe3ea] shadow-[0_1px_0_rgba(0,0,0,.25)] hover:to-white'}
                 ${i === cur ? 'ring-2 ring-accent-blue' : ''}`}>
-              {c.open ? (c.mine ? <Bomb size={14} /> : c.n ? <span style={{ color: MCOLORS[c.n] }}>{c.n}</span> : null) : c.flag ? <Flag size={13} className="fill-accent-red text-accent-red" /> : null}
+              {c.open ? (c.mine ? <Bomb size={13} /> : c.n ? <span style={{ color: MCOLORS[c.n] }}>{c.n}</span> : null) : c.flag ? <Flag size={12} className="fill-accent-red text-accent-red" /> : null}
             </button>
           ))}
         </div>
@@ -776,11 +800,13 @@ export default function Screen({ s, bootMs, dark, instantLoad = false }: { s: St
   const cut = loading // swaps that happen behind the opaque overlay are instant
   return (
     <div className={`relative screen-font flex h-full flex-col bg-screen text-ink ${dark ? 'screen-dark' : ''}`}>
+      {/* soft light from the top and a faint vignette, so the flat grey reads as a lit screen */}
+      <div aria-hidden className={`pointer-events-none absolute inset-0 ${dark ? 'bg-[radial-gradient(110%_80%_at_50%_0%,rgba(255,255,255,.07),transparent_70%)]' : 'bg-[radial-gradient(110%_80%_at_50%_0%,rgba(255,255,255,.75),transparent_70%),linear-gradient(180deg,transparent_70%,rgba(0,0,0,.05))]'}`} />
       {chrome && (
-        <motion.div className="relative flex items-center justify-between px-5 py-3 text-[11px] font-semibold" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+        <motion.div className="relative flex items-center justify-between px-5 py-2.5 text-[11px] font-semibold" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
           <span aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-display text-[15px] font-black tracking-tight">Portfolio</span>
           <span className="flex items-center gap-2">
-            <Avatar i={s.avatar} className="h-6 w-6" />
+            <Avatar i={s.avatar} className="h-[26px] w-[26px] ring-2 ring-white shadow-[0_2px_5px_rgba(0,0,0,.3)]" />
             {profile.name}
           </span>
           <span className="flex items-center gap-2">
@@ -791,7 +817,7 @@ export default function Screen({ s, bootMs, dark, instantLoad = false }: { s: St
                 <span className="truncate text-[10px] font-bold">{projects[s.only].title}</span>
               </span>
             )}
-            <Clock /><BatteryFull size={16} />
+            <Wifi size={14} strokeWidth={2.2} className="text-ink-sub" /><Clock /><span className="flex items-center gap-1"><BatteryFull size={16} /><span className="text-[10px] font-bold text-ink-sub">100%</span></span>
           </span>
         </motion.div>
       )}
@@ -811,11 +837,15 @@ export default function Screen({ s, bootMs, dark, instantLoad = false }: { s: St
         </AnimatePresence>
       </div>
       {chrome && (
-        <div className="flex gap-4 px-5 py-2 text-[10px] font-semibold text-ink-sub">
+        <div className="relative flex items-center justify-between border-t border-black/[.07] px-5 py-1 text-[10px] font-semibold text-ink-sub">
           <span>◀▶▲▼ 이동</span>
-          {([['A 선택', 'A'], ['B 뒤로', 'B'], ['H 홈', 'HOME']] as const).map(([t, b]) => (
-            <button key={b} type="button" onClick={() => press(b)} className="-my-1 rounded px-1.5 py-1 hover:bg-black/10 hover:text-ink">{t}</button>
-          ))}
+          <span className="flex items-center gap-1">
+            {([['A', '선택', 'A'], ['B', '뒤로', 'B'], ['H', '홈', 'HOME']] as const).map(([g, t, b]) => (
+              <button key={b} type="button" onClick={() => press(b)} className="flex items-center gap-1.5 rounded-full py-0.5 pl-0.5 pr-2 hover:bg-black/[.07] hover:text-ink">
+                <span className="grid h-4 w-4 place-items-center rounded-full bg-ink text-[9px] font-extrabold leading-none text-screen">{g}</span>{t}
+              </button>
+            ))}
+          </span>
         </div>
       )}
       <AnimatePresence>

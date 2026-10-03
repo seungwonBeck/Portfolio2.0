@@ -8,7 +8,6 @@ import Logo from './components/Logo'
 import Screen, { AvatarContext, OpenContext, PressContext, RowContext } from './components/screen/Screens'
 import { projects } from './types'
 import { CardFace, Cartridges, CaseRack, chipScale, FallbackList, Footer, Header, HowToPlay } from './components/layout/Layout'
-import MobilePad from './components/layout/MobilePad'
 import RotateNotice from './components/layout/RotateNotice'
 import { useControls } from './hooks/useControls'
 import type { Btn } from './store/nav'
@@ -350,7 +349,6 @@ export default function App() {
       </Hero>
       <Footer sound={sound} onToggle={toggleSound} />
       <Music on={sound} />
-      <MobilePad press={press} />
       <RotateNotice />
       <SoundButton sound={sound} onToggle={toggleSound} />
       {big && <TvMode onClose={() => setBig(false)}><Screen s={state} bootMs={bootMs} dark={dark} /></TvMode>}

@@ -65,3 +65,9 @@ body { background: var(--color-bg); color: var(--color-ink); font-family: var(--
   0%, 25% { transform: rotate(0deg); }
   55%, 100% { transform: rotate(-90deg); }
 }
+
+/* focused home tile: a white frame and a cyan frame that pulse, with a soft cyan glow under it */
+@keyframes tileGlow {
+  0%, 100% { box-shadow: 0 0 0 3px var(--color-screen), 0 0 0 6px #1fb6e8, 0 10px 22px -4px rgba(31,182,232,.5); }
+  50% { box-shadow: 0 0 0 3px var(--color-screen), 0 0 0 6px #8fe3ff, 0 14px 30px -4px rgba(31,182,232,.8); }
+}
