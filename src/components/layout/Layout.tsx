@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
-import { ArrowUpRight, CircleDot, Move, Home, Volume2, VolumeX } from 'lucide-react'
+import { ArrowUpRight, CircleDot, CircleHelp, Move, Home, Volume2, VolumeX } from 'lucide-react'
 import { profile, projects, skills } from '../../types'
 import { Thumb } from '../screen/Screens'
 import Logo from '../Logo'
@@ -45,8 +45,8 @@ export const HowToPlay = () => {
   return (
     <div ref={box} className="relative inline-block">
       <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open} aria-controls="how-to-play"
-        className="label flex items-center gap-1.5 rounded-full border border-black/20 bg-white/70 px-4 py-2 !text-[12px] !text-ink transition-colors hover:bg-white focus-visible:bg-white">
-        How to play<span aria-hidden className={`transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
+        className="flex items-center gap-2 rounded-full bg-accent-blue py-2.5 pl-3.5 pr-4 font-court text-[14px] font-black uppercase tracking-[0.1em] text-white shadow-[0_8px_18px_-6px_rgba(31,182,232,.75)] ring-2 ring-white transition-[filter,transform] hover:brightness-110 active:scale-95">
+        <CircleHelp size={20} strokeWidth={2.4} />How to play<span aria-hidden className={`text-[12px] transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
       </button>
       {open && (
         <div id="how-to-play" role="dialog" aria-label="조작 방법" className="absolute right-0 top-full z-50 mt-3 w-[22rem] max-w-[calc(100vw-2.5rem)]">
@@ -108,7 +108,11 @@ export const Cartridges = ({ onPick, width, away }: { onPick: (i: number, from: 
   const k = chipScale(width)
   return (
   <div className="text-center">
-    <div className="label mb-2">Game library · {projects.length} titles</div>
+    {/* the shelf is the project list: say so loudly */}
+    <div className="mb-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+      <span className="rounded-full bg-ink px-4 py-1.5 font-court text-[15px] font-black tracking-[0.2em] text-white shadow-[0_6px_14px_-6px_rgba(0,0,0,.6)]">PROJECTS</span>
+      <span className="text-[13px] font-bold text-ink">{projects.length}개의 작품 <span className="font-medium text-ink-sub">· 카트리지를 콘솔에 꽂아보세요</span></span>
+    </div>
     <div className="mx-auto" style={{ width, height: HOLDER_H * k }}>
     <div style={{ width: k < 1 ? natural : width, transform: `scale(${k})`, transformOrigin: 'top left' }}>
     {/* holder: a case with one pocket per cartridge; the front lip hides the pins and stays put when a card lifts */}
