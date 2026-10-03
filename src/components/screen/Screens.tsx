@@ -1,6 +1,6 @@
 import { ReactNode, RefObject, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { BatteryFull, Bomb, Wifi, CircleDot, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
+import { BatteryFull, Bomb, Github, Instagram, Wifi, CircleDot, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
 import { AVATAR_ORDER, Btn, contactItems, DOCK, State, TILES } from '../../store/nav'
 import { Avatar, AVATARS, Coin } from './avatars'
 import Logo from '../Logo'
@@ -11,8 +11,13 @@ const Scroll = ({ children }: { children: ReactNode }) => (
   <div data-scroll className="h-full overflow-y-auto px-7 pb-6 [scrollbar-width:none]">{children}</div>
 )
 const Title = ({ children }: { children: ReactNode }) => (
-  <h2 className="mb-3 text-[20px] font-extrabold tracking-tight">{children}</h2>
+  <h2 className="mb-3 flex items-center gap-2.5 text-[20px] font-extrabold tracking-tight"><span aria-hidden className="h-[18px] w-1.5 rounded-full bg-accent-blue" />{children}</h2>
 )
+/** Box art per project (same colours as the case rack), shared by the list thumbnails and the detail hero. */
+const PROJ_ART = [['#ff7a6b', '#b3261a'], ['#4fd0f5', '#0b6f98'], ['#ffc14d', '#b86a00'], ['#4fd98a', '#12803f'], ['#b07bff', '#4a21a8'], ['#ff8fba', '#a82a63'], ['#9fb0c8', '#37455c']]
+/** The focused row/card frame: same pulsing white + cyan frame as the focused home tile. */
+const FOCUS = 'animate-[tileGlow_1.6s_ease-in-out_infinite]'
+const REST = 'shadow-[0_6px_14px_-8px_rgba(0,0,0,.35)] ring-1 ring-black/10'
 
 function Clock() {
   const [t, setT] = useState(() => new Date())
@@ -174,17 +179,22 @@ function About({ s }: { s: State }) {
 function Projects({ s }: { s: State }) {
   const pickRow = useContext(RowContext)
   return (
-    <div className="h-full overflow-y-auto px-7 pb-4 [scrollbar-width:none]">
+    <div className="h-full overflow-y-auto px-7 pb-4 pt-0.5 [scrollbar-width:none]">
       <Title>PROJECTS</Title>
       {projects.map((p, i) => (
         <div key={p.id} ref={el => { if (i === s.proj) el?.scrollIntoView({ block: 'nearest' }) }}
           role="button" tabIndex={-1} onClick={() => pickRow('PROJECTS', i)}
-          className={`mb-2 flex cursor-pointer items-center justify-between rounded-xl bg-card px-4 py-2.5 transition-transform hover:scale-[1.01]
-          ${i === s.proj ? 'ring-[3px] ring-accent-blue' : 'ring-1 ring-black/10'}`}>
-          <div>
-            <div className="text-[13px] font-bold">{p.title}</div>
-            <div className="text-[11px] text-ink-sub">{p.summary}</div>
+          className={`mb-2.5 flex cursor-pointer items-center gap-3 rounded-xl bg-card py-2 pl-2 pr-4 transition-transform hover:scale-[1.01] ${i === s.proj ? FOCUS : REST}`}>
+          {/* cartridge-style thumbnail with its shelf number */}
+          <span className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-lg text-[13px] font-extrabold text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,.3)]" style={{ background: `linear-gradient(155deg, ${PROJ_ART[i % PROJ_ART.length][0]}, ${PROJ_ART[i % PROJ_ART.length][1]})` }}>
+            <span aria-hidden className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.4),transparent_55%)]" />
+            <span className="relative [text-shadow:0_1px_2px_rgba(0,0,0,.4)]">{String(i + 1).padStart(2, '0')}</span>
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-[13px] font-bold">{p.title}</div>
+            <div className="truncate text-[11px] text-ink-sub">{p.summary}</div>
           </div>
+          <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-[10px] font-bold text-ink-sub">{p.role}</span>
           <span className="label">{p.period.slice(0, 4)}</span>
         </div>
       ))}
@@ -193,14 +203,20 @@ function Projects({ s }: { s: State }) {
 }
 
 export function Thumb({ i, className = '' }: { i: number; className?: string }) {
-  return <div className={`bg-gradient-to-br ${i % 2 ? 'from-accent-red to-device-body' : 'from-accent-blue to-device-body'} ${className}`} />
+  const [a, b] = PROJ_ART[i % PROJ_ART.length]
+  return <div className={className} style={{ background: `linear-gradient(155deg, ${a}, ${b})` }} />
 }
 
 function Detail({ s }: { s: State }) {
   const p = projects[s.proj]
   return (
     <Scroll>
-      <Thumb i={s.proj} className="mb-3 h-[90px] rounded-xl" />
+      <div className="relative mb-3 h-[90px] overflow-hidden rounded-xl shadow-[0_8px_16px_-8px_rgba(0,0,0,.4)]">
+        <Thumb i={s.proj} className="absolute inset-0" />
+        <span aria-hidden className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.4),rgba(255,255,255,.05)_40%,transparent_55%)]" />
+        <span aria-hidden className="absolute -bottom-3 right-3 text-[78px] font-black leading-none text-white/25">{String(s.proj + 1).padStart(2, '0')}</span>
+        <span className="absolute bottom-2.5 left-3 rounded-full bg-white/90 px-2.5 py-0.5 text-[10px] font-extrabold text-ink shadow">{p.role}</span>
+      </div>
       <h2 className="text-[20px] font-extrabold tracking-tight">{p.title}</h2>
       <p className="mb-2 text-[12px] text-ink-sub">{p.summary}</p>
       <p className="mb-3 text-[12px] leading-relaxed">{p.description}</p>
@@ -213,40 +229,50 @@ function Detail({ s }: { s: State }) {
   )
 }
 
+const SKILL_COLOR = ['#1fb6e8', '#ff4b3e', '#34c759', '#ff9f43']
 function Skills() {
   return (
-    <Scroll>
+    <div className="h-full px-7">
       <Title>SKILLS</Title>
-      {skills.map(g => (
-        <div key={g.category} className="mb-3">
-          <div className="label mb-1">{g.category}</div>
-          {g.items.map(it => (
-            <div key={it.name} className="mb-1 flex items-center gap-3 text-[12px]">
-              <span className="w-[80px] font-semibold">{it.name}</span>
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map(n => <i key={n} className={`h-2 w-6 rounded-sm ${n <= it.level ? 'bg-accent-blue' : 'bg-black/10'}`} />)}
-              </div>
-              <span className="text-[10px] text-ink-sub">LV.{it.level}</span>
+      <div className="grid grid-cols-3 gap-3">
+        {skills.map((g, gi) => {
+          const c = SKILL_COLOR[gi % SKILL_COLOR.length]
+          return (
+            <div key={g.category} className="rounded-2xl bg-card px-4 pb-3 pt-3 shadow-[0_6px_14px_-8px_rgba(0,0,0,.35)] ring-1 ring-black/10">
+              <div className="mb-2.5 flex items-center gap-1.5"><i className="h-2 w-2 rounded-full" style={{ background: c }} /><span className="label !text-ink">{g.category}</span></div>
+              {g.items.map(it => (
+                <div key={it.name} className="mb-2.5 last:mb-0">
+                  <div className="mb-1 flex items-baseline justify-between text-[12px] font-bold">{it.name}<span className="text-[10px] font-semibold text-ink-sub">LV.{it.level}</span></div>
+                  <div className="flex gap-[3px]">
+                    {[1, 2, 3, 4, 5].map(n => <i key={n} className="h-[7px] flex-1 rounded-full" style={{ background: n <= it.level ? `linear-gradient(180deg, ${c}, ${c}bb)` : 'rgba(0,0,0,.09)' }} />)}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      ))}
-    </Scroll>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
+const CONTACT_ICON = [{ Icon: Mail, c: '#1fb6e8' }, { Icon: Github, c: '#2b2d33' }, { Icon: Instagram, c: '#e1306c' }]
 function Contact({ s }: { s: State }) {
   const pickRow = useContext(RowContext)
   return (
     <div className="px-7">
       <Title>CONTACT</Title>
-      {contactItems.map((c, i) => (
-        <div key={c.label} role="link" tabIndex={-1} onClick={() => { pickRow('CONTACT', i); window.open(c.url, '_blank', 'noopener') }}
-          className={`mb-2 flex cursor-pointer items-center justify-between rounded-xl bg-card px-4 py-2.5 text-[13px] font-bold transition-transform hover:scale-[1.01]
-          ${i === s.contact ? 'ring-[3px] ring-accent-blue' : 'ring-1 ring-black/10'}`}>
-          {c.label}<span className="flex items-center gap-1 text-[11px] font-normal text-ink-sub">{'handle' in c ? c.handle : profile.email}<ExternalLink size={12} /></span>
-        </div>
-      ))}
+      {contactItems.map((c, i) => {
+        const { Icon, c: col } = CONTACT_ICON[i % CONTACT_ICON.length]
+        return (
+          <div key={c.label} role="link" tabIndex={-1} onClick={() => { pickRow('CONTACT', i); window.open(c.url, '_blank', 'noopener') }}
+            className={`mb-2.5 flex cursor-pointer items-center gap-3 rounded-xl bg-card py-2 pl-2 pr-4 text-[13px] font-bold transition-transform hover:scale-[1.01] ${i === s.contact ? FOCUS : REST}`}>
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-white shadow-[0_3px_6px_-2px_rgba(0,0,0,.4)]" style={{ background: `linear-gradient(160deg, ${col}, ${col}cc)` }}><Icon size={18} strokeWidth={2.1} /></span>
+            {c.label}
+            <span className="ml-auto flex items-center gap-1.5 text-[11px] font-normal text-ink-sub">{'handle' in c ? c.handle : profile.email}<ExternalLink size={12} /></span>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -803,13 +829,13 @@ export default function Screen({ s, bootMs, dark, instantLoad = false }: { s: St
       {/* soft light from the top and a faint vignette, so the flat grey reads as a lit screen */}
       <div aria-hidden className={`pointer-events-none absolute inset-0 ${dark ? 'bg-[radial-gradient(110%_80%_at_50%_0%,rgba(255,255,255,.07),transparent_70%)]' : 'bg-[radial-gradient(110%_80%_at_50%_0%,rgba(255,255,255,.75),transparent_70%),linear-gradient(180deg,transparent_70%,rgba(0,0,0,.05))]'}`} />
       {chrome && (
-        <motion.div className="relative flex items-center justify-between px-5 py-2.5 text-[11px] font-semibold" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+        <motion.div className="relative flex items-center justify-between px-6 py-2.5 text-[11px] font-semibold" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
           <span aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-display text-[15px] font-black tracking-tight">Portfolio</span>
           <span className="flex items-center gap-2">
             <Avatar i={s.avatar} className="h-[26px] w-[26px] ring-2 ring-white shadow-[0_2px_5px_rgba(0,0,0,.3)]" />
             {profile.name}
           </span>
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-4">
             {/* the cartridge in the console, next to the clock */}
             {s.only !== null && (
               <span className="mr-1 flex max-w-[190px] items-center gap-1.5 rounded-full bg-card px-2.5 py-1 ring-1 ring-black/10">
@@ -817,7 +843,7 @@ export default function Screen({ s, bootMs, dark, instantLoad = false }: { s: St
                 <span className="truncate text-[10px] font-bold">{projects[s.only].title}</span>
               </span>
             )}
-            <Wifi size={14} strokeWidth={2.2} className="text-ink-sub" /><Clock /><span className="flex items-center gap-1"><BatteryFull size={16} /><span className="text-[10px] font-bold text-ink-sub">100%</span></span>
+            <Wifi size={14} strokeWidth={2.2} className="text-ink-sub" /><Clock /><span className="flex items-center gap-1.5"><BatteryFull size={16} /><span className="text-[10px] font-bold text-ink-sub">100%</span></span>
           </span>
         </motion.div>
       )}
