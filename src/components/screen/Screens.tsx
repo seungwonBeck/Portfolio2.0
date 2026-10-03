@@ -207,25 +207,69 @@ export function Thumb({ i, className = '' }: { i: number; className?: string }) 
   return <div className={className} style={{ background: `linear-gradient(155deg, ${a}, ${b})` }} />
 }
 
+/** A photo slot: the project's own picture when `images[k]` is filled in projects.json, otherwise a box-art placeholder in the project colours. */
+function Photo({ src, i, k, className = '' }: { src?: string; i: number; k: number; className?: string }) {
+  return (
+    <div className={`relative overflow-hidden rounded-xl bg-[#d9d9d9] shadow-[0_8px_16px_-8px_rgba(0,0,0,.4)] ${className}`}>
+      {src ? <img src={src} alt="" draggable={false} className="absolute inset-0 h-full w-full object-cover" /> : (
+        <>
+          <Thumb i={i} className="absolute inset-0" />
+          <span aria-hidden className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.4),rgba(255,255,255,.05)_40%,transparent_55%)]" />
+          <span aria-hidden className="absolute -bottom-2 right-3 text-[64px] font-black leading-none text-white/25">{String(k + 1).padStart(2, '0')}</span>
+        </>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Project page: three "frames" like the layout sketch. The first one fills the visible screen and stays the same for every project
+ * (a photo taking two thirds of the height, then title, blurb and the site button); scrolling down gives two differently laid-out
+ * frames (small photo beside text, then two photos side by side). Photos come from `images` in projects.json.
+ */
 function Detail({ s }: { s: State }) {
   const p = projects[s.proj]
+  const imgs = (p as { images?: string[] }).images ?? []
+  const site = p.links.demo
   return (
-    <Scroll>
-      <div className="relative mb-3 h-[90px] overflow-hidden rounded-xl shadow-[0_8px_16px_-8px_rgba(0,0,0,.4)]">
-        <Thumb i={s.proj} className="absolute inset-0" />
-        <span aria-hidden className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.4),rgba(255,255,255,.05)_40%,transparent_55%)]" />
-        <span aria-hidden className="absolute -bottom-3 right-3 text-[78px] font-black leading-none text-white/25">{String(s.proj + 1).padStart(2, '0')}</span>
-        <span className="absolute bottom-2.5 left-3 rounded-full bg-white/90 px-2.5 py-0.5 text-[10px] font-extrabold text-ink shadow">{p.role}</span>
-      </div>
-      <h2 className="text-[20px] font-extrabold tracking-tight">{p.title}</h2>
-      <p className="mb-2 text-[12px] text-ink-sub">{p.summary}</p>
-      <p className="mb-3 text-[12px] leading-relaxed">{p.description}</p>
-      <div className="mb-2 flex gap-6 text-[11px]"><div><div className="label">Role</div>{p.role}</div><div><div className="label">Period</div>{p.period}</div></div>
-      <div className="mb-3 flex flex-wrap gap-1.5">
-        {p.tags.map(t => <span key={t} className="rounded-full bg-card px-2 py-0.5 text-[10px] font-semibold ring-1 ring-black/10">{t}</span>)}
-      </div>
-      {p.links.demo && <a href={p.links.demo} target="_blank" rel="noopener" className="inline-flex items-center gap-1 rounded-full bg-accent-blue px-3 py-1 text-[11px] font-bold text-white">A · 보러가기 <ExternalLink size={12} /></a>}
-    </Scroll>
+    <div data-scroll className="h-full overflow-y-auto [scrollbar-width:none]">
+      {/* frame 1: big photo (2/3 of the screen), title, blurb, site button */}
+      <section className="flex h-full flex-col px-7 pb-2 pt-0.5">
+        <Photo src={imgs[0] ?? p.thumbnail} i={s.proj} k={0} className="h-[66%] shrink-0" />
+        <div className="flex min-h-0 flex-1 flex-col justify-center pt-2">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="truncate text-[17px] font-extrabold leading-tight tracking-tight">{p.title}</h2>
+            {site ? (
+              <a href={site} target="_blank" rel="noopener" className="flex shrink-0 items-center gap-1 rounded-full bg-accent-blue px-3 py-1 text-[11px] font-bold text-white shadow-[0_3px_8px_-2px_rgba(31,182,232,.6)] hover:brightness-110">
+                사이트 보기 <ExternalLink size={12} />
+              </a>
+            ) : (
+              <span aria-disabled className="shrink-0 cursor-not-allowed rounded-full bg-black/[.08] px-3 py-1 text-[11px] font-bold text-ink-sub">링크 준비 중</span>
+            )}
+          </div>
+          <p className="mt-0.5 line-clamp-2 text-[12px] leading-snug text-ink-sub">{p.summary}</p>
+        </div>
+      </section>
+      {/* frame 2: small photo on the left, text on the right */}
+      <section className="flex h-full items-center gap-4 border-t border-black/[.07] px-7 py-3">
+        <Photo src={imgs[1]} i={s.proj} k={1} className="aspect-[4/3] w-[36%] shrink-0" />
+        <div className="min-w-0 flex-1">
+          <h3 className="mb-1.5 text-[15px] font-extrabold leading-snug tracking-tight">{p.summary}</h3>
+          <p className="mb-2.5 text-[11px] leading-relaxed">{p.description}</p>
+          <div className="mb-2 flex gap-6 text-[11px]"><div><div className="label">Role</div>{p.role}</div><div><div className="label">Period</div>{p.period}</div></div>
+          <div className="flex flex-wrap gap-1.5">
+            {p.tags.map(t => <span key={t} className="rounded-full bg-card px-2 py-0.5 text-[10px] font-semibold ring-1 ring-black/10">{t}</span>)}
+          </div>
+        </div>
+      </section>
+      {/* frame 3: two photos side by side */}
+      <section className="flex h-full flex-col justify-center gap-3 border-t border-black/[.07] px-7 py-3">
+        <div className="grid grid-cols-2 gap-4">
+          <Photo src={imgs[2]} i={s.proj} k={2} className="aspect-[16/10]" />
+          <Photo src={imgs[3]} i={s.proj} k={3} className="aspect-[16/10]" />
+        </div>
+      </section>
+    </div>
   )
 }
 

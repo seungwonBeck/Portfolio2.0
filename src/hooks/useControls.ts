@@ -61,7 +61,7 @@ export function useControls() {
     }
     // long screens: up/down scroll the visible content
     if ((b === 'up' || b === 'down') && ['ABOUT', 'SKILLS', 'DETAIL'].includes(s.screen))
-      document.querySelector('[data-scroll]')?.scrollBy({ top: b === 'up' ? -70 : 70, behavior: 'smooth' })
+      document.querySelector('[data-scroll]')?.scrollBy({ top: (b === 'up' ? -1 : 1) * (s.screen === 'DETAIL' ? 140 : 70), behavior: 'smooth' })
     if (b !== 'plus' && b !== 'minus' && b !== 'Y') dispatch(b)
   }, [])
 
