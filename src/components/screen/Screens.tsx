@@ -1,6 +1,6 @@
 import { ReactNode, RefObject, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { BatteryFull, Bomb, CircleDot, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
+import { BatteryFull, Bomb, Github, Instagram, Wifi, CircleDot, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
 import { AVATAR_ORDER, Btn, contactItems, DOCK, State, TILES } from '../../store/nav'
 import { Avatar, AVATARS, Coin } from './avatars'
 import Logo from '../Logo'
@@ -11,8 +11,13 @@ const Scroll = ({ children }: { children: ReactNode }) => (
   <div data-scroll className="h-full overflow-y-auto px-7 pb-6 [scrollbar-width:none]">{children}</div>
 )
 const Title = ({ children }: { children: ReactNode }) => (
-  <h2 className="mb-3 text-[20px] font-extrabold tracking-tight">{children}</h2>
+  <h2 className="mb-3 flex items-center gap-2.5 text-[20px] font-extrabold tracking-tight"><span aria-hidden className="h-[18px] w-1.5 rounded-full bg-accent-blue" />{children}</h2>
 )
+/** Box art per project (same colours as the case rack), shared by the list thumbnails and the detail hero. */
+const PROJ_ART = [['#ff7a6b', '#b3261a'], ['#4fd0f5', '#0b6f98'], ['#ffc14d', '#b86a00'], ['#4fd98a', '#12803f'], ['#b07bff', '#4a21a8'], ['#ff8fba', '#a82a63'], ['#9fb0c8', '#37455c']]
+/** The focused row/card frame: same pulsing white + cyan frame as the focused home tile. */
+const FOCUS = 'animate-[tileGlow_1.6s_ease-in-out_infinite]'
+const REST = 'shadow-[0_6px_14px_-8px_rgba(0,0,0,.35)] ring-1 ring-black/10'
 
 function Clock() {
   const [t, setT] = useState(() => new Date())
@@ -41,51 +46,75 @@ export const RowContext = createContext<(screen: 'PROJECTS' | 'CONTACT' | 'GAME'
 export const PressContext = createContext<(b: Btn) => void>(() => {})
 
 const dockColor = { ABOUT: '#ff4b3e', PROJECTS: '#ff9f43', SKILLS: '#34c759', CONTACT: '#1fb6e8', GAME: '#8a8b90' }
+/** Box-art colours per tile (light, dark) and the one-line blurb shown under the focused tile, like a game's title on the Switch home. */
+const TILE_ART = { ABOUT: ['#ff7a6b', '#b3261a'], PROJECTS: ['#ffb54d', '#c4630a'], SKILLS: ['#4fd98a', '#12803f'], CONTACT: ['#3cc6f2', '#0b6f98'], GAME: ['#b07bff', '#4a21a8'] } as const
+const TILE_SUB = { ABOUT: '프로필과 타임라인', PROJECTS: `${projects.length}개의 작품`, SKILLS: '쓸 수 있는 도구들', CONTACT: '연락하는 방법', GAME: '쉬어가는 미니게임' } as const
 
 /**
- * Console-style home: a row of large colored tiles — ABOUT, the project in the console (its title; "PROJECTS" if none),
- * CONTACT, GAME — followed by an empty slot that runs off the edge.
+ * Console-style home, modelled on the Switch home screen: a row of square "game" tiles with soft drop shadows (the focused one
+ * grows and gets a pulsing white + cyan frame), the focused tile's title and blurb underneath, and a row of round coloured
+ * system icons at the bottom (the focused one gets the blue ring and its name below).
  */
 function Home({ s }: { s: State }) {
   const label = (t: (typeof TILES)[number]) => (t === 'PROJECTS' && s.only !== null ? projects[s.only].title : t)
   const tileFocus = s.row === 'tile'
   const open = useContext(OpenContext)
+  const cur = TILES[s.home]
   return (
     <div className="relative h-full">
-      <div className="absolute inset-x-0 top-2 overflow-hidden py-3 pl-7">
-      {/* the row slides left so the focused tile stays on screen (one tile = 132px + 12px gap) */}
-      <motion.div className="flex gap-3" animate={{ x: -Math.max(0, s.home - 2) * 144 }} transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}>
+      <div className="absolute inset-x-0 top-0 overflow-hidden py-4 pl-7">
+      {/* the row slides left so the focused tile stays on screen (one tile = 132px + 14px gap) */}
+      <motion.div className="flex gap-3.5 py-1" animate={{ x: -Math.max(0, s.home - 2) * 146 }} transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}>
         {TILES.map((t, i) => {
           const sel = tileFocus && i === s.home
+          const [hi, lo] = TILE_ART[t]
+          const Icon = tileIcon[t]
           return (
             <div key={t} className="shrink-0">
-              <motion.button aria-label={label(t)} onClick={() => open('tile', i)} animate={{ scale: sel ? 1.04 : 1 }}
-                className={`relative block h-[132px] w-[132px] overflow-hidden rounded-xl text-left ${sel ? 'ring-[3px] ring-accent-blue ring-offset-[3px] ring-offset-white' : 'ring-1 ring-black/10'}`}>
-                <Thumb i={i} className="absolute inset-0" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 p-3 text-[15px] font-semibold leading-tight text-white">{label(t)}</div>
+              <motion.button aria-label={label(t)} onClick={() => open('tile', i)} animate={{ scale: sel ? 1.07 : 1, y: sel ? -3 : 0 }} transition={{ type: 'spring', stiffness: 380, damping: 26 }}
+                className={`relative block h-[132px] w-[132px] overflow-hidden rounded-[14px] text-left ${sel ? 'animate-[tileGlow_1.6s_ease-in-out_infinite]' : 'shadow-[0_8px_16px_-6px_rgba(0,0,0,.35)]'}`}
+                style={{ background: `linear-gradient(155deg, ${hi} 0%, ${lo} 100%)` }}>
+                {/* big faint glyph as the box art, a sheen from the top-left, a rim light, then the title on a scrim */}
+                <Icon aria-hidden size={92} strokeWidth={1.2} className="absolute -right-3 -top-2 text-white/25" />
+                <span aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.06) 38%, transparent 52%)' }} />
+                <span aria-hidden className="absolute inset-0 rounded-[14px]" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,.28), inset 0 -26px 34px -18px rgba(0,0,0,.5)' }} />
+                <span className="absolute left-3 top-3 grid h-7 w-7 place-items-center rounded-lg bg-white/90 shadow-[0_2px_4px_rgba(0,0,0,.25)]"><Icon size={16} strokeWidth={2.2} style={{ color: lo }} /></span>
+                <span className="absolute inset-x-0 bottom-0 p-3 text-[15px] font-bold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,.45)]">{label(t)}</span>
               </motion.button>
             </div>
           )
         })}
-        <div className="shrink-0"><div className="h-[132px] w-[132px] rounded-xl bg-card ring-1 ring-black/10" /></div>
+        <div className="shrink-0"><div className="h-[132px] w-[132px] rounded-[14px] bg-black/[.06] shadow-[inset_0_2px_6px_rgba(0,0,0,.12)] ring-1 ring-black/5" /></div>
       </motion.div>
       </div>
-      {/* dock: the five menus */}
+      {/* the focused tile's name and blurb */}
+      <div className="absolute inset-x-0 top-[176px] h-10 pl-7 pr-7">
+        <AnimatePresence mode="wait" initial={false}>
+          {tileFocus && (
+            <motion.div key={cur} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.16 }}>
+              <div className="text-[15px] font-extrabold leading-tight">{label(cur)}</div>
+              <div className="text-[11px] text-ink-sub">{s.only !== null && cur === 'PROJECTS' ? projects[s.only].summary : TILE_SUB[cur]}</div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+      {/* dock: the five menus as round coloured icons */}
       <div className="absolute inset-x-0 bottom-1 flex flex-col items-center">
-        <div className="flex items-center gap-4 rounded-full bg-card px-5 py-2 ring-1 ring-black/10">
+        <div className="flex items-center gap-[18px]">
           {DOCK.map((t, i) => {
             const Icon = tileIcon[t]
             const sel = !tileFocus && i === s.dock
             return (
-              <motion.button key={t} aria-label={t} onClick={() => open('dock', i)} animate={{ scale: sel ? 1.15 : 1 }}
-                className={`grid h-9 w-9 place-items-center rounded-full ${sel ? 'ring-[3px] ring-accent-blue ring-offset-[2px] ring-offset-white' : ''}`}>
-                <Icon size={22} strokeWidth={1.8} style={{ color: dockColor[t] }} />
+              <motion.button key={t} aria-label={t} onClick={() => open('dock', i)} animate={{ scale: sel ? 1.18 : 1 }} transition={{ type: 'spring', stiffness: 380, damping: 24 }}
+                className={`relative grid h-[38px] w-[38px] place-items-center rounded-full shadow-[0_4px_8px_-2px_rgba(0,0,0,.35)] ${sel ? 'ring-[3px] ring-accent-blue ring-offset-[3px] ring-offset-screen' : 'ring-2 ring-white/80'}`}
+                style={{ background: `linear-gradient(160deg, ${dockColor[t]}, ${dockColor[t]}cc)` }}>
+                <span aria-hidden className="absolute inset-x-1 top-0.5 h-1/2 rounded-full bg-gradient-to-b from-white/45 to-transparent" />
+                <Icon size={19} strokeWidth={2} className="relative text-white" />
               </motion.button>
             )
           })}
         </div>
-        <div className="mt-1 h-4 text-[11px] font-semibold text-accent-blue">{tileFocus ? '' : DOCK[s.dock]}</div>
+        <div className="mt-1.5 h-4 text-[12px] font-bold text-accent-blue">{tileFocus ? '' : DOCK[s.dock]}</div>
       </div>
     </div>
   )
@@ -150,17 +179,22 @@ function About({ s }: { s: State }) {
 function Projects({ s }: { s: State }) {
   const pickRow = useContext(RowContext)
   return (
-    <div className="h-full overflow-y-auto px-7 pb-4 [scrollbar-width:none]">
+    <div className="h-full overflow-y-auto px-7 pb-4 pt-0.5 [scrollbar-width:none]">
       <Title>PROJECTS</Title>
       {projects.map((p, i) => (
         <div key={p.id} ref={el => { if (i === s.proj) el?.scrollIntoView({ block: 'nearest' }) }}
           role="button" tabIndex={-1} onClick={() => pickRow('PROJECTS', i)}
-          className={`mb-2 flex cursor-pointer items-center justify-between rounded-xl bg-card px-4 py-2.5 transition-transform hover:scale-[1.01]
-          ${i === s.proj ? 'ring-[3px] ring-accent-blue' : 'ring-1 ring-black/10'}`}>
-          <div>
-            <div className="text-[13px] font-bold">{p.title}</div>
-            <div className="text-[11px] text-ink-sub">{p.summary}</div>
+          className={`mb-2.5 flex cursor-pointer items-center gap-3 rounded-xl bg-card py-2 pl-2 pr-4 transition-transform hover:scale-[1.01] ${i === s.proj ? FOCUS : REST}`}>
+          {/* cartridge-style thumbnail with its shelf number */}
+          <span className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-lg text-[13px] font-extrabold text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,.3)]" style={{ background: `linear-gradient(155deg, ${PROJ_ART[i % PROJ_ART.length][0]}, ${PROJ_ART[i % PROJ_ART.length][1]})` }}>
+            <span aria-hidden className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.4),transparent_55%)]" />
+            <span className="relative [text-shadow:0_1px_2px_rgba(0,0,0,.4)]">{String(i + 1).padStart(2, '0')}</span>
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-[13px] font-bold">{p.title}</div>
+            <div className="truncate text-[11px] text-ink-sub">{p.summary}</div>
           </div>
+          <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-[10px] font-bold text-ink-sub">{p.role}</span>
           <span className="label">{p.period.slice(0, 4)}</span>
         </div>
       ))}
@@ -169,60 +203,166 @@ function Projects({ s }: { s: State }) {
 }
 
 export function Thumb({ i, className = '' }: { i: number; className?: string }) {
-  return <div className={`bg-gradient-to-br ${i % 2 ? 'from-accent-red to-device-body' : 'from-accent-blue to-device-body'} ${className}`} />
+  const [a, b] = PROJ_ART[i % PROJ_ART.length]
+  return <div className={className} style={{ background: `linear-gradient(155deg, ${a}, ${b})` }} />
 }
 
+/** A photo slot: the project's own picture when `images[k]` is filled in projects.json, otherwise a box-art placeholder in the project colours. */
+function Photo({ src, i, k, className = '', plain = false }: { src?: string; i: number; k: number; className?: string; plain?: boolean }) {
+  return (
+    <div className={`relative overflow-hidden rounded-xl bg-[#d9d9d9] ${plain ? '' : 'shadow-[0_8px_16px_-8px_rgba(0,0,0,.4)]'} ${className}`}>
+      {src ? <img src={src} alt="" draggable={false} className="absolute inset-0 h-full w-full object-cover" /> : (
+        <>
+          <Thumb i={i} className="absolute inset-0" />
+          <span aria-hidden className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.4),rgba(255,255,255,.05)_40%,transparent_55%)]" />
+          <span aria-hidden className="absolute -bottom-2 right-3 text-[56px] font-black leading-none text-white/25">{String(k + 1).padStart(2, '0')}</span>
+        </>
+      )}
+    </div>
+  )
+}
+
+const Eyebrow = ({ children, dark = false }: { children: ReactNode; dark?: boolean }) => (
+  <div className={`mb-1 text-[9px] font-bold tracking-wide ${dark ? 'text-[#4aa3ff]' : 'text-[#0a6cff]'}`}>{children}</div>
+)
+
+/**
+ * Project page, laid out like the "Apple Concept" template sketch, as full-width bands (no side margin on the bands themselves,
+ * only a small padding for the text inside). First view: a left-aligned header (small blue label, big title, blurb, then, with some
+ * air above it, the blue "사이트 보기" pill) and right under it the big photo, edge to edge, so title, button and photo are all on
+ * the first screen. Scrolling goes through four bands, each with its own background and its own text, laid out differently:
+ * overview (white, text + photo), keywords (grey, photos left / text right), role (white, big numbers), closing (dark).
+ * `sections[n]` in projects.json ({ title, text }) overrides a band's text, otherwise it is built from the project's data.
+ * Photos come from `images` (0 = hero, 1 = overview, 2-3 = keywords, 4 = role, 5 = closing).
+ */
 function Detail({ s }: { s: State }) {
   const p = projects[s.proj]
+  const imgs = (p as { images?: string[] }).images ?? []
+  const own = (p as { sections?: { title?: string; text?: string }[] }).sections ?? []
+  const site = p.links.demo
+  const sec = [
+    { title: own[0]?.title || '프로젝트 소개', text: own[0]?.text || p.description },
+    { title: own[1]?.title || '함께 쓴 키워드', text: own[1]?.text || `함께 쓴 키워드는 ${p.tags.join(', ')}입니다.` },
+    { title: own[2]?.title || '역할과 기간', text: own[2]?.text || `역할은 ${p.role}, 작업 기간은 ${p.period}입니다.` },
+    { title: own[3]?.title || p.title, text: own[3]?.text || '사이트에서 더 자세한 결과물을 확인해 보세요.' },
+  ]
+  const siteBtn = (cls: string) => site ? (
+    <a href={site} target="_blank" rel="noopener" className={`inline-flex items-center gap-1 rounded-full text-[11px] font-bold hover:brightness-110 ${cls}`}>사이트 보기 <ExternalLink size={12} /></a>
+  ) : (
+    <span aria-disabled className="inline-block cursor-not-allowed rounded-full bg-black/[.08] px-3.5 py-1 text-[11px] font-bold text-ink-sub">링크 준비 중</span>
+  )
   return (
-    <Scroll>
-      <Thumb i={s.proj} className="mb-3 h-[90px] rounded-xl" />
-      <h2 className="text-[20px] font-extrabold tracking-tight">{p.title}</h2>
-      <p className="mb-2 text-[12px] text-ink-sub">{p.summary}</p>
-      <p className="mb-3 text-[12px] leading-relaxed">{p.description}</p>
-      <div className="mb-2 flex gap-6 text-[11px]"><div><div className="label">Role</div>{p.role}</div><div><div className="label">Period</div>{p.period}</div></div>
-      <div className="mb-3 flex flex-wrap gap-1.5">
-        {p.tags.map(t => <span key={t} className="rounded-full bg-card px-2 py-0.5 text-[10px] font-semibold ring-1 ring-black/10">{t}</span>)}
-      </div>
-      {p.links.demo && <a href={p.links.demo} target="_blank" rel="noopener" className="inline-flex items-center gap-1 rounded-full bg-accent-blue px-3 py-1 text-[11px] font-bold text-white">A · 보러가기 <ExternalLink size={12} /></a>}
-    </Scroll>
+    <div data-scroll className="h-full overflow-y-auto bg-white [scrollbar-width:none]">
+      {/* hero: left-aligned text with the button set apart from the title, then the photo edge to edge */}
+      <section className="flex h-full flex-col bg-[#f4f6fb]">
+        <div className="shrink-0 px-4 pb-3 pt-0.5">
+          <div className="text-[10px] font-bold text-[#0a6cff]">{p.role}</div>
+          <h2 className="text-[24px] font-extrabold leading-tight tracking-tight text-[#16171a]">{p.title}</h2>
+          <p className="line-clamp-1 text-[11px] text-[#6b6f78]">{p.summary}</p>
+          <div className="mt-3">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}</div>
+        </div>
+        <Photo src={imgs[0] ?? p.thumbnail} i={s.proj} k={0} plain className="min-h-0 w-full flex-1 !rounded-none" />
+      </section>
+
+      {/* band 1: white, text and a photo on a grey panel */}
+      <section className="bg-white px-4 py-5">
+        <Eyebrow>Overview</Eyebrow>
+        <h3 className="mb-2.5 text-[16px] font-extrabold leading-snug tracking-tight text-[#16171a]">{sec[0].title}</h3>
+        <div className="flex items-center gap-4 rounded-xl bg-[#f1f2f7] p-3">
+          <p className="flex-1 text-[10px] leading-relaxed text-[#3c3f46]">{sec[0].text}</p>
+          <Photo src={imgs[1]} i={s.proj} k={1} plain className="aspect-[4/3] w-[42%] shrink-0" />
+        </div>
+      </section>
+
+      {/* band 2: light grey, two photos on the left and the text on the right */}
+      <section className="flex items-center gap-4 bg-[#eceef4] px-4 py-5">
+        <div className="grid w-[56%] shrink-0 grid-cols-2 gap-2">
+          <Photo src={imgs[2]} i={s.proj} k={2} plain className="aspect-[4/5] rounded-lg" />
+          <Photo src={imgs[3]} i={s.proj} k={3} plain className="aspect-[4/5] rounded-lg" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <Eyebrow>Keywords</Eyebrow>
+          <h3 className="mb-1 text-[15px] font-extrabold leading-snug tracking-tight text-[#16171a]">{sec[1].title}</h3>
+          <p className="text-[10px] leading-relaxed text-[#3c3f46]">{sec[1].text}</p>
+        </div>
+      </section>
+
+      {/* band 3: white, text and big numbers on the left, photo panel on the right */}
+      <section className="flex items-stretch gap-4 bg-white px-4 py-5">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Eyebrow>Role</Eyebrow>
+          <h3 className="mb-1 text-[16px] font-extrabold leading-snug tracking-tight text-[#16171a]">{sec[2].title}</h3>
+          <p className="text-[10px] leading-relaxed text-[#3c3f46]">{sec[2].text}</p>
+          <div className="mt-auto flex gap-6 pt-3">
+            <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.period}</div><div className="mt-1 text-[9px] text-[#6b6f78]">작업 기간</div></div>
+            <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.tags.length}</div><div className="mt-1 text-[9px] text-[#6b6f78]">키워드</div></div>
+          </div>
+        </div>
+        <div className="w-[44%] shrink-0 self-center rounded-xl bg-[#f1f2f7] p-2.5">
+          <Photo src={imgs[4]} i={s.proj} k={4} plain className="aspect-[4/3] w-full" />
+        </div>
+      </section>
+
+      {/* band 4: dark closing band */}
+      <section className="bg-[#0b0b0d] px-4 py-5 text-white">
+        <Eyebrow dark>Next</Eyebrow>
+        <div className="flex items-end justify-between gap-4">
+          <div className="min-w-0">
+            <h3 className="mb-1 text-[16px] font-extrabold leading-snug tracking-tight">{sec[3].title}</h3>
+            <p className="mb-2.5 text-[10px] leading-relaxed text-white/65">{sec[3].text}</p>
+            {site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}
+          </div>
+          <Photo src={imgs[5]} i={s.proj} k={5} plain className="aspect-[4/3] w-[40%] shrink-0 rounded-lg" />
+        </div>
+      </section>
+    </div>
   )
 }
 
+const SKILL_COLOR = ['#1fb6e8', '#ff4b3e', '#34c759', '#ff9f43']
 function Skills() {
   return (
-    <Scroll>
+    <div className="h-full px-7">
       <Title>SKILLS</Title>
-      {skills.map(g => (
-        <div key={g.category} className="mb-3">
-          <div className="label mb-1">{g.category}</div>
-          {g.items.map(it => (
-            <div key={it.name} className="mb-1 flex items-center gap-3 text-[12px]">
-              <span className="w-[80px] font-semibold">{it.name}</span>
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map(n => <i key={n} className={`h-2 w-6 rounded-sm ${n <= it.level ? 'bg-accent-blue' : 'bg-black/10'}`} />)}
-              </div>
-              <span className="text-[10px] text-ink-sub">LV.{it.level}</span>
+      <div className="grid grid-cols-3 gap-3">
+        {skills.map((g, gi) => {
+          const c = SKILL_COLOR[gi % SKILL_COLOR.length]
+          return (
+            <div key={g.category} className="rounded-2xl bg-card px-4 pb-3 pt-3 shadow-[0_6px_14px_-8px_rgba(0,0,0,.35)] ring-1 ring-black/10">
+              <div className="mb-2.5 flex items-center gap-1.5"><i className="h-2 w-2 rounded-full" style={{ background: c }} /><span className="label !text-ink">{g.category}</span></div>
+              {g.items.map(it => (
+                <div key={it.name} className="mb-2.5 last:mb-0">
+                  <div className="mb-1 flex items-baseline justify-between text-[12px] font-bold">{it.name}<span className="text-[10px] font-semibold text-ink-sub">LV.{it.level}</span></div>
+                  <div className="flex gap-[3px]">
+                    {[1, 2, 3, 4, 5].map(n => <i key={n} className="h-[7px] flex-1 rounded-full" style={{ background: n <= it.level ? `linear-gradient(180deg, ${c}, ${c}bb)` : 'rgba(0,0,0,.09)' }} />)}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      ))}
-    </Scroll>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
+const CONTACT_ICON = [{ Icon: Mail, c: '#1fb6e8' }, { Icon: Github, c: '#2b2d33' }, { Icon: Instagram, c: '#e1306c' }]
 function Contact({ s }: { s: State }) {
   const pickRow = useContext(RowContext)
   return (
     <div className="px-7">
       <Title>CONTACT</Title>
-      {contactItems.map((c, i) => (
-        <div key={c.label} role="link" tabIndex={-1} onClick={() => { pickRow('CONTACT', i); window.open(c.url, '_blank', 'noopener') }}
-          className={`mb-2 flex cursor-pointer items-center justify-between rounded-xl bg-card px-4 py-2.5 text-[13px] font-bold transition-transform hover:scale-[1.01]
-          ${i === s.contact ? 'ring-[3px] ring-accent-blue' : 'ring-1 ring-black/10'}`}>
-          {c.label}<span className="flex items-center gap-1 text-[11px] font-normal text-ink-sub">{'handle' in c ? c.handle : profile.email}<ExternalLink size={12} /></span>
-        </div>
-      ))}
+      {contactItems.map((c, i) => {
+        const { Icon, c: col } = CONTACT_ICON[i % CONTACT_ICON.length]
+        return (
+          <div key={c.label} role="link" tabIndex={-1} onClick={() => { pickRow('CONTACT', i); window.open(c.url, '_blank', 'noopener') }}
+            className={`mb-2.5 flex cursor-pointer items-center gap-3 rounded-xl bg-card py-2 pl-2 pr-4 text-[13px] font-bold transition-transform hover:scale-[1.01] ${i === s.contact ? FOCUS : REST}`}>
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-white shadow-[0_3px_6px_-2px_rgba(0,0,0,.4)]" style={{ background: `linear-gradient(160deg, ${col}, ${col}cc)` }}><Icon size={18} strokeWidth={2.1} /></span>
+            {c.label}
+            <span className="ml-auto flex items-center gap-1.5 text-[11px] font-normal text-ink-sub">{'handle' in c ? c.handle : profile.email}<ExternalLink size={12} /></span>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -684,14 +824,14 @@ function Mines({ s }: { s: State }) {
           <button type="button" tabIndex={-1} onClick={restart} className="w-full rounded-full bg-card px-3 py-1.5 text-[12px] font-bold ring-1 ring-black/10">다시 시작</button>
         </div>
         {/* center: the board */}
-        <div className="grid rounded-xl bg-[#c9cdd5] p-1 ring-1 ring-black/10" style={{ gridTemplateColumns: `repeat(${MW}, 24px)`, gap: 2 }} onContextMenu={e => e.preventDefault()}>
+        <div className="grid rounded-xl bg-[#c9cdd5] p-1 ring-1 ring-black/10" style={{ gridTemplateColumns: `repeat(${MW}, 22px)`, gap: 2 }} onContextMenu={e => e.preventDefault()}>
           {board.map((c, i) => (
             <button key={i} type="button" aria-label={`칸 ${i + 1}`} tabIndex={-1}
               onClick={() => { setCur(i); act(i) }} onContextMenu={e => { e.preventDefault(); setCur(i); flag(i) }}
-              className={`grid h-6 w-6 place-items-center rounded-[4px] text-[14px] font-extrabold leading-none
+              className={`grid h-[22px] w-[22px] place-items-center rounded-[4px] text-[13px] font-extrabold leading-none
                 ${c.open ? (c.mine ? 'bg-accent-red text-white' : 'bg-[#f3f4f6]') : 'bg-gradient-to-b from-white to-[#dfe3ea] shadow-[0_1px_0_rgba(0,0,0,.25)] hover:to-white'}
                 ${i === cur ? 'ring-2 ring-accent-blue' : ''}`}>
-              {c.open ? (c.mine ? <Bomb size={14} /> : c.n ? <span style={{ color: MCOLORS[c.n] }}>{c.n}</span> : null) : c.flag ? <Flag size={13} className="fill-accent-red text-accent-red" /> : null}
+              {c.open ? (c.mine ? <Bomb size={13} /> : c.n ? <span style={{ color: MCOLORS[c.n] }}>{c.n}</span> : null) : c.flag ? <Flag size={12} className="fill-accent-red text-accent-red" /> : null}
             </button>
           ))}
         </div>
@@ -776,22 +916,24 @@ export default function Screen({ s, bootMs, dark, instantLoad = false }: { s: St
   const cut = loading // swaps that happen behind the opaque overlay are instant
   return (
     <div className={`relative screen-font flex h-full flex-col bg-screen text-ink ${dark ? 'screen-dark' : ''}`}>
+      {/* soft light from the top and a faint vignette, so the flat grey reads as a lit screen */}
+      <div aria-hidden className={`pointer-events-none absolute inset-0 ${dark ? 'bg-[radial-gradient(110%_80%_at_50%_0%,rgba(255,255,255,.07),transparent_70%)]' : 'bg-[radial-gradient(110%_80%_at_50%_0%,rgba(255,255,255,.75),transparent_70%),linear-gradient(180deg,transparent_70%,rgba(0,0,0,.05))]'}`} />
       {chrome && (
-        <motion.div className="relative flex items-center justify-between px-5 py-3 text-[11px] font-semibold" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-          <span aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-display text-[15px] font-black tracking-tight">Portfolio</span>
-          <span className="flex items-center gap-2">
-            <Avatar i={s.avatar} className="h-6 w-6" />
-            {profile.name}
-          </span>
-          <span className="flex items-center gap-2">
-            {/* the cartridge in the console, next to the clock */}
+        <motion.div className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-6 py-2.5 text-[11px] font-semibold" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+          {/* three columns: profile (+ the inserted cartridge, right beside it) | Portfolio | status. The cartridge's name only shrinks inside its own column, so it never reaches "Portfolio" */}
+          <span className="flex min-w-0 items-center gap-2">
+            <Avatar i={s.avatar} className="h-[26px] w-[26px] shrink-0 ring-2 ring-white shadow-[0_2px_5px_rgba(0,0,0,.3)]" />
+            <span className="shrink-0">{profile.name}</span>
             {s.only !== null && (
-              <span className="mr-1 flex max-w-[190px] items-center gap-1.5 rounded-full bg-card px-2.5 py-1 ring-1 ring-black/10">
+              <span className="ml-1 flex min-w-0 items-center gap-1.5 rounded-full bg-card px-2.5 py-1 ring-1 ring-black/10">
                 <span className="h-3 w-2.5 shrink-0 bg-accent-blue" style={{ clipPath: 'polygon(0 0, 70% 0, 100% 20%, 100% 100%, 0 100%)', borderRadius: 1 }} />
                 <span className="truncate text-[10px] font-bold">{projects[s.only].title}</span>
               </span>
             )}
-            <Clock /><BatteryFull size={16} />
+          </span>
+          <span aria-hidden className="pointer-events-none font-display text-[15px] font-black tracking-tight">Portfolio</span>
+          <span className="flex shrink-0 items-center justify-end gap-3.5">
+            <Wifi size={14} strokeWidth={2.2} className="text-ink-sub" /><Clock /><span className="flex items-center gap-1.5"><BatteryFull size={16} /><span className="text-[10px] font-bold text-ink-sub">100%</span></span>
           </span>
         </motion.div>
       )}
@@ -811,11 +953,15 @@ export default function Screen({ s, bootMs, dark, instantLoad = false }: { s: St
         </AnimatePresence>
       </div>
       {chrome && (
-        <div className="flex gap-4 px-5 py-2 text-[10px] font-semibold text-ink-sub">
+        <div className="relative flex items-center justify-between border-t border-black/[.07] px-5 py-1 text-[10px] font-semibold text-ink-sub">
           <span>◀▶▲▼ 이동</span>
-          {([['A 선택', 'A'], ['B 뒤로', 'B'], ['H 홈', 'HOME']] as const).map(([t, b]) => (
-            <button key={b} type="button" onClick={() => press(b)} className="-my-1 rounded px-1.5 py-1 hover:bg-black/10 hover:text-ink">{t}</button>
-          ))}
+          <span className="flex items-center gap-1">
+            {([['A', '선택', 'A'], ['B', '뒤로', 'B'], ['H', '홈', 'HOME']] as const).map(([g, t, b]) => (
+              <button key={b} type="button" onClick={() => press(b)} className="flex items-center gap-1.5 rounded-full py-0.5 pl-0.5 pr-2 hover:bg-black/[.07] hover:text-ink">
+                <span className="grid h-4 w-4 place-items-center rounded-full bg-ink text-[9px] font-extrabold leading-none text-screen">{g}</span>{t}
+              </button>
+            ))}
+          </span>
         </div>
       )}
       <AnimatePresence>
