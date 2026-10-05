@@ -75,6 +75,8 @@ const CARD_CLIP = 'polygon(0 0, 80% 0, 100% 15%, 100% 100%, 0 100%)' // notched 
 export const CardFace = ({ i, title }: { i: number; title: string }) => {
   // 사이트 파비콘 파일명 (없으면 라벨에 아이콘을 그리지 않는다)
   const fav = projects[i]?.favicon
+  const cap = projects[i]?.faviconLabel // 파비콘 아래에 적는 짧은 글자 (없으면 파비콘만 크게)
+  const tone = { black: 'bg-black', orange: 'bg-[#fc4c02]' }[projects[i]?.faviconTone as string] ?? 'bg-white'
   return (
   <>
     {/* molded matte plastic: a slightly lighter rim, then a flat dark face — real cards are not glossy */}
@@ -89,7 +91,16 @@ export const CardFace = ({ i, title }: { i: number; title: string }) => {
     <span className="screen-font absolute inset-x-[9px] bottom-[46px] top-[24px] overflow-hidden rounded-[2px]" style={{ boxShadow: '0 0 0 1px rgba(0,0,0,.55)', background: i % 2 ? 'linear-gradient(170deg,#bd4a3d,#93352c)' : 'linear-gradient(170deg,#2a86ad,#1e5f80)' }}>
       <span className="absolute inset-x-0 top-0 flex h-[9px] items-center justify-between bg-[#f1efe8] px-[3px] text-[4.5px] font-bold uppercase tracking-[0.12em] text-[#2a2b2f]">seungwon.2<i className="h-[5px] w-[5px] border border-[#2a2b2f]" /></span>
       {fav ? (
-        <span className="absolute inset-x-0 bottom-0 top-[9px] overflow-hidden bg-white"><img src={`${import.meta.env.BASE_URL}favicons/${fav}`} alt={title} draggable={false} className="absolute inset-[11%] h-[78%] w-[78%] object-contain" /></span>
+        <span className={`absolute inset-x-0 bottom-0 top-[9px] overflow-hidden ${tone}`}>
+          {cap ? (
+            <>
+              <img src={`${import.meta.env.BASE_URL}favicons/${fav}`} alt={title} draggable={false} className="absolute -top-[7px] left-1/2 h-[52px] w-[52px] max-w-none -translate-x-1/2 object-contain" />
+              <span className="absolute inset-x-0 bottom-[3px] text-center text-[8px] font-extrabold tracking-[0.14em] text-white">{cap}</span>
+            </>
+          ) : (
+            <img src={`${import.meta.env.BASE_URL}favicons/${fav}`} alt={title} draggable={false} className="absolute inset-[11%] h-[78%] w-[78%] object-contain" />
+          )}
+        </span>
       ) : (
         <span className="absolute inset-x-0 bottom-0 p-1.5 text-left text-[9.5px] font-extrabold leading-[1.1] text-white/95">{title}</span>
       )}
