@@ -1,5 +1,61 @@
 [
-  { "category": "Frontend", "items": [ { "name": "React", "level": 5 }, { "name": "TypeScript", "level": 4 }, { "name": "Tailwind", "level": 5 } ] },
-  { "category": "Design", "items": [ { "name": "Figma", "level": 5 }, { "name": "Motion", "level": 4 }, { "name": "Branding", "level": 3 } ] },
-  { "category": "Etc", "items": [ { "name": "Node.js", "level": 3 }, { "name": "SQL", "level": 2 } ] }
+  {
+    "category": "Frontend",
+    "items": [
+      {
+        "name": "React",
+        "level": 5
+      },
+      {
+        "name": "TypeScript",
+        "level": 4
+      },
+      {
+        "name": "Tailwind",
+        "level": 5
+      }
+    ]
+  },
+  {
+    "category": "Design",
+    "items": [
+      {
+        "name": "Figma",
+        "level": 5
+      },
+      {
+        "name": "Motion",
+        "level": 4
+      },
+      {
+        "name": "Branding",
+        "level": 3
+      },
+      {
+        "name": "Photoshop",
+        "level": 4
+      },
+      {
+        "name": "Illustrator",
+        "level": 5
+      },
+      {
+        "name": "Premiere",
+        "level": 2
+      }
+    ]
+  },
+  {
+    "category": "Etc",
+    "items": [
+      {
+        "name": "Node.js",
+        "level": 3
+      },
+      {
+        "name": "SQL",
+        "level": 2
+      }
+    ]
+  }
 ]

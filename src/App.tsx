@@ -171,6 +171,8 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
   const est = Math.min(maxH, (innerWidth - (short ? 24 : innerWidth >= 768 ? 160 : 40)) * (CANVAS.h / CANVAS.w)) // rendered console height
   // chip row spans the console from Joy-Con seam to Joy-Con seam (233..1520 of the 1760px canvas)
   const rowW = (est * CANVAS.w / CANVAS.h) * ((1520 - 233) / CANVAS.w)
+  const { scrollY: sy } = useScroll()
+  const hintO = useTransform(sy, [0, 120], [1, 0]) // 첫 화면 안내: 스크롤을 시작하면 사라진다
   const centerY = useRef(0)
   centerY.current = short ? 0 : Math.max(0, (vh - est) / 2 - 80)
   const toCenter = useTransform(po, v => Math.min(1, v / 0.06) * centerY.current)
@@ -210,6 +212,11 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
   return (
     <>
       {top}
+      <motion.div aria-hidden className="pointer-events-none fixed inset-x-0 bottom-4 z-30 flex justify-center px-14" style={{ opacity: hintO }}>
+        <span className="flex items-center gap-1.5 rounded-full bg-white/85 py-2 pl-4 pr-3 text-[13px] font-bold text-ink shadow-[0_6px_20px_-6px_rgba(0,0,0,.35)] ring-1 ring-black/10 backdrop-blur md:text-[15px]">
+          스크롤을 내리면 TV랑도 연결됩니다<ChevronDown size={18} strokeWidth={2.6} className="animate-bounce text-accent-blue" />
+        </span>
+      </motion.div>
       <div ref={ref} className="relative" style={{ height: `${TOTAL}vh` }}>
         <div className={`sticky top-0 flex h-screen flex-col items-center overflow-hidden ${short ? 'px-3 pt-2' : 'px-5 pt-14 md:px-20'}`} style={{ perspective: 1800, '--chipw': `${90 * chipScale(rowW)}px` } as React.CSSProperties}>
           <motion.div aria-hidden className="absolute inset-0" style={{ opacity: room, background: 'radial-gradient(120% 90% at 50% 40%,#2c2c30 0%,#1d1d20 60%,#131315 100%)' }} />
@@ -323,6 +330,17 @@ export default function App() {
   const [fly, setFly] = useState<Fly | null>(null)
   const [inserted, setInserted] = useState<number | null>(null) // the cartridge currently in the console; its pocket stays empty
   const reduce = useReducedMotion()
+  // 칩이 날아가는 동안(약 1.7초)은 스크롤을 잠근다: 카드는 화면 기준(fixed)으로 날고 콘솔은 스크롤에 따라 움직여서, 그 사이 스크롤하면 위치가 어긋난다
+  useEffect(() => {
+    if (!fly) return
+    const y0 = scrollY
+    const stop = (e: Event) => e.preventDefault()
+    const keys = (e: KeyboardEvent) => { if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(e.key) && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) e.preventDefault() }
+    const back = () => { if (scrollY !== y0) scrollTo(0, y0) } // 스크롤바를 직접 끄는 경우까지 되돌린다
+    addEventListener('wheel', stop, { passive: false }); addEventListener('touchmove', stop, { passive: false })
+    addEventListener('keydown', keys); addEventListener('scroll', back)
+    return () => { removeEventListener('wheel', stop); removeEventListener('touchmove', stop); removeEventListener('keydown', keys); removeEventListener('scroll', back) }
+  }, [fly])
   const insert =(i: number, from: DOMRect) => {
     if (fly || i === inserted) return
     const c = document.getElementById('console')?.getBoundingClientRect()
