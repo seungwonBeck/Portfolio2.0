@@ -72,7 +72,10 @@ export const HowToPlay = () => {
 const CARD_CLIP = 'polygon(0 0, 80% 0, 100% 15%, 100% 100%, 0 100%)' // notched corner
 
 /** The cartridge itself (90×124 box, parent must be `relative`). Also used by the flying insert animation. */
-export const CardFace = ({ i, title }: { i: number; title: string }) => (
+export const CardFace = ({ i, title }: { i: number; title: string }) => {
+  // 사이트 파비콘 파일명 (없으면 라벨에 아이콘을 그리지 않는다)
+  const fav = projects[i]?.favicon
+  return (
   <>
     {/* molded matte plastic: a slightly lighter rim, then a flat dark face — real cards are not glossy */}
     <span className="absolute inset-0" style={{ clipPath: CARD_CLIP, borderRadius: 6, background: 'linear-gradient(165deg,#5b5d62 0%,#3f4044 50%,#303135 100%)' }} />
@@ -85,13 +88,15 @@ export const CardFace = ({ i, title }: { i: number; title: string }) => (
     {/* printed paper label: flat inks, a white title band with a rating box, no gloss */}
     <span className="screen-font absolute inset-x-[9px] bottom-[46px] top-[24px] overflow-hidden rounded-[2px]" style={{ boxShadow: '0 0 0 1px rgba(0,0,0,.55)', background: i % 2 ? 'linear-gradient(170deg,#bd4a3d,#93352c)' : 'linear-gradient(170deg,#2a86ad,#1e5f80)' }}>
       <span className="absolute inset-x-0 top-0 flex h-[9px] items-center justify-between bg-[#f1efe8] px-[3px] text-[4.5px] font-bold uppercase tracking-[0.12em] text-[#2a2b2f]">seungwon.2<i className="h-[5px] w-[5px] border border-[#2a2b2f]" /></span>
+      {fav && <span className="absolute left-1.5 top-[11px] grid h-[17px] w-[17px] place-items-center rounded-[4px] bg-white shadow-[0_1px_3px_rgba(0,0,0,.35)]"><img src={`${import.meta.env.BASE_URL}favicons/${fav}`} alt="" draggable={false} className="h-[13px] w-[13px] object-contain" /></span>}
       <span className="absolute inset-x-0 bottom-0 p-1.5 text-left text-[9.5px] font-extrabold leading-[1.1] text-white/95">{title}</span>
     </span>
     {/* gold contact pins */}
     <span className="absolute inset-x-[12px] bottom-[6px] h-[10px]"
       style={{ background: 'repeating-linear-gradient(90deg,#c4ad68 0 3px,#202124 3px 5px)', boxShadow: 'inset 0 1px 2px rgba(0,0,0,.5)' }} />
   </>
-)
+  )
+}
 
 /** `width`: row width in px (spread evenly, like auto-layout space-between). `away`: index currently out of its pocket. */
 const CHIP_GAP = 24
