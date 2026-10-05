@@ -44,7 +44,8 @@ function step(s: State, b: Action): State {
     if ('avatar' in b) return { ...s, avatar: clamp(b.avatar, AVATAR_COUNT) }
     if ('open' in b) { // mouse/touch on a tile or dock icon: same as focusing it and pressing A
       const { row, i } = b.open
-      if (s.screen !== 'HOME') return s
+      if (s.screen === 'BOOT' || s.screen === 'LOAD') return s
+      if (s.screen !== 'HOME' && !(row === 'dock' && DOCK[i] === 'ABOUT')) return s // 프로필 클릭: 어느 화면에서든 ABOUT으로 이동
       if (row === 'dock') return { ...s, row, dock: i, screen: DOCK[i], hits: 0, dir: 1 }
       if (TILES[i] === 'PROJECTS' && s.only !== null) return { ...s, row, home: i, screen: 'DETAIL', proj: s.only, dir: 1 }
       return { ...s, row, home: i, screen: TILES[i], hits: 0, dir: 1 }

@@ -1,6 +1,6 @@
 import { ReactNode, RefObject, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { BatteryFull, Bomb, Github, Instagram, Wifi, CircleDot, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
+import { BatteryFull, Bomb, Code2, Palette, Wrench, Github, Instagram, Wifi, CircleDot, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
 import { AVATAR_ORDER, Btn, contactItems, DOCK, State, TILES } from '../../store/nav'
 import { Avatar, AVATARS, Coin } from './avatars'
 import Logo from '../Logo'
@@ -355,24 +355,29 @@ function Detail({ s }: { s: State }) {
 }
 
 const SKILL_COLOR = ['#1fb6e8', '#ff4b3e', '#34c759', '#ff9f43']
+// 카테고리별 제목 아이콘 (없는 이름이면 Wrench)
+const SKILL_ICON: Record<string, typeof Code2> = { Frontend: Code2, Design: Palette, Etc: Wrench }
 function Skills() {
   return (
-    <div className="h-full px-7">
+    <div data-scroll className="h-full overflow-y-auto px-7 pb-3 [scrollbar-width:none]">
       <Title>SKILLS</Title>
       <div className="grid grid-cols-3 gap-3">
         {skills.map((g, gi) => {
           const c = SKILL_COLOR[gi % SKILL_COLOR.length]
           return (
             <div key={g.category} className="rounded-2xl bg-card px-4 pb-3 pt-3 shadow-[0_6px_14px_-8px_rgba(0,0,0,.35)] ring-1 ring-black/10">
-              <div className="mb-2.5 flex items-center gap-1.5"><i className="h-2 w-2 rounded-full" style={{ background: c }} /><span className="label !text-ink">{g.category}</span></div>
-              {g.items.map(it => (
-                <div key={it.name} className="mb-2.5 last:mb-0">
-                  <div className="mb-1 flex items-baseline justify-between text-[12px] font-bold">{it.name}<span className="text-[10px] font-semibold text-ink-sub">LV.{it.level}</span></div>
+              <div className="mb-2.5 flex items-center gap-2"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg text-white shadow-[0_2px_5px_-1px_rgba(0,0,0,.4)]" style={{ background: `linear-gradient(160deg, ${c}, ${c}cc)` }}>{(() => { const I = SKILL_ICON[g.category] ?? Wrench; return <I size={14} strokeWidth={2.3} /> })()}</span><span className="label !text-ink">{g.category}</span></div>
+              {g.items.map(it => {
+                const tight = g.items.length > 4 // 항목이 많은 카드는 간격을 좁혀 한 화면에 들어오게
+                return (
+                <div key={it.name} className={`last:mb-0 ${tight ? 'mb-1.5' : 'mb-2.5'}`}>
+                  <div className={`flex items-baseline justify-between font-bold ${tight ? 'mb-0.5 text-[11px]' : 'mb-1 text-[12px]'}`}>{it.name}<span className="text-[10px] font-semibold text-ink-sub">LV.{it.level}</span></div>
                   <div className="flex gap-[3px]">
-                    {[1, 2, 3, 4, 5].map(n => <i key={n} className="h-[7px] flex-1 rounded-full" style={{ background: n <= it.level ? `linear-gradient(180deg, ${c}, ${c}bb)` : 'rgba(0,0,0,.09)' }} />)}
+                    {[1, 2, 3, 4, 5].map(n => <i key={n} className={`flex-1 rounded-full ${tight ? 'h-[5px]' : 'h-[7px]'}`} style={{ background: n <= it.level ? `linear-gradient(180deg, ${c}, ${c}bb)` : 'rgba(0,0,0,.09)' }} />)}
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
           )
         })}
@@ -937,6 +942,7 @@ type Motion = { d: number; cut: boolean }
 
 export default function Screen({ s, bootMs, dark, instantLoad = false }: { s: State; bootMs: number; dark: boolean; instantLoad?: boolean }) {
   const press = useContext(PressContext)
+  const open = useContext(OpenContext)
   // The black loading splash is an overlay that fades in over the old screen and fades out over the new one.
   // `base` is the screen underneath: it stays on the old screen until the overlay is opaque, then swaps to the project unseen.
   const loading = s.screen === 'LOAD'
@@ -957,8 +963,10 @@ export default function Screen({ s, bootMs, dark, instantLoad = false }: { s: St
         <motion.div className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-6 py-2.5 text-[11px] font-semibold" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
           {/* three columns: profile (+ the inserted cartridge, right beside it) | Portfolio | status. The cartridge's name only shrinks inside its own column, so it never reaches "Portfolio" */}
           <span className="flex min-w-0 items-center gap-2">
-            <Avatar i={s.avatar} className="h-[26px] w-[26px] shrink-0 ring-2 ring-white shadow-[0_2px_5px_rgba(0,0,0,.3)]" />
-            <span className="shrink-0">{profile.name}</span>
+            <button type="button" tabIndex={-1} aria-label="프로필 (About)" onClick={() => open('dock', 0)} className="flex shrink-0 items-center gap-2 rounded-full py-0.5 pr-2 hover:bg-black/[.07]">
+              <Avatar i={s.avatar} className="h-[26px] w-[26px] shrink-0 ring-2 ring-white shadow-[0_2px_5px_rgba(0,0,0,.3)]" />
+              <span className="shrink-0">{profile.name}</span>
+            </button>
             {s.only !== null && (
               <span className="ml-1 flex min-w-0 items-center gap-1.5 rounded-full bg-card px-2.5 py-1 ring-1 ring-black/10">
                 <span className="h-3 w-2.5 shrink-0 bg-accent-blue" style={{ clipPath: 'polygon(0 0, 70% 0, 100% 20%, 100% 100%, 0 100%)', borderRadius: 1 }} />
