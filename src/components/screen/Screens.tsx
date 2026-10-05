@@ -34,11 +34,11 @@ function Battery() {
   const low = level <= 20 && !charging
   return (
     <span role="img" aria-label={`배터리 ${level}%`} className="flex items-center">
-      <span className="relative h-[14px] w-[30px] overflow-hidden rounded-[4px] border-[1.5px] border-[#a4a6ad]">
+      <span className="relative h-[14px] w-[30px] overflow-hidden rounded-[4px] border-[1.5px] border-ink/25">
         <span className={`absolute inset-y-0 left-0 ${low ? 'bg-[#ff453a]' : 'bg-[#4cd964]'}`} style={{ width: `${Math.max(level, 6)}%` }} />
-        <span className="absolute inset-0 grid place-items-center text-[8px] font-bold leading-none text-[#6f7179]">{level}</span>
+        <span className="absolute inset-0 grid place-items-center text-[8px] font-semibold leading-none text-ink/45">{level}</span>
       </span>
-      <span aria-hidden className="ml-[1px] h-[5px] w-[2px] rounded-r-full bg-[#a4a6ad]" />
+      <span aria-hidden className="ml-[1px] h-[5px] w-[2px] rounded-r-full bg-ink/25" />
     </span>
   )
 }
