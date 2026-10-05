@@ -306,8 +306,11 @@ function HeroSlides({ imgs, i, className = '' }: { imgs: string[]; i: number; cl
   )
 }
 
+// 프로젝트 페이지 글자 규격: 띠 제목·본문·라벨 간격을 모든 띠에서 같게 쓴다
+const H3 = 'mb-1.5 text-[16px] font-extrabold leading-[1.3] tracking-tight'
+const BODY = 'text-[10px] leading-[1.6]'
 const Eyebrow = ({ children, dark = false }: { children: ReactNode; dark?: boolean }) => (
-  <div className={`mb-1 text-[9px] font-bold tracking-wide ${dark ? 'text-[#4aa3ff]' : 'text-[#0a6cff]'}`}>{children}</div>
+  <div className={`mb-1 text-[10px] font-bold leading-none tracking-wide ${dark ? 'text-[#4aa3ff]' : 'text-[#0a6cff]'}`}>{children}</div>
 )
 
 /**
@@ -341,9 +344,9 @@ function Detail({ s }: { s: State }) {
       <section className="flex h-full flex-col bg-[#f4f6fb]">
         <div className="flex shrink-0 items-start justify-between gap-3 px-4 pb-3 pt-0.5">
           <div className="min-w-0">
-            <div className="text-[10px] font-bold text-[#0a6cff]">{p.role}</div>
-            <h2 className="text-[24px] font-extrabold leading-tight tracking-tight text-[#16171a]">{p.title}</h2>
-            <p className="line-clamp-1 text-[11px] text-[#6b6f78]">{p.summary}</p>
+            <Eyebrow>{p.role}</Eyebrow>
+            <h2 className="mb-1.5 text-[24px] font-extrabold leading-[1.2] tracking-tight text-[#16171a]">{p.title}</h2>
+            <p className="line-clamp-1 text-[11px] leading-[1.4] text-[#6b6f78]">{p.summary}</p>
             <div className="mt-3">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}</div>
           </div>
           <ChipBadge i={s.proj} className="mt-1 w-[76px]" />
@@ -354,9 +357,9 @@ function Detail({ s }: { s: State }) {
       {/* band 1: white, text and a photo on a grey panel */}
       <section className="bg-white px-4 py-5">
         <Eyebrow>Overview</Eyebrow>
-        <h3 className="mb-2.5 text-[16px] font-extrabold leading-snug tracking-tight text-[#16171a]">{sec[0].title}</h3>
+        <h3 className={`${H3} text-[#16171a]`}>{sec[0].title}</h3>
         <div className="flex items-center gap-4 rounded-xl bg-[#f1f2f7] p-3">
-          <p className="flex-1 text-[10px] leading-relaxed text-[#3c3f46]">{sec[0].text}</p>
+          <p className={`flex-1 ${BODY} text-[#3c3f46]`}>{sec[0].text}</p>
           <Photo src={imgs[1]} i={s.proj} k={1} plain className="aspect-[4/3] w-[42%] shrink-0" />
         </div>
       </section>
@@ -369,8 +372,8 @@ function Detail({ s }: { s: State }) {
         </div>
         <div className="min-w-0 flex-1">
           <Eyebrow>Keywords</Eyebrow>
-          <h3 className="mb-1 text-[15px] font-extrabold leading-snug tracking-tight text-[#16171a]">{sec[1].title}</h3>
-          <p className="text-[10px] leading-relaxed text-[#3c3f46]">{sec[1].text}</p>
+          <h3 className={`${H3} text-[#16171a]`}>{sec[1].title}</h3>
+          <p className={`${BODY} text-[#3c3f46]`}>{sec[1].text}</p>
         </div>
       </section>
 
@@ -378,8 +381,8 @@ function Detail({ s }: { s: State }) {
       <section className="flex items-stretch gap-4 bg-white px-4 py-5">
         <div className="flex min-w-0 flex-1 flex-col">
           <Eyebrow>Role</Eyebrow>
-          <h3 className="mb-1 text-[16px] font-extrabold leading-snug tracking-tight text-[#16171a]">{sec[2].title}</h3>
-          <p className="text-[10px] leading-relaxed text-[#3c3f46]">{sec[2].text}</p>
+          <h3 className={`${H3} text-[#16171a]`}>{sec[2].title}</h3>
+          <p className={`${BODY} text-[#3c3f46]`}>{sec[2].text}</p>
           <div className="mt-auto flex gap-6 pt-3">
             <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.period}</div><div className="mt-1 text-[9px] text-[#6b6f78]">작업 기간</div></div>
             <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.tags.length}</div><div className="mt-1 text-[9px] text-[#6b6f78]">키워드</div></div>
@@ -395,8 +398,8 @@ function Detail({ s }: { s: State }) {
         <Eyebrow dark>Next</Eyebrow>
         <div className="flex items-end justify-between gap-4">
           <div className="min-w-0">
-            <h3 className="mb-1 text-[16px] font-extrabold leading-snug tracking-tight">{sec[3].title}</h3>
-            <p className="mb-2.5 text-[10px] leading-relaxed text-white/65">{sec[3].text}</p>
+            <h3 className={`${H3}`}>{sec[3].title}</h3>
+            <p className={`mb-2.5 ${BODY} text-white/65`}>{sec[3].text}</p>
             {site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}
           </div>
           <Photo src={imgs[5]} i={s.proj} k={5} plain className="aspect-[4/3] w-[40%] shrink-0 rounded-lg" />
