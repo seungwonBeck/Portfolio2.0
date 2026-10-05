@@ -34,11 +34,11 @@ function Battery() {
   const low = level <= 20 && !charging
   return (
     <span role="img" aria-label={`배터리 ${level}%`} className="flex items-center">
-      <span className="relative h-[14px] w-[30px] overflow-hidden rounded-[4px] border-[1.5px] border-ink">
+      <span className="relative h-[14px] w-[30px] overflow-hidden rounded-[4px] border-[1.5px] border-[#a4a6ad]">
         <span className={`absolute inset-y-0 left-0 ${low ? 'bg-[#ff453a]' : 'bg-[#4cd964]'}`} style={{ width: `${Math.max(level, 6)}%` }} />
-        <span className="absolute inset-0 grid place-items-center text-[8px] font-extrabold leading-none text-ink">{level}</span>
+        <span className="absolute inset-0 grid place-items-center text-[8px] font-bold leading-none text-[#6f7179]">{level}</span>
       </span>
-      <span aria-hidden className="ml-[1px] h-[5px] w-[2px] rounded-r-full bg-ink" />
+      <span aria-hidden className="ml-[1px] h-[5px] w-[2px] rounded-r-full bg-[#a4a6ad]" />
     </span>
   )
 }
@@ -1017,7 +1017,7 @@ export default function Screen({ s, bootMs, dark, instantLoad = false }: { s: St
       {/* soft light from the top and a faint vignette, so the flat grey reads as a lit screen */}
       <div aria-hidden className={`pointer-events-none absolute inset-0 ${dark ? 'bg-[radial-gradient(110%_80%_at_50%_0%,rgba(255,255,255,.07),transparent_70%)]' : 'bg-[radial-gradient(110%_80%_at_50%_0%,rgba(255,255,255,.75),transparent_70%),linear-gradient(180deg,transparent_70%,rgba(0,0,0,.05))]'}`} />
       {chrome && (
-        <motion.div className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-6 py-2.5 text-[11px] font-semibold" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+        <motion.div className="relative grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-7 py-2.5 text-[11px] font-semibold" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
           {/* three columns: profile (+ the inserted cartridge, right beside it) | Portfolio | status. The cartridge's name only shrinks inside its own column, so it never reaches "Portfolio" */}
           <span className="flex min-w-0 items-center gap-2">
             <button type="button" tabIndex={-1} aria-label="프로필 (About)" onClick={() => open('dock', 0)} className="flex shrink-0 items-center gap-2 rounded-full py-0.5 pr-2 hover:bg-black/[.07]">
