@@ -1,6 +1,6 @@
 import { ReactNode, RefObject, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { BatteryFull, Bomb, Code2, Palette, Wrench, Github, Instagram, Wifi, CircleDot, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
+import { Bomb, Code2, Palette, Wrench, Github, Instagram, Wifi, CircleDot, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
 import { AVATAR_ORDER, Btn, contactItems, DOCK, State, TILES } from '../../store/nav'
 import { Avatar, AVATARS, Coin } from './avatars'
 import Logo from '../Logo'
@@ -18,6 +18,30 @@ const PROJ_ART = [['#ff7a6b', '#b3261a'], ['#4fd0f5', '#0b6f98'], ['#ffc14d', '#
 /** The focused row/card frame: same pulsing white + cyan frame as the focused home tile. */
 const FOCUS = 'animate-[tileGlow_1.6s_ease-in-out_infinite]'
 const REST = 'shadow-[0_6px_14px_-8px_rgba(0,0,0,.35)] ring-1 ring-black/10'
+
+/** 기기 배터리: 브라우저가 알려주면 실제 잔량(없으면 100%). 어두운 타일 안에 흰 테두리, 초록 잔량 막대, 막대 안에 숫자. */
+function Battery() {
+  const [level, setLevel] = useState(100)
+  const [charging, setCharging] = useState(false)
+  useEffect(() => {
+    type Bat = EventTarget & { level: number; charging: boolean }
+    let bat: Bat | undefined
+    const sync = () => { if (bat) { setLevel(Math.round(bat.level * 100)); setCharging(bat.charging) } }
+    const nav = navigator as Navigator & { getBattery?: () => Promise<Bat> }
+    nav.getBattery?.().then(b => { bat = b; sync(); b.addEventListener('levelchange', sync); b.addEventListener('chargingchange', sync) }).catch(() => {})
+    return () => { bat?.removeEventListener('levelchange', sync); bat?.removeEventListener('chargingchange', sync) }
+  }, [])
+  const low = level <= 20 && !charging
+  return (
+    <span role="img" aria-label={`배터리 ${level}%`} className="flex items-center rounded-[7px] bg-[#3a3739] py-[3px] pl-[5px] pr-[4px] shadow-[0_2px_5px_-1px_rgba(0,0,0,.4)]">
+      <span className="relative h-[13px] w-[30px] overflow-hidden rounded-[4px] border-[1.5px] border-white">
+        <span className={`absolute inset-y-0 left-0 rounded-[2px] ${low ? 'bg-[#ff453a]' : 'bg-[#4cd964]'}`} style={{ width: `${Math.max(level, 6)}%` }} />
+        <span className="absolute inset-0 grid place-items-center text-[8px] font-extrabold leading-none text-white [text-shadow:0_0_2px_rgba(0,0,0,.65)]">{level}</span>
+      </span>
+      <span aria-hidden className="ml-[1px] h-[5px] w-[2px] rounded-r-full bg-white" />
+    </span>
+  )
+}
 
 function Clock() {
   const [t, setT] = useState(() => new Date())
@@ -1004,7 +1028,7 @@ export default function Screen({ s, bootMs, dark, instantLoad = false }: { s: St
           </span>
           <span aria-hidden className="pointer-events-none font-display text-[15px] font-black tracking-tight">Portfolio</span>
           <span className="flex shrink-0 items-center justify-end gap-3.5">
-            <Wifi size={14} strokeWidth={2.2} className="text-ink-sub" /><Clock /><span className="flex items-center gap-1.5"><BatteryFull size={16} /><span className="text-[10px] font-bold text-ink-sub">100%</span></span>
+            <Wifi size={14} strokeWidth={2.2} className="text-ink-sub" /><Clock /><Battery />
           </span>
         </motion.div>
       )}
