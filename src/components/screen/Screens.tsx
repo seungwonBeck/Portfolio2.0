@@ -33,12 +33,12 @@ function Battery() {
   }, [])
   const low = level <= 20 && !charging
   return (
-    <span role="img" aria-label={`배터리 ${level}%`} className="flex items-center rounded-[7px] bg-[#3a3739] py-[3px] pl-[5px] pr-[4px] shadow-[0_2px_5px_-1px_rgba(0,0,0,.4)]">
-      <span className="relative h-[13px] w-[30px] overflow-hidden rounded-[4px] border-[1.5px] border-white">
-        <span className={`absolute inset-y-0 left-0 rounded-[2px] ${low ? 'bg-[#ff453a]' : 'bg-[#4cd964]'}`} style={{ width: `${Math.max(level, 6)}%` }} />
-        <span className="absolute inset-0 grid place-items-center text-[8px] font-extrabold leading-none text-white [text-shadow:0_0_2px_rgba(0,0,0,.65)]">{level}</span>
+    <span role="img" aria-label={`배터리 ${level}%`} className="flex items-center">
+      <span className="relative h-[14px] w-[30px] overflow-hidden rounded-[4px] border-[1.5px] border-ink">
+        <span className={`absolute inset-y-0 left-0 ${low ? 'bg-[#ff453a]' : 'bg-[#4cd964]'}`} style={{ width: `${Math.max(level, 6)}%` }} />
+        <span className="absolute inset-0 grid place-items-center text-[8px] font-extrabold leading-none text-ink">{level}</span>
       </span>
-      <span aria-hidden className="ml-[1px] h-[5px] w-[2px] rounded-r-full bg-white" />
+      <span aria-hidden className="ml-[1px] h-[5px] w-[2px] rounded-r-full bg-ink" />
     </span>
   )
 }
@@ -46,7 +46,9 @@ function Battery() {
 function Clock() {
   const [t, setT] = useState(() => new Date())
   useEffect(() => { const i = setInterval(() => setT(new Date()), 15000); return () => clearInterval(i) }, [])
-  return <>{t.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}</>
+  const parts = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).formatToParts(t)
+  const get = (type: string) => parts.find(x => x.type === type)?.value ?? ''
+  return <span className="flex items-baseline gap-1">{get('hour')}:{get('minute')}<span className="text-[9px] font-extrabold tracking-wide text-ink-sub">{get('dayPeriod').toUpperCase()}</span></span>
 }
 
 export function Boot({ ms }: { ms: number }) {
@@ -1031,7 +1033,7 @@ export default function Screen({ s, bootMs, dark, instantLoad = false }: { s: St
           </span>
           <span aria-hidden className="pointer-events-none font-display text-[15px] font-black tracking-tight">Portfolio</span>
           <span className="flex shrink-0 items-center justify-end gap-3.5">
-            <Wifi size={14} strokeWidth={2.2} className="text-ink-sub" /><Clock /><Battery />
+            <Wifi size={16} strokeWidth={2.6} className="text-ink" /><Clock /><Battery />
           </span>
         </motion.div>
       )}
