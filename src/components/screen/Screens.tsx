@@ -207,6 +207,31 @@ export function Thumb({ i, className = '' }: { i: number; className?: string }) 
   return <div className={className} style={{ background: `linear-gradient(155deg, ${a}, ${b})` }} />
 }
 
+/** 파비콘 칩의 배경색 (Layout의 칩 라벨과 같은 값) */
+export const CHIP_TONE: Record<string, string> = { black: 'bg-black', orange: 'bg-[#fc4c02]' }
+
+/** 칩 아이콘을 정사각형 상자로: 파비콘이 있는 칩은 칩 라벨과 같은 모양, 없는 칩은 박스아트 색 위에 제목. */
+function ChipBadge({ i, className = '' }: { i: number; className?: string }) {
+  const p = projects[i]
+  const fav = p.favicon, cap = p.faviconLabel
+  const base = `${import.meta.env.BASE_URL}favicons/${fav}`
+  return (
+    <div role="img" aria-label={`${p.title} 칩`} className={`relative aspect-square shrink-0 overflow-hidden rounded-xl shadow-[0_6px_14px_-6px_rgba(0,0,0,.45)] ring-1 ring-black/15 ${fav ? (CHIP_TONE[p.faviconTone] ?? 'bg-white') : ''} ${className}`}>
+      {fav ? (cap ? (
+        <>
+          <img src={base} alt="" draggable={false} className="absolute -top-[6%] left-1/2 h-[92%] w-[92%] max-w-none -translate-x-1/2 object-contain" />
+          <span className="absolute inset-x-0 bottom-[7%] text-center text-[9px] font-extrabold tracking-[0.14em] text-white">{cap}</span>
+        </>
+      ) : <img src={base} alt="" draggable={false} className="absolute inset-[12%] h-[76%] w-[76%] object-contain" />) : (
+        <>
+          <Thumb i={i} className="absolute inset-0" />
+          <span className="absolute inset-0 grid place-items-center p-1.5 text-center text-[10px] font-extrabold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,.4)]">{p.title}</span>
+        </>
+      )}
+    </div>
+  )
+}
+
 /** A photo slot: the project's own picture when `images[k]` is filled in projects.json, otherwise a box-art placeholder in the project colours. */
 function Photo({ src, i, k, className = '', plain = false }: { src?: string; i: number; k: number; className?: string; plain?: boolean }) {
   return (
@@ -290,11 +315,14 @@ function Detail({ s }: { s: State }) {
     <div data-scroll className="h-full overflow-y-auto bg-white [scrollbar-width:none]">
       {/* hero: left-aligned text with the button set apart from the title, then the photo edge to edge */}
       <section className="flex h-full flex-col bg-[#f4f6fb]">
-        <div className="shrink-0 px-4 pb-3 pt-0.5">
-          <div className="text-[10px] font-bold text-[#0a6cff]">{p.role}</div>
-          <h2 className="text-[24px] font-extrabold leading-tight tracking-tight text-[#16171a]">{p.title}</h2>
-          <p className="line-clamp-1 text-[11px] text-[#6b6f78]">{p.summary}</p>
-          <div className="mt-3">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}</div>
+        <div className="flex shrink-0 items-start justify-between gap-3 px-4 pb-3 pt-0.5">
+          <div className="min-w-0">
+            <div className="text-[10px] font-bold text-[#0a6cff]">{p.role}</div>
+            <h2 className="text-[24px] font-extrabold leading-tight tracking-tight text-[#16171a]">{p.title}</h2>
+            <p className="line-clamp-1 text-[11px] text-[#6b6f78]">{p.summary}</p>
+            <div className="mt-3">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}</div>
+          </div>
+          <ChipBadge i={s.proj} className="mt-1 w-[76px]" />
         </div>
         <HeroSlides imgs={imgs.length ? imgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} className="min-h-0 w-full flex-1" />
       </section>
