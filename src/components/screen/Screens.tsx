@@ -222,6 +222,41 @@ function Photo({ src, i, k, className = '', plain = false }: { src?: string; i: 
   )
 }
 
+/** The big hero photo as an auto-advancing slideshow: each slide sweeps in from the right with a horizontal motion-blur streak while the old one is pulled out to the left. Uses the project's own pictures, or box-art colour cards until they exist. */
+function HeroSlides({ imgs, i, className = '' }: { imgs: string[]; i: number; className?: string }) {
+  const n = imgs.length || 4
+  const [idx, setIdx] = useState(0)
+  useEffect(() => {
+    const t = setInterval(() => setIdx(v => (v + 1) % n), 1500)
+    return () => clearInterval(t)
+  }, [n])
+  return (
+    <div className={`relative overflow-hidden bg-[#d9d9d9] ${className}`}>
+      <AnimatePresence initial={false}>
+        <motion.div
+          key={idx}
+          className="absolute inset-0"
+          initial={{ x: '100%', scaleX: 1.12, filter: 'blur(16px)' }}
+          animate={{ x: 0, scaleX: 1, filter: 'blur(0px)' }}
+          exit={{ x: '-45%', scaleX: 1.12, filter: 'blur(16px)', opacity: 0 }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {imgs.length ? <img src={imgs[idx]} alt="" draggable={false} className="h-full w-full object-cover" /> : (
+            <>
+              <Thumb i={i + idx} className="absolute inset-0" />
+              <span aria-hidden className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.4),rgba(255,255,255,.05)_40%,transparent_55%)]" />
+              <span aria-hidden className="absolute -bottom-2 right-3 text-[72px] font-black leading-none text-white/25">{String(idx + 1).padStart(2, '0')}</span>
+            </>
+          )}
+        </motion.div>
+      </AnimatePresence>
+      <div className="absolute bottom-2 left-4 flex gap-1">
+        {Array.from({ length: n }, (_, k) => <span key={k} className={`h-1 rounded-full transition-all ${k === idx ? 'w-4 bg-white' : 'w-1 bg-white/50'}`} />)}
+      </div>
+    </div>
+  )
+}
+
 const Eyebrow = ({ children, dark = false }: { children: ReactNode; dark?: boolean }) => (
   <div className={`mb-1 text-[9px] font-bold tracking-wide ${dark ? 'text-[#4aa3ff]' : 'text-[#0a6cff]'}`}>{children}</div>
 )
@@ -261,7 +296,7 @@ function Detail({ s }: { s: State }) {
           <p className="line-clamp-1 text-[11px] text-[#6b6f78]">{p.summary}</p>
           <div className="mt-3">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}</div>
         </div>
-        <Photo src={imgs[0] ?? p.thumbnail} i={s.proj} k={0} plain className="min-h-0 w-full flex-1 !rounded-none" />
+        <HeroSlides imgs={imgs.length ? imgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} className="min-h-0 w-full flex-1" />
       </section>
 
       {/* band 1: white, text and a photo on a grey panel */}
