@@ -9,6 +9,7 @@ import Screen, { AvatarContext, OpenContext, PressContext, RowContext } from './
 import { projects } from './types'
 import { CardFace, Cartridges, CaseRack, chipScale, FallbackList, Footer, Header, HowToPlay } from './components/layout/Layout'
 import RotateNotice from './components/layout/RotateNotice'
+import MobilePad from './components/layout/MobilePad'
 import { useControls } from './hooks/useControls'
 import type { Btn } from './store/nav'
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react'
@@ -379,6 +380,7 @@ export default function App() {
       </Hero>
       <Footer sound={sound} onToggle={toggleSound} />
       <Music on={sound} />
+      <MobilePad press={press} />
       <RotateNotice />
       <SoundButton sound={sound} onToggle={toggleSound} />
       {big && <TvMode onClose={() => setBig(false)}><Screen s={state} bootMs={bootMs} dark={dark} /></TvMode>}

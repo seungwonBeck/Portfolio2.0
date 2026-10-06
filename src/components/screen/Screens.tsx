@@ -95,17 +95,30 @@ function Home({ s }: { s: State }) {
           const sel = tileFocus && i === s.home
           const [hi, lo] = TILE_ART[t]
           const Icon = tileIcon[t]
+          const chip = t === 'PROJECTS' && s.only !== null // 칩이 꽂히면 이 칸은 그 프로젝트의 로고 + 제목으로 바뀐다
           return (
             <div key={t} className="shrink-0">
               <motion.button aria-label={label(t)} onClick={() => open('tile', i)} animate={{ scale: sel ? 1.07 : 1, y: sel ? -3 : 0 }} transition={{ type: 'spring', stiffness: 380, damping: 26 }}
                 className={`relative block h-[132px] w-[132px] overflow-hidden rounded-[14px] text-left ${sel ? 'animate-[tileGlow_1.6s_ease-in-out_infinite]' : 'shadow-[0_8px_16px_-6px_rgba(0,0,0,.35)]'}`}
                 style={{ background: `linear-gradient(155deg, ${hi} 0%, ${lo} 100%)` }}>
-                {/* big faint glyph as the box art, a sheen from the top-left, a rim light, then the title on a scrim */}
-                <Icon aria-hidden size={92} strokeWidth={1.2} className="absolute -right-3 -top-2 text-white/25" />
-                <span aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.06) 38%, transparent 52%)' }} />
-                <span aria-hidden className="absolute inset-0 rounded-[14px]" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,.28), inset 0 -26px 34px -18px rgba(0,0,0,.5)' }} />
-                <span className="absolute left-3 top-3 grid h-7 w-7 place-items-center rounded-lg bg-white/90 shadow-[0_2px_4px_rgba(0,0,0,.25)]"><Icon size={16} strokeWidth={2.2} style={{ color: lo }} /></span>
-                <span className="absolute inset-x-0 bottom-0 p-3 text-[15px] font-bold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,.45)]">{label(t)}</span>
+                {chip ? (
+                  <>
+                    {/* inserted cartridge: the project's logo fills the box, its title sits on a dark bar, a PLAYING tag marks it as different from the plain menu tiles */}
+                    <ChipBadge i={s.only!} bare className="absolute inset-0 !rounded-none !shadow-none !ring-0" />
+                    <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/75 to-black/0 px-2.5 pb-2 pt-6 text-[12px] font-extrabold leading-tight tracking-tight text-white">{label(t)}</span>
+                    <span className="absolute left-2 top-2 rounded-full bg-[#ff4b3e] px-2 py-0.5 text-[8px] font-extrabold tracking-[0.14em] text-white shadow-[0_2px_4px_rgba(0,0,0,.3)]">PLAYING</span>
+                    <span aria-hidden className="absolute inset-0 rounded-[14px]" style={{ boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,.55)' }} />
+                  </>
+                ) : (
+                  <>
+                    {/* big faint glyph as the box art, a sheen from the top-left, a rim light, then the title on a scrim */}
+                    <Icon aria-hidden size={92} strokeWidth={1.2} className="absolute -right-3 -top-2 text-white/25" />
+                    <span aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.06) 38%, transparent 52%)' }} />
+                    <span aria-hidden className="absolute inset-0 rounded-[14px]" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,.28), inset 0 -26px 34px -18px rgba(0,0,0,.5)' }} />
+                    <span className="absolute left-3 top-3 grid h-7 w-7 place-items-center rounded-lg bg-white/90 shadow-[0_2px_4px_rgba(0,0,0,.25)]"><Icon size={16} strokeWidth={2.2} style={{ color: lo }} /></span>
+                    <span className="absolute inset-x-0 bottom-0 p-3 text-[15px] font-bold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,.45)]">{label(t)}</span>
+                  </>
+                )}
               </motion.button>
             </div>
           )
@@ -237,7 +250,7 @@ export function Thumb({ i, className = '' }: { i: number; className?: string }) 
 export const CHIP_TONE: Record<string, string> = { black: 'bg-black', orange: 'bg-[#fc4c02]' }
 
 /** 칩 아이콘을 정사각형 상자로: 파비콘이 있는 칩은 칩 라벨과 같은 모양, 없는 칩은 박스아트 색 위에 제목. */
-function ChipBadge({ i, className = '' }: { i: number; className?: string }) {
+function ChipBadge({ i, className = '', bare = false }: { i: number; className?: string; bare?: boolean }) {
   const p = projects[i]
   const fav = p.favicon, cap = p.faviconLabel
   const base = `${import.meta.env.BASE_URL}favicons/${fav}`
@@ -246,12 +259,12 @@ function ChipBadge({ i, className = '' }: { i: number; className?: string }) {
       {fav ? (cap ? (
         <>
           <img src={base} alt="" draggable={false} className="absolute -top-[6%] left-1/2 h-[92%] w-[92%] max-w-none -translate-x-1/2 object-contain" />
-          <span className="absolute inset-x-0 bottom-[7%] text-center text-[9px] font-extrabold tracking-[0.14em] text-white">{cap}</span>
+          {!bare && <span className="absolute inset-x-0 bottom-[7%] text-center text-[9px] font-extrabold tracking-[0.14em] text-white">{cap}</span>}
         </>
-      ) : <img src={base} alt="" draggable={false} className="absolute inset-[12%] h-[76%] w-[76%] object-contain" />) : (
+      ) : <img src={base} alt="" draggable={false} className={bare ? 'absolute left-1/2 top-[17%] h-[50%] w-[64%] -translate-x-1/2 object-contain' : 'absolute inset-[12%] h-[76%] w-[76%] object-contain'} />) : (
         <>
           <Thumb i={i} className="absolute inset-0" />
-          <span className="absolute inset-0 grid place-items-center p-1.5 text-center text-[10px] font-extrabold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,.4)]">{p.title}</span>
+          {!bare && <span className="absolute inset-0 grid place-items-center p-1.5 text-center text-[10px] font-extrabold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,.4)]">{p.title}</span>}
         </>
       )}
     </div>
