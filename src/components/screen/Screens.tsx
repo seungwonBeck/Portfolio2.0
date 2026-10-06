@@ -351,6 +351,7 @@ function Detail({ s }: { s: State }) {
   const imgs = ((p as { images?: string[] }).images ?? []).map(f => (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`))
   const fit = (p as { imageFit?: string }).imageFit
   const contain = fit === 'contain' || fit === 'slide' // slide: 16:9 슬라이드/PDF 캡처, 잘리지 않게 칸도 16:9
+  // 슬라이드 사진은 16:9 칸에 꽉 채운다(원본 비율이 소수점 단위로 달라 contain이면 가장자리에 1px 틈이 생김)
   const ratio = fit === 'slide' ? 'aspect-[16/9]' : 'aspect-[4/3]'
   const dark = (p as { imageTone?: string }).imageTone === 'dark'
   const own = (p as { sections?: { title?: string; text?: string }[] }).sections ?? []
@@ -394,7 +395,7 @@ function Detail({ s }: { s: State }) {
         <h3 className={`${H3} text-[#16171a]`}>{sec[0].title}</h3>
         <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[0].text}</p>
         <div className="mx-auto mt-4 w-[76%] rounded-xl bg-[#f1f2f7] p-2.5">
-          <Photo src={imgs[1]} i={s.proj} k={1} plain contain={contain} className={`${ratio} w-full`} />
+          <Photo src={imgs[1]} i={s.proj} k={1} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
         </div>
       </section>
 
@@ -409,7 +410,7 @@ function Detail({ s }: { s: State }) {
           {tools && <div className="w-[30%]"><div className="text-[10px] font-extrabold leading-[22px] text-[#16171a]">{tools.split(' · ').map(t => <span key={t} className="mx-[2px] inline-block whitespace-nowrap">{t}</span>)}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">사용 도구</div></div>}
         </div>
         <div className="mx-auto mt-4 w-[76%] rounded-xl bg-[#f1f2f7] p-2.5">
-          <Photo src={imgs[4]} i={s.proj} k={4} plain contain={contain} className={`${ratio} w-full`} />
+          <Photo src={imgs[4]} i={s.proj} k={4} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
         </div>
       </section>
 
@@ -419,7 +420,7 @@ function Detail({ s }: { s: State }) {
         <h3 className={`${H3}`}>{sec[3].title}</h3>
         <p className={`mx-auto max-w-[460px] ${BODY} text-white/65`}>{sec[3].text}</p>
         <div className="mt-3">{site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}</div>
-        <Photo src={imgs[5]} i={s.proj} k={5} plain contain={contain} className={`mx-auto mt-4 ${ratio} w-[76%] rounded-lg`} />
+        <Photo src={imgs[5]} i={s.proj} k={5} plain contain={fit === 'contain'} className={`mx-auto mt-4 ${ratio} w-[76%] rounded-lg`} />
       </section>
     </div>
   )
