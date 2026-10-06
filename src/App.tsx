@@ -170,11 +170,13 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
   // Phone held sideways (short viewport): the pinned stage gets almost the whole screen, so the console fills it instead of sharing it with the top block.
   const short = vh <= 500 && innerWidth > vh
   const portraitPhone = innerWidth < 768 && vh > innerWidth
-  const ZOOM = portraitPhone ? 1.5 : 1 // 세로 폰: 확대샷 (기기 화면을 크게, 조이콘은 화면 가장자리에서 잘린다)
+  const ZOOM = portraitPhone ? 1.5 : short ? 1.3 : 1 // 폰: 확대샷 (기기 화면을 크게, 조이콘은 화면 가장자리에서 잘린다)
   const PT = short ? 8 : portraitPhone ? 12 : 56 // stage top padding
   const stagePad = short ? 'px-3 pt-2' : portraitPhone ? 'px-5 pt-3' : 'px-5 pt-14 md:px-20' 
   const maxH = short ? vh - PT - 12 : Math.max(220, vh - topB - 80) // measured title + chips block (+56 frame padding, 24 breathing room): everything fits one viewport
-  const est = Math.min(maxH, (innerWidth - (short ? 24 : innerWidth >= 768 ? 160 : 40)) * ZOOM * (CANVAS.h / CANVAS.w)) // rendered console height
+  const maxHz = short ? maxH * ZOOM : maxH // 가로 폰: 확대하면 기기가 화면 높이보다 커지고 위아래 베젤이 잘린다
+  const est = Math.min(maxHz, (innerWidth - (short ? 24 : innerWidth >= 768 ? 160 : 40)) * ZOOM * (CANVAS.h / CANVAS.w)) // rendered console height
+  const lift = short ? Math.min(0, -(est - (vh - PT - 12)) / 2) : 0 // 확대로 넘친 높이의 절반만큼 올려서 세로 가운데에 맞춘다
   // chip row spans the console from Joy-Con seam to Joy-Con seam (233..1520 of the 1760px canvas)
   const rowW = portraitPhone ? innerWidth - 40 : (est * CANVAS.w / CANVAS.h) * ((1520 - 233) / CANVAS.w) // 확대된 폰에서는 칩 줄이 화면 폭을 꽉 채운다
   const { scrollY: sy } = useScroll()
@@ -200,7 +202,7 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
   const rs = short ? Math.max(0.3, Math.min(0.55, (fw - tvW - TV_LEFT - 12) / 330)) : rs0
   const tvTop = (vh - BOT - tvBox) / 2
   // cable: leaves the dock's lower right, runs right along the floor, then plugs into the TV's left side in the next "screen" of the world
-  const cx0 = fw / 2 + cw * 0.363, cy0 = PT + centerY.current + 1.38 * est
+  const cx0 = fw / 2 + cw * 0.363, cy0 = PT + centerY.current + lift + 1.38 * est
   const cx1 = fw * WORLD + (short ? TV_LEFT : (fw - tvW) / 2), cy1 = tvTop + tvBox * 0.78
   const cable = `M${cx0} ${cy0} H${cx1 - 110} C${cx1 - 40} ${cy0} ${cx1 - 30} ${cy1} ${cx1} ${cy1}`
 
@@ -234,8 +236,8 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
             <p className="text-[clamp(1.75rem,5.2vw,4.5rem)] font-extrabold leading-[1.25] tracking-tight [word-break:keep-all]">독을 연결하면<br />큰 화면으로 프로젝트가 펼쳐집니다</p>
           </motion.div>
           <motion.div className={`absolute inset-0 flex flex-col items-center ${stagePad}`} style={{ x: pan }}>
-            <motion.div className="relative w-full will-change-transform" style={{ scale, rotateY, y }}>
-              <Scaled maxH={maxH} zoom={ZOOM} dockY={dockYPct} screenOff={screenOff}
+            <motion.div className="relative w-full will-change-transform" style={{ scale, rotateY, y, marginTop: lift || undefined }}>
+              <Scaled maxH={maxHz} zoom={ZOOM} dockY={dockYPct} screenOff={screenOff}
                 overlay={<motion.div aria-hidden className="pointer-events-none absolute inset-0" style={{ opacity: dockIn, y: dockUp }}><Dock /></motion.div>}>
                 {children(sep)}
               </Scaled>
