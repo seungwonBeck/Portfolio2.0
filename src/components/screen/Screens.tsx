@@ -275,7 +275,7 @@ function ChipBadge({ i, className = '', bare = false }: { i: number; className?:
 function Photo({ src, i, k, className = '', plain = false, contain = false }: { src?: string; i: number; k: number; className?: string; plain?: boolean; contain?: boolean }) {
   return (
     <div className={`relative overflow-hidden rounded-xl ${contain ? 'bg-[#f2f3f0]' : 'bg-[#d9d9d9]'} ${plain ? '' : 'shadow-[0_8px_16px_-8px_rgba(0,0,0,.4)]'} ${className}`}>
-      {src ? <img src={src} alt="" draggable={false} className={`absolute inset-0 h-full w-full ${contain ? 'object-contain' : 'object-cover'}`} /> : (
+      {src ? <img src={src} alt="" draggable={false} loading="lazy" decoding="async" className={`absolute inset-0 h-full w-full ${contain ? 'object-contain' : 'object-cover'}`} /> : (
         <>
           <Thumb i={i} className="absolute inset-0" />
           <span aria-hidden className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.4),rgba(255,255,255,.05)_40%,transparent_55%)]" />
@@ -300,7 +300,7 @@ function HeroSlides({ imgs: all, i, className = '', contain = false, dark = fals
       {/* glow: 지금 슬라이드를 흐리게 키워 뒤에 깔아, 슬라이드 양옆 빈 곳이 같은 사진 색으로 번지게 한다 */}
       {glow && imgs.length > 0 && (
         <AnimatePresence initial={false}>
-          <motion.img key={`g${idx}`} aria-hidden src={imgs[idx]} alt="" draggable={false} className="pointer-events-none absolute inset-0 h-full w-full scale-125 object-cover blur-2xl"
+          <motion.img key={`g${idx}`} aria-hidden src={imgs[idx]} alt="" draggable={false} decoding="async" className="pointer-events-none absolute inset-0 h-full w-full scale-125 object-cover blur-2xl"
             initial={{ opacity: 0 }} animate={{ opacity: 0.55 }} exit={{ opacity: 0 }} transition={{ duration: 0.45 }} />
         </AnimatePresence>
       )}
@@ -308,12 +308,12 @@ function HeroSlides({ imgs: all, i, className = '', contain = false, dark = fals
         <motion.div
           key={idx}
           className="absolute inset-0"
-          initial={{ x: '100%', scaleX: 1.12, filter: 'blur(16px)' }}
+          initial={{ x: '100%', scaleX: 1.08, filter: 'blur(8px)' }}
           animate={{ x: 0, scaleX: 1, filter: 'blur(0px)' }}
-          exit={{ x: '-45%', scaleX: 1.12, filter: 'blur(16px)', opacity: 0 }}
+          exit={{ x: '-45%', opacity: 0 }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         >
-          {imgs.length ? <img src={imgs[idx]} alt="" draggable={false} className={`h-full w-full ${contain ? 'object-contain' : 'object-cover'}`} /> : (
+          {imgs.length ? <img src={imgs[idx]} alt="" draggable={false} decoding="async" className={`h-full w-full ${contain ? 'object-contain' : 'object-cover'}`} /> : (
             <>
               <Thumb i={i + idx} className="absolute inset-0" />
               <span aria-hidden className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.4),rgba(255,255,255,.05)_40%,transparent_55%)]" />
@@ -379,7 +379,7 @@ function Detail({ s }: { s: State }) {
       {/* hero: left-aligned text with the button set apart from the title, then the photo edge to edge */}
       <section className="relative flex h-full flex-col overflow-hidden bg-[#f4f6fb]">
         {/* 슬라이드형 작업: 메인 사진을 첫 화면 전체 배경에 흐리고 옅게 깐다 */}
-        {(fit === 'slide' || fit === 'a4') && slideImgs[0] && <img aria-hidden src={slideImgs[0]} alt="" draggable={false} className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-2xl" />}
+        {(fit === 'slide' || fit === 'a4') && slideImgs[0] && <img aria-hidden src={slideImgs[0]} alt="" draggable={false} decoding="async" className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-2xl" />}
         <div className="relative flex shrink-0 items-start justify-between gap-3 px-4 pb-4 pt-4">
           <div className="min-w-0">
             <Eyebrow>{p.role}</Eyebrow>
@@ -1022,6 +1022,7 @@ export default function Screen({ s, bootMs, dark, instantLoad = false }: { s: St
   // The black loading splash is an overlay that fades in over the old screen and fades out over the new one.
   // `base` is the screen underneath: it stays on the old screen until the overlay is opaque, then swaps to the project unseen.
   const loading = s.screen === 'LOAD'
+  // 커서가 올라간 프로젝트의 사진을 미리 준비하고, 한가할 때 나머지 프로젝트도 차례로 준비한다
   const [base, setBase] = useState(s.screen)
   useEffect(() => {
     if (!loading) return setBase(s.screen)
@@ -1059,12 +1060,12 @@ export default function Screen({ s, bootMs, dark, instantLoad = false }: { s: St
       <div className="relative flex-1 overflow-hidden">
         {/* popLayout: the old screen fades out while the new one fades in (a dissolve with a slight slide), no gap in between */}
         <AnimatePresence mode="popLayout" initial={false} custom={{ d: s.dir, cut }}>
-          <motion.div key={base} className="h-full"
+          <motion.div key={base} className="h-full will-change-[transform,opacity]"
             custom={{ d: s.dir, cut }}
             variants={{
-              in: ({ d, cut }: Motion) => cut ? { x: 0, opacity: 1, scale: 1 } : { x: 28 * d, opacity: 0, scale: 0.985 },
-              show: ({ cut }: Motion) => ({ x: 0, opacity: 1, scale: 1, transition: { duration: cut ? 0 : 0.5, ease: [0.4, 0, 0.2, 1] } }),
-              out: ({ d, cut }: Motion) => cut ? { opacity: 0, transition: { duration: 0 } } : { x: -28 * d, opacity: 0, scale: 0.985, transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] } },
+            in: ({ d, cut }: Motion) => cut ? { x: 0, opacity: 1 } : { x: 28 * d, opacity: 0 },
+            show: ({ cut }: Motion) => ({ x: 0, opacity: 1, transition: { duration: cut ? 0 : 0.5, ease: [0.4, 0, 0.2, 1] } }),
+            out: ({ d, cut }: Motion) => cut ? { opacity: 0, transition: { duration: 0 } } : { x: -28 * d, opacity: 0, transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] } },
             }}
             initial="in" animate="show" exit="out">
             {View ? <View s={s} /> : <Boot ms={bootMs} />}
