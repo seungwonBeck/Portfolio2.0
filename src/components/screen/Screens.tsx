@@ -362,6 +362,8 @@ function Detail({ s }: { s: State }) {
   const tools = (p as { tools?: string }).tools // 사이트 작업의 사용 도구 (예: VSCODE · HTML · CSS · JS)
   const pdf = (p.links as { pdf?: string }).pdf
   const site = p.links.demo || (pdf ? `${import.meta.env.BASE_URL}${pdf}` : '') // 사이트가 없는 작업은 PDF를 바로 연다
+  const imageLink = (p.links as { image?: string }).image // 로그인 없이 볼 수 있는 전체 이미지 (예: 상세 페이지 통짜)
+  const imageHref = imageLink ? `${import.meta.env.BASE_URL}${imageLink}` : ''
   const siteLabel = !p.links.demo ? 'PDF 보기' : /behance\.net/.test(p.links.demo) ? 'Behance 보기' : /figma\.com/.test(p.links.demo) ? 'Figma에서 보기' : '사이트 보기' // 링크 종류에 맞는 버튼 글자
   const sec = [
     { title: own[0]?.title || '프로젝트 소개', text: own[0]?.text || p.description },
@@ -374,6 +376,7 @@ function Detail({ s }: { s: State }) {
   ) : (
     <span aria-disabled className="inline-block cursor-not-allowed rounded-full bg-black/[.08] px-3.5 py-1 text-[11px] font-bold text-ink-sub">링크 준비 중</span>
   )
+  const imageBtn = (cls: string) => imageHref ? <a href={imageHref} target="_blank" rel="noopener" className={`inline-flex items-center gap-1 rounded-full text-[11px] font-bold hover:brightness-110 ${cls}`}>이미지로 보기 <ExternalLink size={12} /></a> : null
   return (
     <div data-scroll className="h-full overflow-y-auto bg-white [scrollbar-width:none]">
       {/* hero: left-aligned text with the button set apart from the title, then the photo edge to edge */}
@@ -385,7 +388,7 @@ function Detail({ s }: { s: State }) {
             <Eyebrow>{p.role}</Eyebrow>
             <h2 className="mb-1.5 text-[24px] font-extrabold leading-[1.2] tracking-tight text-[#16171a]">{p.title}</h2>
             <p className="line-clamp-1 text-[11px] leading-[1.4] text-[#6b6f78]">{p.summary}</p>
-            <div className="mt-3">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}</div>
+            <div className="mt-3 flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{imageBtn('bg-white px-4 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>
           </div>
           <ChipBadge i={s.proj} className="mt-1 w-[76px]" />
         </div>
@@ -423,7 +426,7 @@ function Detail({ s }: { s: State }) {
         <Eyebrow dark>Next</Eyebrow>
         <h3 className={`${H3}`}>{sec[3].title}</h3>
         <p className={`mx-auto max-w-[460px] ${BODY} text-white/65`}>{sec[3].text}</p>
-        <div className="mt-3">{site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}</div>
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-2">{site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}{imageBtn('bg-transparent px-3.5 py-1 text-white ring-1 ring-white/50')}</div>
         <Photo src={imgs[5]} i={s.proj} k={5} plain contain={fit === 'contain'} className={`mx-auto mt-4 ${ratio} ${panelW} rounded-lg`} />
       </section>
     </div>
