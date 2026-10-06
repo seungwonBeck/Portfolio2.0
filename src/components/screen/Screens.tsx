@@ -349,6 +349,9 @@ function Detail({ s }: { s: State }) {
   const p = projects[s.proj]
   // images: 전체 주소가 아니면 public/projects/ 아래 파일로 본다. imageFit "contain"은 슬라이드 캡처처럼 잘리면 안 되는 사진용.
   const imgs = ((p as { images?: string[] }).images ?? []).map(f => (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`))
+  // heroImages: 첫 화면 슬라이드에 쓸 사진만 따로 고를 때 (없으면 images 전체)
+  const heroImgs = ((p as { heroImages?: string[] }).heroImages ?? []).map(f => (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`))
+  const slideImgs = heroImgs.length ? heroImgs : imgs
   const fit = (p as { imageFit?: string }).imageFit
   const contain = fit === 'contain' || fit === 'slide' || fit === 'a4' // slide: 16:9 슬라이드/PDF 캡처, a4: 세로로 긴 상세 페이지를 A4 비율로 잘라 둔 것, 잘리지 않게 칸도 같은 비율
   // 슬라이드 사진은 16:9 칸에 꽉 채운다(원본 비율이 소수점 단위로 달라 contain이면 가장자리에 1px 틈이 생김)
@@ -376,7 +379,7 @@ function Detail({ s }: { s: State }) {
       {/* hero: left-aligned text with the button set apart from the title, then the photo edge to edge */}
       <section className="relative flex h-full flex-col overflow-hidden bg-[#f4f6fb]">
         {/* 슬라이드형 작업: 메인 사진을 첫 화면 전체 배경에 흐리고 옅게 깐다 */}
-        {(fit === 'slide' || fit === 'a4') && imgs[0] && <img aria-hidden src={imgs[0]} alt="" draggable={false} className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-2xl" />}
+        {(fit === 'slide' || fit === 'a4') && slideImgs[0] && <img aria-hidden src={slideImgs[0]} alt="" draggable={false} className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-2xl" />}
         <div className="relative flex shrink-0 items-start justify-between gap-3 px-4 pb-4 pt-4">
           <div className="min-w-0">
             <Eyebrow>{p.role}</Eyebrow>
@@ -386,7 +389,7 @@ function Detail({ s }: { s: State }) {
           </div>
           <ChipBadge i={s.proj} className="mt-1 w-[76px]" />
         </div>
-        <HeroSlides imgs={imgs.length ? imgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} glow={fit === 'slide' || fit === 'a4'} className="relative min-h-0 w-full flex-1" />
+        <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} glow={fit === 'slide' || fit === 'a4'} className="relative min-h-0 w-full flex-1" />
       </section>
 
       {/* 띠마다 글자는 가운데 정렬, 사진은 그 아래 가운데에 놓는다 */}
