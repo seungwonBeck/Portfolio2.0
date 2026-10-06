@@ -354,6 +354,7 @@ function Detail({ s }: { s: State }) {
   const ratio = fit === 'slide' ? 'aspect-[16/9]' : 'aspect-[4/3]'
   const dark = (p as { imageTone?: string }).imageTone === 'dark'
   const own = (p as { sections?: { title?: string; text?: string }[] }).sections ?? []
+  const tools = (p as { tools?: string }).tools // 사이트 작업의 사용 도구 (예: VSCODE · HTML · CSS · JS)
   const pdf = (p.links as { pdf?: string }).pdf
   const site = p.links.demo || (pdf ? `${import.meta.env.BASE_URL}${pdf}` : '') // 사이트가 없는 작업은 PDF를 바로 연다
   const siteLabel = !p.links.demo ? 'PDF 보기' : /behance\.net/.test(p.links.demo) ? 'Behance 보기' : '사이트 보기' // 링크 종류에 맞는 버튼 글자
@@ -402,8 +403,10 @@ function Detail({ s }: { s: State }) {
         <Eyebrow>Role</Eyebrow>
         <h3 className={`${H3} text-[#16171a]`}>{sec[2].title}</h3>
         <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[2].text}</p>
-        <div className="mt-6 flex justify-center gap-10">
+        <div className="mt-6 flex flex-wrap justify-center gap-x-10 gap-y-4">
           <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.period}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">작업 기간</div></div>
+          <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">100%</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">작업 비중</div></div>
+          {tools && <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{tools}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">사용 도구</div></div>}
         </div>
         <div className="mx-auto mt-4 w-[76%] rounded-xl bg-[#f1f2f7] p-2.5">
           <Photo src={imgs[4]} i={s.proj} k={4} plain contain={contain} className={`${ratio} w-full`} />
