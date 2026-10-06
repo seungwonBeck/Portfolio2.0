@@ -3,14 +3,14 @@ import { profile, projects } from '../types'
 export type Screen = 'BOOT' | 'HOME' | 'ABOUT' | 'PROJECTS' | 'DETAIL' | 'SKILLS' | 'CONTACT' | 'GAME' | 'LOAD'
 export type Btn = 'up' | 'down' | 'left' | 'right' | 'A' | 'B' | 'HOME' | 'plus' | 'minus' | 'Y'
 
-export const TILES = ['ABOUT', 'PROJECTS', 'SKILLS', 'CONTACT', 'GAME'] as const
+export const TILES = ['ABOUT', 'SKILLS', 'PROJECTS', 'CONTACT', 'GAME'] as const
 export const contactItems = [
   { label: 'Email', url: `mailto:${profile.email}` },
   ...profile.links,
 ]
 
 /** The dock under the tiles: all five menus. */
-export const DOCK = ['ABOUT', 'PROJECTS', 'SKILLS', 'CONTACT', 'GAME'] as const
+export const DOCK = ['ABOUT', 'SKILLS', 'PROJECTS', 'CONTACT', 'GAME'] as const
 
 /** only: cartridge currently in the console (it becomes the project tile on HOME), or null. row/dock: focus on HOME (tiles or dock). */
 export interface State {
