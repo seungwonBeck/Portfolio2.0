@@ -287,7 +287,7 @@ function Photo({ src, i, k, className = '', plain = false, contain = false }: { 
 }
 
 /** The big hero photo as an auto-advancing slideshow: each slide sweeps in from the right with a horizontal motion-blur streak while the old one is pulled out to the left. Uses the project's own pictures, or box-art colour cards until they exist. */
-function HeroSlides({ imgs: all, i, className = '', contain = false }: { imgs: string[]; i: number; className?: string; contain?: boolean }) {
+function HeroSlides({ imgs: all, i, className = '', contain = false, dark = false }: { imgs: string[]; i: number; className?: string; contain?: boolean; dark?: boolean }) {
   const imgs = [...new Set(all)] // 같은 사진이 여러 칸에 쓰여도 슬라이드는 한 번만
   const n = imgs.length || 4
   const [idx, setIdx] = useState(0)
@@ -296,7 +296,7 @@ function HeroSlides({ imgs: all, i, className = '', contain = false }: { imgs: s
     return () => clearInterval(t)
   }, [n])
   return (
-    <div className={`relative overflow-hidden ${contain ? 'bg-[#f2f3f0]' : 'bg-[#d9d9d9]'} ${className}`}>
+    <div className={`relative overflow-hidden ${dark ? 'bg-[#0d0d0f]' : contain ? 'bg-[#f2f3f0]' : 'bg-[#d9d9d9]'} ${className}`}>
       <AnimatePresence initial={false}>
         <motion.div
           key={idx}
@@ -342,9 +342,14 @@ function Detail({ s }: { s: State }) {
   const p = projects[s.proj]
   // images: 전체 주소가 아니면 public/projects/ 아래 파일로 본다. imageFit "contain"은 슬라이드 캡처처럼 잘리면 안 되는 사진용.
   const imgs = ((p as { images?: string[] }).images ?? []).map(f => (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`))
-  const contain = (p as { imageFit?: string }).imageFit === 'contain'
+  const fit = (p as { imageFit?: string }).imageFit
+  const contain = fit === 'contain' || fit === 'slide' // slide: 16:9 슬라이드/PDF 캡처, 잘리지 않게 칸도 16:9
+  const ratio = fit === 'slide' ? 'aspect-[16/9]' : 'aspect-[4/3]'
+  const dark = (p as { imageTone?: string }).imageTone === 'dark'
   const own = (p as { sections?: { title?: string; text?: string }[] }).sections ?? []
-  const site = p.links.demo
+  const pdf = (p.links as { pdf?: string }).pdf
+  const site = p.links.demo || (pdf ? `${import.meta.env.BASE_URL}${pdf}` : '') // 사이트가 없는 작업은 PDF를 바로 연다
+  const siteLabel = p.links.demo ? '사이트 보기' : 'PDF 보기'
   const sec = [
     { title: own[0]?.title || '프로젝트 소개', text: own[0]?.text || p.description },
     { title: own[1]?.title || '함께 쓴 키워드', text: own[1]?.text || `함께 쓴 키워드는 ${p.tags.join(', ')}입니다.` },
@@ -352,7 +357,7 @@ function Detail({ s }: { s: State }) {
     { title: own[3]?.title || p.title, text: own[3]?.text || '사이트에서 더 자세한 결과물을 확인해 보세요.' },
   ]
   const siteBtn = (cls: string) => site ? (
-    <a href={site} target="_blank" rel="noopener" className={`inline-flex items-center gap-1 rounded-full text-[11px] font-bold hover:brightness-110 ${cls}`}>사이트 보기 <ExternalLink size={12} /></a>
+    <a href={site} target="_blank" rel="noopener" className={`inline-flex items-center gap-1 rounded-full text-[11px] font-bold hover:brightness-110 ${cls}`}>{siteLabel} <ExternalLink size={12} /></a>
   ) : (
     <span aria-disabled className="inline-block cursor-not-allowed rounded-full bg-black/[.08] px-3.5 py-1 text-[11px] font-bold text-ink-sub">링크 준비 중</span>
   )
@@ -369,7 +374,7 @@ function Detail({ s }: { s: State }) {
           </div>
           <ChipBadge i={s.proj} className="mt-1 w-[76px]" />
         </div>
-        <HeroSlides imgs={imgs.length ? imgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} className="min-h-0 w-full flex-1" />
+        <HeroSlides imgs={imgs.length ? imgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} className="min-h-0 w-full flex-1" />
       </section>
 
       {/* 띠마다 글자는 가운데 정렬, 사진은 그 아래 가운데에 놓는다 */}
@@ -379,7 +384,7 @@ function Detail({ s }: { s: State }) {
         <h3 className={`${H3} text-[#16171a]`}>{sec[0].title}</h3>
         <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[0].text}</p>
         <div className="mx-auto mt-4 w-[76%] rounded-xl bg-[#f1f2f7] p-2.5">
-          <Photo src={imgs[1]} i={s.proj} k={1} plain contain={contain} className="aspect-[4/3] w-full" />
+          <Photo src={imgs[1]} i={s.proj} k={1} plain contain={contain} className={`${ratio} w-full`} />
         </div>
       </section>
 
@@ -389,8 +394,8 @@ function Detail({ s }: { s: State }) {
         <h3 className={`${H3} text-[#16171a]`}>{sec[1].title}</h3>
         <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[1].text}</p>
         <div className="mx-auto mt-4 grid w-[84%] grid-cols-2 gap-2">
-          <Photo src={imgs[2]} i={s.proj} k={2} plain contain={contain} className="aspect-[4/3] rounded-lg" />
-          <Photo src={imgs[3]} i={s.proj} k={3} plain contain={contain} className="aspect-[4/3] rounded-lg" />
+          <Photo src={imgs[2]} i={s.proj} k={2} plain contain={contain} className={`${ratio} rounded-lg`} />
+          <Photo src={imgs[3]} i={s.proj} k={3} plain contain={contain} className={`${ratio} rounded-lg`} />
         </div>
       </section>
 
@@ -404,7 +409,7 @@ function Detail({ s }: { s: State }) {
           <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.tags.length}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">키워드</div></div>
         </div>
         <div className="mx-auto mt-4 w-[76%] rounded-xl bg-[#f1f2f7] p-2.5">
-          <Photo src={imgs[4]} i={s.proj} k={4} plain contain={contain} className="aspect-[4/3] w-full" />
+          <Photo src={imgs[4]} i={s.proj} k={4} plain contain={contain} className={`${ratio} w-full`} />
         </div>
       </section>
 
@@ -414,7 +419,7 @@ function Detail({ s }: { s: State }) {
         <h3 className={`${H3}`}>{sec[3].title}</h3>
         <p className={`mx-auto max-w-[460px] ${BODY} text-white/65`}>{sec[3].text}</p>
         <div className="mt-3">{site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}</div>
-        <Photo src={imgs[5]} i={s.proj} k={5} plain contain={contain} className="mx-auto mt-4 aspect-[4/3] w-[76%] rounded-lg" />
+        <Photo src={imgs[5]} i={s.proj} k={5} plain contain={contain} className={`mx-auto mt-4 ${ratio} w-[76%] rounded-lg`} />
       </section>
     </div>
   )
