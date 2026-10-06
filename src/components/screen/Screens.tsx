@@ -372,56 +372,49 @@ function Detail({ s }: { s: State }) {
         <HeroSlides imgs={imgs.length ? imgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} className="min-h-0 w-full flex-1" />
       </section>
 
-      {/* band 1: white, text and a photo on a grey panel */}
-      <section className="bg-white px-4 py-5">
+      {/* 띠마다 글자는 가운데 정렬, 사진은 그 아래 가운데에 놓는다 */}
+      {/* band 1: white, text, then the photo on a grey panel */}
+      <section className="bg-white px-4 py-6 text-center">
         <Eyebrow>Overview</Eyebrow>
         <h3 className={`${H3} text-[#16171a]`}>{sec[0].title}</h3>
-        <div className="flex items-center gap-4 rounded-xl bg-[#f1f2f7] p-3">
-          <p className={`flex-1 ${BODY} text-[#3c3f46]`}>{sec[0].text}</p>
-          <Photo src={imgs[1]} i={s.proj} k={1} plain contain={contain} className="aspect-[4/3] w-[42%] shrink-0" />
+        <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[0].text}</p>
+        <div className="mx-auto mt-4 w-[76%] rounded-xl bg-[#f1f2f7] p-2.5">
+          <Photo src={imgs[1]} i={s.proj} k={1} plain contain={contain} className="aspect-[4/3] w-full" />
         </div>
       </section>
 
-      {/* band 2: light grey, two photos on the left and the text on the right */}
-      <section className="flex items-center gap-4 bg-[#eceef4] px-4 py-5">
-        <div className="grid w-[56%] shrink-0 grid-cols-2 gap-2">
-          <Photo src={imgs[2]} i={s.proj} k={2} plain contain={contain} className="aspect-[4/5] rounded-lg" />
-          <Photo src={imgs[3]} i={s.proj} k={3} plain contain={contain} className="aspect-[4/5] rounded-lg" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <Eyebrow>Keywords</Eyebrow>
-          <h3 className={`${H3} text-[#16171a]`}>{sec[1].title}</h3>
-          <p className={`${BODY} text-[#3c3f46]`}>{sec[1].text}</p>
+      {/* band 2: light grey, text, then two photos side by side */}
+      <section className="bg-[#eceef4] px-4 py-6 text-center">
+        <Eyebrow>Keywords</Eyebrow>
+        <h3 className={`${H3} text-[#16171a]`}>{sec[1].title}</h3>
+        <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[1].text}</p>
+        <div className="mx-auto mt-4 grid w-[84%] grid-cols-2 gap-2">
+          <Photo src={imgs[2]} i={s.proj} k={2} plain contain={contain} className="aspect-[4/3] rounded-lg" />
+          <Photo src={imgs[3]} i={s.proj} k={3} plain contain={contain} className="aspect-[4/3] rounded-lg" />
         </div>
       </section>
 
-      {/* band 3: white, text and big numbers on the left, photo panel on the right */}
-      <section className="flex items-stretch gap-4 bg-white px-4 py-5">
-        <div className="flex min-w-0 flex-1 flex-col">
-          <Eyebrow>Role</Eyebrow>
-          <h3 className={`${H3} text-[#16171a]`}>{sec[2].title}</h3>
-          <p className={`${BODY} text-[#3c3f46]`}>{sec[2].text}</p>
-          <div className="mt-auto flex gap-6 pt-3">
-            <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.period}</div><div className="mt-1 text-[9px] text-[#6b6f78]">작업 기간</div></div>
-            <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.tags.length}</div><div className="mt-1 text-[9px] text-[#6b6f78]">키워드</div></div>
-          </div>
+      {/* band 3: white, text, the big numbers 24px under it, then the photo panel */}
+      <section className="bg-white px-4 py-6 text-center">
+        <Eyebrow>Role</Eyebrow>
+        <h3 className={`${H3} text-[#16171a]`}>{sec[2].title}</h3>
+        <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[2].text}</p>
+        <div className="mt-6 flex justify-center gap-10">
+          <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.period}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">작업 기간</div></div>
+          <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.tags.length}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">키워드</div></div>
         </div>
-        <div className="w-[44%] shrink-0 self-center rounded-xl bg-[#f1f2f7] p-2.5">
+        <div className="mx-auto mt-4 w-[76%] rounded-xl bg-[#f1f2f7] p-2.5">
           <Photo src={imgs[4]} i={s.proj} k={4} plain contain={contain} className="aspect-[4/3] w-full" />
         </div>
       </section>
 
       {/* band 4: dark closing band */}
-      <section className="bg-[#0b0b0d] px-4 py-5 text-white">
+      <section className="bg-[#0b0b0d] px-4 py-6 text-center text-white">
         <Eyebrow dark>Next</Eyebrow>
-        <div className="flex items-end justify-between gap-4">
-          <div className="min-w-0">
-            <h3 className={`${H3}`}>{sec[3].title}</h3>
-            <p className={`mb-2.5 ${BODY} text-white/65`}>{sec[3].text}</p>
-            {site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}
-          </div>
-          <Photo src={imgs[5]} i={s.proj} k={5} plain contain={contain} className="aspect-[4/3] w-[40%] shrink-0 rounded-lg" />
-        </div>
+        <h3 className={`${H3}`}>{sec[3].title}</h3>
+        <p className={`mx-auto max-w-[460px] ${BODY} text-white/65`}>{sec[3].text}</p>
+        <div className="mt-3">{site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}</div>
+        <Photo src={imgs[5]} i={s.proj} k={5} plain contain={contain} className="mx-auto mt-4 aspect-[4/3] w-[76%] rounded-lg" />
       </section>
     </div>
   )
