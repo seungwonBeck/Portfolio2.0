@@ -403,10 +403,10 @@ function Detail({ s }: { s: State }) {
         <Eyebrow>Role</Eyebrow>
         <h3 className={`${H3} text-[#16171a]`}>{sec[2].title}</h3>
         <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[2].text}</p>
-        <div className="mt-6 flex flex-wrap justify-center gap-x-10 gap-y-4">
-          <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.period}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">작업 기간</div></div>
-          <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">100%</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">작업 비중</div></div>
-          {tools && <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{tools}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">사용 도구</div></div>}
+        <div className="mx-auto mt-6 flex max-w-[460px] justify-center">
+          <div className="w-[35%]"><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.period}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">작업 기간</div></div>
+          <div className="w-[35%]"><div className="text-[22px] font-extrabold leading-none text-[#16171a]">100%</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">작업 비중</div></div>
+          {tools && <div className="w-[30%]"><div className="text-[10px] font-extrabold leading-[22px] text-[#16171a]">{tools.split(' · ').map(t => <span key={t} className="mx-[2px] inline-block whitespace-nowrap">{t}</span>)}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">사용 도구</div></div>}
         </div>
         <div className="mx-auto mt-4 w-[76%] rounded-xl bg-[#f1f2f7] p-2.5">
           <Photo src={imgs[4]} i={s.proj} k={4} plain contain={contain} className={`${ratio} w-full`} />
