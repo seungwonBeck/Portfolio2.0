@@ -290,9 +290,6 @@ export const FallbackList = () => (
             <h3 className="font-bold">{p.title}</h3>
             <p className="text-sm text-ink-sub">{p.summary}</p>
             <div className="label mt-3">{p.role} · {p.period}</div>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {p.tags.map(t => <span key={t} className="rounded-full bg-bg px-2 py-0.5 text-[11px]">{t}</span>)}
-            </div>
             {p.links.demo && <a href={p.links.demo} target="_blank" rel="noopener" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-accent-blue">보러가기 <ArrowUpRight size={14} /></a>}
           </div>
         </article>

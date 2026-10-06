@@ -340,8 +340,8 @@ const Eyebrow = ({ children, dark = false }: { children: ReactNode; dark?: boole
  * Project page, laid out like the "Apple Concept" template sketch, as full-width bands (no side margin on the bands themselves,
  * only a small padding for the text inside). First view: a left-aligned header (small blue label, big title, blurb, then, with some
  * air above it, the blue "사이트 보기" pill) and right under it the big photo, edge to edge, so title, button and photo are all on
- * the first screen. Scrolling goes through four bands, each with its own background and its own text, laid out differently:
- * overview (white, text + photo), keywords (grey, photos left / text right), role (white, big numbers), closing (dark).
+ * the first screen. Scrolling goes through three bands, each with its own background and its own text, laid out differently:
+ * overview (white, text + photo), role (white, big numbers), closing (dark).
  * `sections[n]` in projects.json ({ title, text }) overrides a band's text, otherwise it is built from the project's data.
  * Photos come from `images` (0 = hero, 1 = overview, 2-3 = keywords, 4 = role, 5 = closing).
  */
@@ -349,14 +349,20 @@ function Detail({ s }: { s: State }) {
   const p = projects[s.proj]
   // images: 전체 주소가 아니면 public/projects/ 아래 파일로 본다. imageFit "contain"은 슬라이드 캡처처럼 잘리면 안 되는 사진용.
   const imgs = ((p as { images?: string[] }).images ?? []).map(f => (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`))
+  // heroImages: 첫 화면 슬라이드에 쓸 사진만 따로 고를 때 (없으면 images 전체)
+  const heroImgs = ((p as { heroImages?: string[] }).heroImages ?? []).map(f => (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`))
+  const slideImgs = heroImgs.length ? heroImgs : imgs
   const fit = (p as { imageFit?: string }).imageFit
-  const contain = fit === 'contain' || fit === 'slide' // slide: 16:9 슬라이드/PDF 캡처, 잘리지 않게 칸도 16:9
-  const ratio = fit === 'slide' ? 'aspect-[16/9]' : 'aspect-[4/3]'
+  const contain = fit === 'contain' || fit === 'slide' || fit === 'a4' // slide: 16:9 슬라이드/PDF 캡처, a4: 세로로 긴 상세 페이지를 A4 비율로 잘라 둔 것, 잘리지 않게 칸도 같은 비율
+  // 슬라이드 사진은 16:9 칸에 꽉 채운다(원본 비율이 소수점 단위로 달라 contain이면 가장자리에 1px 틈이 생김)
+  const ratio = fit === 'slide' ? 'aspect-[16/9]' : fit === 'a4' ? 'aspect-[210/297]' : 'aspect-[4/3]'
+  const panelW = fit === 'a4' ? 'w-[46%]' : 'w-[76%]' // A4는 세로로 길어서 칸 폭을 좁게
   const dark = (p as { imageTone?: string }).imageTone === 'dark'
   const own = (p as { sections?: { title?: string; text?: string }[] }).sections ?? []
+  const tools = (p as { tools?: string }).tools // 사이트 작업의 사용 도구 (예: VSCODE · HTML · CSS · JS)
   const pdf = (p.links as { pdf?: string }).pdf
   const site = p.links.demo || (pdf ? `${import.meta.env.BASE_URL}${pdf}` : '') // 사이트가 없는 작업은 PDF를 바로 연다
-  const siteLabel = !p.links.demo ? 'PDF 보기' : /behance\.net/.test(p.links.demo) ? 'Behance 보기' : '사이트 보기' // 링크 종류에 맞는 버튼 글자
+  const siteLabel = !p.links.demo ? 'PDF 보기' : /behance\.net/.test(p.links.demo) ? 'Behance 보기' : /figma\.com/.test(p.links.demo) ? 'Figma에서 보기' : '사이트 보기' // 링크 종류에 맞는 버튼 글자
   const sec = [
     { title: own[0]?.title || '프로젝트 소개', text: own[0]?.text || p.description },
     { title: own[1]?.title || '함께 쓴 키워드', text: own[1]?.text || `함께 쓴 키워드는 ${p.tags.join(', ')}입니다.` },
@@ -373,8 +379,8 @@ function Detail({ s }: { s: State }) {
       {/* hero: left-aligned text with the button set apart from the title, then the photo edge to edge */}
       <section className="relative flex h-full flex-col overflow-hidden bg-[#f4f6fb]">
         {/* 슬라이드형 작업: 메인 사진을 첫 화면 전체 배경에 흐리고 옅게 깐다 */}
-        {fit === 'slide' && imgs[0] && <img aria-hidden src={imgs[0]} alt="" draggable={false} className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-2xl" />}
-        <div className="relative flex shrink-0 items-start justify-between gap-3 px-4 pb-3 pt-0.5">
+        {(fit === 'slide' || fit === 'a4') && slideImgs[0] && <img aria-hidden src={slideImgs[0]} alt="" draggable={false} className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-2xl" />}
+        <div className="relative flex shrink-0 items-start justify-between gap-3 px-4 pb-4 pt-4">
           <div className="min-w-0">
             <Eyebrow>{p.role}</Eyebrow>
             <h2 className="mb-1.5 text-[24px] font-extrabold leading-[1.2] tracking-tight text-[#16171a]">{p.title}</h2>
@@ -383,7 +389,7 @@ function Detail({ s }: { s: State }) {
           </div>
           <ChipBadge i={s.proj} className="mt-1 w-[76px]" />
         </div>
-        <HeroSlides imgs={imgs.length ? imgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} glow={fit === 'slide'} className="relative min-h-0 w-full flex-1" />
+        <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} glow={fit === 'slide' || fit === 'a4'} className="relative min-h-0 w-full flex-1" />
       </section>
 
       {/* 띠마다 글자는 가운데 정렬, 사진은 그 아래 가운데에 놓는다 */}
@@ -392,43 +398,33 @@ function Detail({ s }: { s: State }) {
         <Eyebrow>Overview</Eyebrow>
         <h3 className={`${H3} text-[#16171a]`}>{sec[0].title}</h3>
         <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[0].text}</p>
-        <div className="mx-auto mt-4 w-[76%] rounded-xl bg-[#f1f2f7] p-2.5">
-          <Photo src={imgs[1]} i={s.proj} k={1} plain contain={contain} className={`${ratio} w-full`} />
+        <div className={`mx-auto mt-4 ${panelW} rounded-xl bg-[#f1f2f7] p-2.5`}>
+          <Photo src={imgs[1]} i={s.proj} k={1} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
         </div>
       </section>
 
-      {/* band 2: light grey, text, then two photos side by side */}
-      <section className="bg-[#eceef4] px-4 py-6 text-center">
-        <Eyebrow>Keywords</Eyebrow>
-        <h3 className={`${H3} text-[#16171a]`}>{sec[1].title}</h3>
-        <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[1].text}</p>
-        <div className="mx-auto mt-4 grid w-[84%] grid-cols-2 gap-2">
-          <Photo src={imgs[2]} i={s.proj} k={2} plain contain={contain} className={`${ratio} rounded-lg`} />
-          <Photo src={imgs[3]} i={s.proj} k={3} plain contain={contain} className={`${ratio} rounded-lg`} />
-        </div>
-      </section>
-
-      {/* band 3: white, text, the big numbers 24px under it, then the photo panel */}
+      {/* band 2: white, text, the big number 24px under it, then the photo panel */}
       <section className="bg-white px-4 py-6 text-center">
         <Eyebrow>Role</Eyebrow>
         <h3 className={`${H3} text-[#16171a]`}>{sec[2].title}</h3>
         <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[2].text}</p>
-        <div className="mt-6 flex justify-center gap-10">
-          <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.period}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">작업 기간</div></div>
-          <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.tags.length}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">키워드</div></div>
+        <div className="mx-auto mt-6 flex max-w-[460px] justify-center">
+          <div className="w-[35%]"><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.period}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">작업 기간</div></div>
+          <div className="w-[35%]"><div className="text-[22px] font-extrabold leading-none text-[#16171a]">100%</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">작업 비중</div></div>
+          {tools && <div className="w-[30%]"><div className="text-[10px] font-extrabold leading-[22px] text-[#16171a]">{tools.split(' · ').map(t => <span key={t} className="mx-[2px] inline-block whitespace-nowrap">{t}</span>)}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">사용 도구</div></div>}
         </div>
-        <div className="mx-auto mt-4 w-[76%] rounded-xl bg-[#f1f2f7] p-2.5">
-          <Photo src={imgs[4]} i={s.proj} k={4} plain contain={contain} className={`${ratio} w-full`} />
+        <div className={`mx-auto mt-4 ${panelW} rounded-xl bg-[#f1f2f7] p-2.5`}>
+          <Photo src={imgs[4]} i={s.proj} k={4} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
         </div>
       </section>
 
-      {/* band 4: dark closing band */}
+      {/* band 3: dark closing band */}
       <section className="bg-[#0b0b0d] px-4 py-6 text-center text-white">
         <Eyebrow dark>Next</Eyebrow>
         <h3 className={`${H3}`}>{sec[3].title}</h3>
         <p className={`mx-auto max-w-[460px] ${BODY} text-white/65`}>{sec[3].text}</p>
         <div className="mt-3">{site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}</div>
-        <Photo src={imgs[5]} i={s.proj} k={5} plain contain={contain} className={`mx-auto mt-4 ${ratio} w-[76%] rounded-lg`} />
+        <Photo src={imgs[5]} i={s.proj} k={5} plain contain={fit === 'contain'} className={`mx-auto mt-4 ${ratio} ${panelW} rounded-lg`} />
       </section>
     </div>
   )
