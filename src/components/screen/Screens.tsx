@@ -340,8 +340,8 @@ const Eyebrow = ({ children, dark = false }: { children: ReactNode; dark?: boole
  * Project page, laid out like the "Apple Concept" template sketch, as full-width bands (no side margin on the bands themselves,
  * only a small padding for the text inside). First view: a left-aligned header (small blue label, big title, blurb, then, with some
  * air above it, the blue "사이트 보기" pill) and right under it the big photo, edge to edge, so title, button and photo are all on
- * the first screen. Scrolling goes through four bands, each with its own background and its own text, laid out differently:
- * overview (white, text + photo), keywords (grey, photos left / text right), role (white, big numbers), closing (dark).
+ * the first screen. Scrolling goes through three bands, each with its own background and its own text, laid out differently:
+ * overview (white, text + photo), role (white, big numbers), closing (dark).
  * `sections[n]` in projects.json ({ title, text }) overrides a band's text, otherwise it is built from the project's data.
  * Photos come from `images` (0 = hero, 1 = overview, 2-3 = keywords, 4 = role, 5 = closing).
  */
@@ -374,7 +374,7 @@ function Detail({ s }: { s: State }) {
       <section className="relative flex h-full flex-col overflow-hidden bg-[#f4f6fb]">
         {/* 슬라이드형 작업: 메인 사진을 첫 화면 전체 배경에 흐리고 옅게 깐다 */}
         {fit === 'slide' && imgs[0] && <img aria-hidden src={imgs[0]} alt="" draggable={false} className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-2xl" />}
-        <div className="relative flex shrink-0 items-start justify-between gap-3 px-4 pb-3 pt-0.5">
+        <div className="relative flex shrink-0 items-start justify-between gap-3 px-4 pb-4 pt-4">
           <div className="min-w-0">
             <Eyebrow>{p.role}</Eyebrow>
             <h2 className="mb-1.5 text-[24px] font-extrabold leading-[1.2] tracking-tight text-[#16171a]">{p.title}</h2>
@@ -397,32 +397,20 @@ function Detail({ s }: { s: State }) {
         </div>
       </section>
 
-      {/* band 2: light grey, text, then two photos side by side */}
-      <section className="bg-[#eceef4] px-4 py-6 text-center">
-        <Eyebrow>Keywords</Eyebrow>
-        <h3 className={`${H3} text-[#16171a]`}>{sec[1].title}</h3>
-        <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[1].text}</p>
-        <div className="mx-auto mt-4 grid w-[84%] grid-cols-2 gap-2">
-          <Photo src={imgs[2]} i={s.proj} k={2} plain contain={contain} className={`${ratio} rounded-lg`} />
-          <Photo src={imgs[3]} i={s.proj} k={3} plain contain={contain} className={`${ratio} rounded-lg`} />
-        </div>
-      </section>
-
-      {/* band 3: white, text, the big numbers 24px under it, then the photo panel */}
+      {/* band 2: white, text, the big number 24px under it, then the photo panel */}
       <section className="bg-white px-4 py-6 text-center">
         <Eyebrow>Role</Eyebrow>
         <h3 className={`${H3} text-[#16171a]`}>{sec[2].title}</h3>
         <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[2].text}</p>
         <div className="mt-6 flex justify-center gap-10">
           <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.period}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">작업 기간</div></div>
-          <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.tags.length}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">키워드</div></div>
         </div>
         <div className="mx-auto mt-4 w-[76%] rounded-xl bg-[#f1f2f7] p-2.5">
           <Photo src={imgs[4]} i={s.proj} k={4} plain contain={contain} className={`${ratio} w-full`} />
         </div>
       </section>
 
-      {/* band 4: dark closing band */}
+      {/* band 3: dark closing band */}
       <section className="bg-[#0b0b0d] px-4 py-6 text-center text-white">
         <Eyebrow dark>Next</Eyebrow>
         <h3 className={`${H3}`}>{sec[3].title}</h3>
