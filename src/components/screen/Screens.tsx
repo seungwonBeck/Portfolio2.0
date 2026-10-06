@@ -272,10 +272,10 @@ function ChipBadge({ i, className = '', bare = false }: { i: number; className?:
 }
 
 /** A photo slot: the project's own picture when `images[k]` is filled in projects.json, otherwise a box-art placeholder in the project colours. */
-function Photo({ src, i, k, className = '', plain = false }: { src?: string; i: number; k: number; className?: string; plain?: boolean }) {
+function Photo({ src, i, k, className = '', plain = false, contain = false }: { src?: string; i: number; k: number; className?: string; plain?: boolean; contain?: boolean }) {
   return (
-    <div className={`relative overflow-hidden rounded-xl bg-[#d9d9d9] ${plain ? '' : 'shadow-[0_8px_16px_-8px_rgba(0,0,0,.4)]'} ${className}`}>
-      {src ? <img src={src} alt="" draggable={false} className="absolute inset-0 h-full w-full object-cover" /> : (
+    <div className={`relative overflow-hidden rounded-xl ${contain ? 'bg-[#f2f3f0]' : 'bg-[#d9d9d9]'} ${plain ? '' : 'shadow-[0_8px_16px_-8px_rgba(0,0,0,.4)]'} ${className}`}>
+      {src ? <img src={src} alt="" draggable={false} className={`absolute inset-0 h-full w-full ${contain ? 'object-contain' : 'object-cover'}`} /> : (
         <>
           <Thumb i={i} className="absolute inset-0" />
           <span aria-hidden className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.4),rgba(255,255,255,.05)_40%,transparent_55%)]" />
@@ -287,7 +287,8 @@ function Photo({ src, i, k, className = '', plain = false }: { src?: string; i: 
 }
 
 /** The big hero photo as an auto-advancing slideshow: each slide sweeps in from the right with a horizontal motion-blur streak while the old one is pulled out to the left. Uses the project's own pictures, or box-art colour cards until they exist. */
-function HeroSlides({ imgs, i, className = '' }: { imgs: string[]; i: number; className?: string }) {
+function HeroSlides({ imgs: all, i, className = '', contain = false }: { imgs: string[]; i: number; className?: string; contain?: boolean }) {
+  const imgs = [...new Set(all)] // 같은 사진이 여러 칸에 쓰여도 슬라이드는 한 번만
   const n = imgs.length || 4
   const [idx, setIdx] = useState(0)
   useEffect(() => {
@@ -295,7 +296,7 @@ function HeroSlides({ imgs, i, className = '' }: { imgs: string[]; i: number; cl
     return () => clearInterval(t)
   }, [n])
   return (
-    <div className={`relative overflow-hidden bg-[#d9d9d9] ${className}`}>
+    <div className={`relative overflow-hidden ${contain ? 'bg-[#f2f3f0]' : 'bg-[#d9d9d9]'} ${className}`}>
       <AnimatePresence initial={false}>
         <motion.div
           key={idx}
@@ -305,7 +306,7 @@ function HeroSlides({ imgs, i, className = '' }: { imgs: string[]; i: number; cl
           exit={{ x: '-45%', scaleX: 1.12, filter: 'blur(16px)', opacity: 0 }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         >
-          {imgs.length ? <img src={imgs[idx]} alt="" draggable={false} className="h-full w-full object-cover" /> : (
+          {imgs.length ? <img src={imgs[idx]} alt="" draggable={false} className={`h-full w-full ${contain ? 'object-contain' : 'object-cover'}`} /> : (
             <>
               <Thumb i={i + idx} className="absolute inset-0" />
               <span aria-hidden className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.4),rgba(255,255,255,.05)_40%,transparent_55%)]" />
@@ -339,7 +340,9 @@ const Eyebrow = ({ children, dark = false }: { children: ReactNode; dark?: boole
  */
 function Detail({ s }: { s: State }) {
   const p = projects[s.proj]
-  const imgs = (p as { images?: string[] }).images ?? []
+  // images: 전체 주소가 아니면 public/projects/ 아래 파일로 본다. imageFit "contain"은 슬라이드 캡처처럼 잘리면 안 되는 사진용.
+  const imgs = ((p as { images?: string[] }).images ?? []).map(f => (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`))
+  const contain = (p as { imageFit?: string }).imageFit === 'contain'
   const own = (p as { sections?: { title?: string; text?: string }[] }).sections ?? []
   const site = p.links.demo
   const sec = [
@@ -366,59 +369,52 @@ function Detail({ s }: { s: State }) {
           </div>
           <ChipBadge i={s.proj} className="mt-1 w-[76px]" />
         </div>
-        <HeroSlides imgs={imgs.length ? imgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} className="min-h-0 w-full flex-1" />
+        <HeroSlides imgs={imgs.length ? imgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} className="min-h-0 w-full flex-1" />
       </section>
 
-      {/* band 1: white, text and a photo on a grey panel */}
-      <section className="bg-white px-4 py-5">
+      {/* 띠마다 글자는 가운데 정렬, 사진은 그 아래 가운데에 놓는다 */}
+      {/* band 1: white, text, then the photo on a grey panel */}
+      <section className="bg-white px-4 py-6 text-center">
         <Eyebrow>Overview</Eyebrow>
         <h3 className={`${H3} text-[#16171a]`}>{sec[0].title}</h3>
-        <div className="flex items-center gap-4 rounded-xl bg-[#f1f2f7] p-3">
-          <p className={`flex-1 ${BODY} text-[#3c3f46]`}>{sec[0].text}</p>
-          <Photo src={imgs[1]} i={s.proj} k={1} plain className="aspect-[4/3] w-[42%] shrink-0" />
+        <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[0].text}</p>
+        <div className="mx-auto mt-4 w-[76%] rounded-xl bg-[#f1f2f7] p-2.5">
+          <Photo src={imgs[1]} i={s.proj} k={1} plain contain={contain} className="aspect-[4/3] w-full" />
         </div>
       </section>
 
-      {/* band 2: light grey, two photos on the left and the text on the right */}
-      <section className="flex items-center gap-4 bg-[#eceef4] px-4 py-5">
-        <div className="grid w-[56%] shrink-0 grid-cols-2 gap-2">
-          <Photo src={imgs[2]} i={s.proj} k={2} plain className="aspect-[4/5] rounded-lg" />
-          <Photo src={imgs[3]} i={s.proj} k={3} plain className="aspect-[4/5] rounded-lg" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <Eyebrow>Keywords</Eyebrow>
-          <h3 className={`${H3} text-[#16171a]`}>{sec[1].title}</h3>
-          <p className={`${BODY} text-[#3c3f46]`}>{sec[1].text}</p>
+      {/* band 2: light grey, text, then two photos side by side */}
+      <section className="bg-[#eceef4] px-4 py-6 text-center">
+        <Eyebrow>Keywords</Eyebrow>
+        <h3 className={`${H3} text-[#16171a]`}>{sec[1].title}</h3>
+        <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[1].text}</p>
+        <div className="mx-auto mt-4 grid w-[84%] grid-cols-2 gap-2">
+          <Photo src={imgs[2]} i={s.proj} k={2} plain contain={contain} className="aspect-[4/3] rounded-lg" />
+          <Photo src={imgs[3]} i={s.proj} k={3} plain contain={contain} className="aspect-[4/3] rounded-lg" />
         </div>
       </section>
 
-      {/* band 3: white, text and big numbers on the left, photo panel on the right */}
-      <section className="flex items-stretch gap-4 bg-white px-4 py-5">
-        <div className="flex min-w-0 flex-1 flex-col">
-          <Eyebrow>Role</Eyebrow>
-          <h3 className={`${H3} text-[#16171a]`}>{sec[2].title}</h3>
-          <p className={`${BODY} text-[#3c3f46]`}>{sec[2].text}</p>
-          <div className="mt-auto flex gap-6 pt-3">
-            <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.period}</div><div className="mt-1 text-[9px] text-[#6b6f78]">작업 기간</div></div>
-            <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.tags.length}</div><div className="mt-1 text-[9px] text-[#6b6f78]">키워드</div></div>
-          </div>
+      {/* band 3: white, text, the big numbers 24px under it, then the photo panel */}
+      <section className="bg-white px-4 py-6 text-center">
+        <Eyebrow>Role</Eyebrow>
+        <h3 className={`${H3} text-[#16171a]`}>{sec[2].title}</h3>
+        <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[2].text}</p>
+        <div className="mt-6 flex justify-center gap-10">
+          <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.period}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">작업 기간</div></div>
+          <div><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.tags.length}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">키워드</div></div>
         </div>
-        <div className="w-[44%] shrink-0 self-center rounded-xl bg-[#f1f2f7] p-2.5">
-          <Photo src={imgs[4]} i={s.proj} k={4} plain className="aspect-[4/3] w-full" />
+        <div className="mx-auto mt-4 w-[76%] rounded-xl bg-[#f1f2f7] p-2.5">
+          <Photo src={imgs[4]} i={s.proj} k={4} plain contain={contain} className="aspect-[4/3] w-full" />
         </div>
       </section>
 
       {/* band 4: dark closing band */}
-      <section className="bg-[#0b0b0d] px-4 py-5 text-white">
+      <section className="bg-[#0b0b0d] px-4 py-6 text-center text-white">
         <Eyebrow dark>Next</Eyebrow>
-        <div className="flex items-end justify-between gap-4">
-          <div className="min-w-0">
-            <h3 className={`${H3}`}>{sec[3].title}</h3>
-            <p className={`mb-2.5 ${BODY} text-white/65`}>{sec[3].text}</p>
-            {site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}
-          </div>
-          <Photo src={imgs[5]} i={s.proj} k={5} plain className="aspect-[4/3] w-[40%] shrink-0 rounded-lg" />
-        </div>
+        <h3 className={`${H3}`}>{sec[3].title}</h3>
+        <p className={`mx-auto max-w-[460px] ${BODY} text-white/65`}>{sec[3].text}</p>
+        <div className="mt-3">{site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}</div>
+        <Photo src={imgs[5]} i={s.proj} k={5} plain contain={contain} className="mx-auto mt-4 aspect-[4/3] w-[76%] rounded-lg" />
       </section>
     </div>
   )
@@ -1079,7 +1075,7 @@ export default function Screen({ s, bootMs, dark, instantLoad = false }: { s: St
       )}
       <AnimatePresence>
         {loading && (
-          <motion.div key="load" className="absolute inset-0 z-20" initial={{ opacity: instantLoad ? 1 : 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.55, ease: 'easeInOut' }}>
+          <motion.div key="load" className="absolute -inset-[2px] z-20" /* 소수점 배율(모바일 확대)에서 가장자리에 아래 화면이 1px 비치지 않도록 살짝 크게 덮는다 */ initial={{ opacity: instantLoad ? 1 : 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.55, ease: 'easeInOut' }}>
             <Splash s={s} />
           </motion.div>
         )}
