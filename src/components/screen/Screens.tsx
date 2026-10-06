@@ -287,7 +287,7 @@ function Photo({ src, i, k, className = '', plain = false, contain = false }: { 
 }
 
 /** The big hero photo as an auto-advancing slideshow: each slide sweeps in from the right with a horizontal motion-blur streak while the old one is pulled out to the left. Uses the project's own pictures, or box-art colour cards until they exist. */
-function HeroSlides({ imgs: all, i, className = '', contain = false, dark = false }: { imgs: string[]; i: number; className?: string; contain?: boolean; dark?: boolean }) {
+function HeroSlides({ imgs: all, i, className = '', contain = false, dark = false, glow = false }: { imgs: string[]; i: number; className?: string; contain?: boolean; dark?: boolean; glow?: boolean }) {
   const imgs = [...new Set(all)] // 같은 사진이 여러 칸에 쓰여도 슬라이드는 한 번만
   const n = imgs.length || 4
   const [idx, setIdx] = useState(0)
@@ -297,6 +297,13 @@ function HeroSlides({ imgs: all, i, className = '', contain = false, dark = fals
   }, [n])
   return (
     <div className={`relative overflow-hidden ${dark ? 'bg-[#0d0d0f]' : contain ? 'bg-[#f2f3f0]' : 'bg-[#d9d9d9]'} ${className}`}>
+      {/* glow: 지금 슬라이드를 흐리게 키워 뒤에 깔아, 슬라이드 양옆 빈 곳이 같은 사진 색으로 번지게 한다 */}
+      {glow && imgs.length > 0 && (
+        <AnimatePresence initial={false}>
+          <motion.img key={`g${idx}`} aria-hidden src={imgs[idx]} alt="" draggable={false} className="pointer-events-none absolute inset-0 h-full w-full scale-125 object-cover blur-2xl"
+            initial={{ opacity: 0 }} animate={{ opacity: 0.55 }} exit={{ opacity: 0 }} transition={{ duration: 0.45 }} />
+        </AnimatePresence>
+      )}
       <AnimatePresence initial={false}>
         <motion.div
           key={idx}
@@ -364,8 +371,10 @@ function Detail({ s }: { s: State }) {
   return (
     <div data-scroll className="h-full overflow-y-auto bg-white [scrollbar-width:none]">
       {/* hero: left-aligned text with the button set apart from the title, then the photo edge to edge */}
-      <section className="flex h-full flex-col bg-[#f4f6fb]">
-        <div className="flex shrink-0 items-start justify-between gap-3 px-4 pb-3 pt-0.5">
+      <section className="relative flex h-full flex-col overflow-hidden bg-[#f4f6fb]">
+        {/* 슬라이드형 작업: 메인 사진을 첫 화면 전체 배경에 흐리고 옅게 깐다 */}
+        {fit === 'slide' && imgs[0] && <img aria-hidden src={imgs[0]} alt="" draggable={false} className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-2xl" />}
+        <div className="relative flex shrink-0 items-start justify-between gap-3 px-4 pb-3 pt-0.5">
           <div className="min-w-0">
             <Eyebrow>{p.role}</Eyebrow>
             <h2 className="mb-1.5 text-[24px] font-extrabold leading-[1.2] tracking-tight text-[#16171a]">{p.title}</h2>
@@ -374,7 +383,7 @@ function Detail({ s }: { s: State }) {
           </div>
           <ChipBadge i={s.proj} className="mt-1 w-[76px]" />
         </div>
-        <HeroSlides imgs={imgs.length ? imgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} className="min-h-0 w-full flex-1" />
+        <HeroSlides imgs={imgs.length ? imgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} glow={fit === 'slide'} className="relative min-h-0 w-full flex-1" />
       </section>
 
       {/* 띠마다 글자는 가운데 정렬, 사진은 그 아래 가운데에 놓는다 */}

@@ -202,7 +202,8 @@ export default function Console(p: P) {
       {/* black glass panel + display */}
       <div className="absolute overflow-hidden" style={{ left: 251, top: 40, width: 1252, height: 690, borderRadius: 10, background: '#050506', boxShadow: '0 0 0 3px #0e0f10, inset 0 2px 6px #000, 0 2px 1px 3px rgba(255,255,255,.06)' }}>
         <div className="absolute overflow-hidden bg-black" style={{ left: 66, top: 32, width: 1118, height: 629 }}>
-          <div style={{ width: SCREEN.w, height: SCREEN.h, transform: `scale(${SCREEN.k})`, transformOrigin: 'top left' }}>{p.children}</div>
+          {/* 화면을 사방 2px 크게 깔고 바깥을 잘라낸다: 소수점 배율에서 화면 가장자리 1px이 검은 배경과 섞여 줄처럼 보이는 것을 막는다 */}
+          <div className="absolute" style={{ left: -2, top: -2, width: SCREEN.w + 4, height: SCREEN.h + 4, transform: `scale(${SCREEN.k})`, transformOrigin: 'top left' }}>{p.children}</div>
         </div>
         <div aria-hidden className="pointer-events-none absolute inset-0"
           style={{ background: 'linear-gradient(112deg,rgba(255,255,255,.09) 0%,rgba(255,255,255,.03) 30%,transparent 30.2%), radial-gradient(120% 90% at 50% 40%,transparent 60%,rgba(0,0,0,.35))' }} />
