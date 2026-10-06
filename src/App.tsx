@@ -14,7 +14,7 @@ import type { Btn } from './store/nav'
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react'
 
 /** Scales the fixed-size console to its container's width, and to maxH if given. `dockY` lowers only the console; `overlay` (the dock) stays put. */
-function Scaled({ children, maxH = Infinity, dockY, screenOff, overlay }: { children: React.ReactNode; maxH?: number; dockY?: MotionValue<string>; screenOff?: MotionValue<number>; overlay?: React.ReactNode }) {
+function Scaled({ children, maxH = Infinity, zoom = 1, dockY, screenOff, overlay }: { children: React.ReactNode; maxH?: number; zoom?: number; dockY?: MotionValue<string>; screenOff?: MotionValue<number>; overlay?: React.ReactNode }) {
   const box = useRef<HTMLDivElement>(null)
   const [w, setW] = useState(CANVAS.w)
   useLayoutEffect(() => {
@@ -22,10 +22,12 @@ function Scaled({ children, maxH = Infinity, dockY, screenOff, overlay }: { chil
     ro.observe(box.current!)
     return () => ro.disconnect()
   }, [])
-  const k = Math.min(w, maxH * (CANVAS.w / CANVAS.h)) / CANVAS.w
+  const k = Math.min(w * zoom, maxH * (CANVAS.w / CANVAS.h)) / CANVAS.w
+  const cw = CANVAS.w * k
   return (
     <div ref={box} className="w-full" style={{ '--k': k } as React.CSSProperties}>
-      <div className="relative mx-auto" style={{ width: CANVAS.w * k, height: CANVAS.h * k }}>
+      {/* zoom > 1 (phone held upright): the console is wider than the screen and centred, its Joy-Cons are cropped by the viewport edges */}
+      <div className="relative mx-auto" style={{ width: cw, height: CANVAS.h * k, marginLeft: cw > w ? (w - cw) / 2 : undefined }}>
         <motion.div className="absolute inset-0" style={dockY ? { y: dockY } : undefined}>
           <div style={{ width: CANVAS.w, height: CANVAS.h, transform: `scale(${k})`, transformOrigin: 'top left' }}>{children}</div>
           {screenOff && <motion.div aria-hidden className="pointer-events-none absolute bg-[#08080a]" style={{ opacity: screenOff, left: '18%', top: '9.35%', width: '63.5%', height: '81.7%' }} />}
@@ -166,11 +168,14 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
   // Once pinned, ease the console from its 80px-below-the-chips spot to the vertical center of the viewport.
   // Phone held sideways (short viewport): the pinned stage gets almost the whole screen, so the console fills it instead of sharing it with the top block.
   const short = vh <= 500 && innerWidth > vh
-  const PT = short ? 8 : 56 // stage top padding
+  const portraitPhone = innerWidth < 768 && vh > innerWidth
+  const ZOOM = portraitPhone ? 1.5 : 1 // 세로 폰: 확대샷 (기기 화면을 크게, 조이콘은 화면 가장자리에서 잘린다)
+  const PT = short ? 8 : portraitPhone ? 12 : 56 // stage top padding
+  const stagePad = short ? 'px-3 pt-2' : portraitPhone ? 'px-5 pt-3' : 'px-5 pt-14 md:px-20' 
   const maxH = short ? vh - PT - 12 : Math.max(220, vh - topB - 80) // measured title + chips block (+56 frame padding, 24 breathing room): everything fits one viewport
-  const est = Math.min(maxH, (innerWidth - (short ? 24 : innerWidth >= 768 ? 160 : 40)) * (CANVAS.h / CANVAS.w)) // rendered console height
+  const est = Math.min(maxH, (innerWidth - (short ? 24 : innerWidth >= 768 ? 160 : 40)) * ZOOM * (CANVAS.h / CANVAS.w)) // rendered console height
   // chip row spans the console from Joy-Con seam to Joy-Con seam (233..1520 of the 1760px canvas)
-  const rowW = (est * CANVAS.w / CANVAS.h) * ((1520 - 233) / CANVAS.w)
+  const rowW = portraitPhone ? innerWidth - 40 : (est * CANVAS.w / CANVAS.h) * ((1520 - 233) / CANVAS.w) // 확대된 폰에서는 칩 줄이 화면 폭을 꽉 채운다
   const { scrollY: sy } = useScroll()
   const hintO = useTransform(sy, [0, 120], [1, 0]) // 첫 화면 안내: 스크롤을 시작하면 사라진다
   const centerY = useRef(0)
@@ -218,7 +223,7 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
         </span>
       </motion.div>
       <div ref={ref} className="relative" style={{ height: `${TOTAL}vh` }}>
-        <div className={`sticky top-0 flex h-screen flex-col items-center overflow-hidden ${short ? 'px-3 pt-2' : 'px-5 pt-14 md:px-20'}`} style={{ perspective: 1800, '--chipw': `${90 * chipScale(rowW)}px` } as React.CSSProperties}>
+        <div className={`sticky top-0 flex h-screen flex-col items-center overflow-hidden ${stagePad}`} style={{ perspective: 1800, '--chipw': `${90 * chipScale(rowW)}px` } as React.CSSProperties}>
           <motion.div aria-hidden className="absolute inset-0" style={{ opacity: room, background: 'radial-gradient(120% 90% at 50% 40%,#2c2c30 0%,#1d1d20 60%,#131315 100%)' }} />
           {/* the story captions would sit on top of the big sideways-phone console, so they are skipped there */}
           {!short && <div className="pointer-events-none absolute left-5 top-20 z-10 w-[32rem] max-w-[85vw] md:left-20">
@@ -227,9 +232,9 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
           <motion.div aria-hidden className="pointer-events-none absolute inset-x-0 top-[20%] z-20 px-6 text-center text-white" style={{ opacity: linkO, y: linkY }}>
             <p className="text-[clamp(1.75rem,5.2vw,4.5rem)] font-extrabold leading-[1.25] tracking-tight [word-break:keep-all]">독을 연결하면<br />큰 화면으로 프로젝트가 펼쳐집니다</p>
           </motion.div>
-          <motion.div className={`absolute inset-0 flex flex-col items-center ${short ? 'px-3 pt-2' : 'px-5 pt-14 md:px-20'}`} style={{ x: pan }}>
+          <motion.div className={`absolute inset-0 flex flex-col items-center ${stagePad}`} style={{ x: pan }}>
             <motion.div className="relative w-full will-change-transform" style={{ scale, rotateY, y }}>
-              <Scaled maxH={maxH} dockY={dockYPct} screenOff={screenOff}
+              <Scaled maxH={maxH} zoom={ZOOM} dockY={dockYPct} screenOff={screenOff}
                 overlay={<motion.div aria-hidden className="pointer-events-none absolute inset-0" style={{ opacity: dockIn, y: dockUp }}><Dock /></motion.div>}>
                 {children(sep)}
               </Scaled>
