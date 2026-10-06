@@ -354,6 +354,8 @@ function Detail({ s }: { s: State }) {
   // 슬라이드 사진은 16:9 칸에 꽉 채운다(원본 비율이 소수점 단위로 달라 contain이면 가장자리에 1px 틈이 생김)
   const ratio = fit === 'slide' ? 'aspect-[16/9]' : 'aspect-[4/3]'
   const dark = (p as { imageTone?: string }).imageTone === 'dark'
+  // pageSlices: 긴 상세 페이지를 섹션마다 잘라 둔 사진들. 있으면 첫 화면에 꽉 채우지 않고 세로로 이어 붙여 그대로 보여 준다.
+  const slices = ((p as { pageSlices?: string[] }).pageSlices ?? []).map(f => (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`))
   const own = (p as { sections?: { title?: string; text?: string }[] }).sections ?? []
   const tools = (p as { tools?: string }).tools // 사이트 작업의 사용 도구 (예: VSCODE · HTML · CSS · JS)
   const pdf = (p.links as { pdf?: string }).pdf
@@ -373,7 +375,7 @@ function Detail({ s }: { s: State }) {
   return (
     <div data-scroll className="h-full overflow-y-auto bg-white [scrollbar-width:none]">
       {/* hero: left-aligned text with the button set apart from the title, then the photo edge to edge */}
-      <section className="relative flex h-full flex-col overflow-hidden bg-[#f4f6fb]">
+      <section className={`relative flex flex-col overflow-hidden bg-[#f4f6fb] ${slices.length ? '' : 'h-full'}`}>
         {/* 슬라이드형 작업: 메인 사진을 첫 화면 전체 배경에 흐리고 옅게 깐다 */}
         {fit === 'slide' && imgs[0] && <img aria-hidden src={imgs[0]} alt="" draggable={false} className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-2xl" />}
         <div className="relative flex shrink-0 items-start justify-between gap-3 px-4 pb-4 pt-4">
@@ -385,8 +387,15 @@ function Detail({ s }: { s: State }) {
           </div>
           <ChipBadge i={s.proj} className="mt-1 w-[76px]" />
         </div>
-        <HeroSlides imgs={imgs.length ? imgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} glow={fit === 'slide'} className="relative min-h-0 w-full flex-1" />
+        {!slices.length && <HeroSlides imgs={imgs.length ? imgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} glow={fit === 'slide'} className="relative min-h-0 w-full flex-1" />}
       </section>
+
+      {/* 페이지형: 상세 페이지를 섹션마다 잘라 세로로 이어 붙인다 (사이에 틈 없이) */}
+      {slices.length > 0 && (
+        <section className="bg-black">
+          {slices.map(src => <img key={src} src={src} alt="" draggable={false} className="block w-full" />)}
+        </section>
+      )}
 
       {/* 띠마다 글자는 가운데 정렬, 사진은 그 아래 가운데에 놓는다 */}
       {/* band 1: white, text, then the photo on a grey panel */}
@@ -394,9 +403,11 @@ function Detail({ s }: { s: State }) {
         <Eyebrow>Overview</Eyebrow>
         <h3 className={`${H3} text-[#16171a]`}>{sec[0].title}</h3>
         <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[0].text}</p>
-        <div className="mx-auto mt-4 w-[76%] rounded-xl bg-[#f1f2f7] p-2.5">
-          <Photo src={imgs[1]} i={s.proj} k={1} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
-        </div>
+        {!slices.length && (
+          <div className="mx-auto mt-4 w-[76%] rounded-xl bg-[#f1f2f7] p-2.5">
+            <Photo src={imgs[1]} i={s.proj} k={1} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
+          </div>
+        )}
       </section>
 
       {/* band 2: white, text, the big number 24px under it, then the photo panel */}
@@ -409,9 +420,11 @@ function Detail({ s }: { s: State }) {
           <div className="w-[35%]"><div className="text-[22px] font-extrabold leading-none text-[#16171a]">100%</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">작업 비중</div></div>
           {tools && <div className="w-[30%]"><div className="text-[10px] font-extrabold leading-[22px] text-[#16171a]">{tools.split(' · ').map(t => <span key={t} className="mx-[2px] inline-block whitespace-nowrap">{t}</span>)}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">사용 도구</div></div>}
         </div>
-        <div className="mx-auto mt-4 w-[76%] rounded-xl bg-[#f1f2f7] p-2.5">
-          <Photo src={imgs[4]} i={s.proj} k={4} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
-        </div>
+        {!slices.length && (
+          <div className="mx-auto mt-4 w-[76%] rounded-xl bg-[#f1f2f7] p-2.5">
+            <Photo src={imgs[4]} i={s.proj} k={4} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
+          </div>
+        )}
       </section>
 
       {/* band 3: dark closing band */}
@@ -420,7 +433,7 @@ function Detail({ s }: { s: State }) {
         <h3 className={`${H3}`}>{sec[3].title}</h3>
         <p className={`mx-auto max-w-[460px] ${BODY} text-white/65`}>{sec[3].text}</p>
         <div className="mt-3">{site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}</div>
-        <Photo src={imgs[5]} i={s.proj} k={5} plain contain={fit === 'contain'} className={`mx-auto mt-4 ${ratio} w-[76%] rounded-lg`} />
+        {!slices.length && <Photo src={imgs[5]} i={s.proj} k={5} plain contain={fit === 'contain'} className={`mx-auto mt-4 ${ratio} w-[76%] rounded-lg`} />}
       </section>
     </div>
   )
