@@ -349,7 +349,7 @@ function Detail({ s }: { s: State }) {
   const own = (p as { sections?: { title?: string; text?: string }[] }).sections ?? []
   const pdf = (p.links as { pdf?: string }).pdf
   const site = p.links.demo || (pdf ? `${import.meta.env.BASE_URL}${pdf}` : '') // 사이트가 없는 작업은 PDF를 바로 연다
-  const siteLabel = p.links.demo ? '사이트 보기' : 'PDF 보기'
+  const siteLabel = !p.links.demo ? 'PDF 보기' : /behance\.net/.test(p.links.demo) ? 'Behance 보기' : '사이트 보기' // 링크 종류에 맞는 버튼 글자
   const sec = [
     { title: own[0]?.title || '프로젝트 소개', text: own[0]?.text || p.description },
     { title: own[1]?.title || '함께 쓴 키워드', text: own[1]?.text || `함께 쓴 키워드는 ${p.tags.join(', ')}입니다.` },
