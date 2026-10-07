@@ -238,8 +238,14 @@ function Projects({ s }: { s: State }) {
             <div className="truncate text-[13px] font-bold">{p.title}</div>
             <div className="truncate text-[11px] text-ink-sub">{p.summary}</div>
           </div>
-          <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-[10px] font-bold text-ink-sub">{p.role}</span>
-          <span className="label">{p.period.slice(0, 4)}</span>
+          {(p as { soon?: boolean }).soon ? (
+            <span className="rounded-full bg-accent-blue/10 px-2.5 py-0.5 text-[10px] font-bold text-accent-blue">COMING SOON</span>
+          ) : (
+            <>
+              <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-[10px] font-bold text-ink-sub">{p.role}</span>
+              <span className="label">{p.period.slice(0, 4)}</span>
+            </>
+          )}
         </div>
       ))}
     </div>
@@ -382,6 +388,7 @@ function Detail({ s }: { s: State }) {
     { title: own[3]?.title || p.title, text: own[3]?.text || '사이트에서 더 자세한 결과물을 확인해 보세요.' },
   ]
   const [zoomSrc, setZoomSrc] = useState<string | null>(null) // 배너를 확대해서 보는 중인 사진 (없으면 닫힘)
+  const soon = !!(p as { soon?: boolean }).soon // 준비중인 작업: 상세 내용 대신 안내만 보여 준다
   const showBtns = !!site || !banners // 링크가 없는 배너 작업은 버튼 줄 자체를 숨김
   const siteBtn = (cls: string) => site ? (
     <a href={site} target="_blank" rel="noopener" className={`inline-flex items-center gap-1 rounded-full text-[11px] font-bold hover:brightness-110 ${cls}`}>{siteLabel} <ExternalLink size={12} /></a>
@@ -389,6 +396,24 @@ function Detail({ s }: { s: State }) {
     <span aria-disabled className="inline-block cursor-not-allowed rounded-full bg-black/[.08] px-3.5 py-1 text-[11px] font-bold text-ink-sub">링크 준비 중</span>
   )
   const downloadBtn = (cls: string) => pdfOnly ? <a href={pdfHref} download className={`inline-flex items-center gap-1 rounded-full text-[11px] font-bold hover:brightness-110 ${cls}`}>PDF 다운로드 <Download size={12} /></a> : null
+  if (soon) return (
+    <div data-scroll className="flex h-full flex-col bg-[#f4f6fb] [scrollbar-width:none]">
+      <div className="flex shrink-0 items-start justify-between gap-3 px-4 pb-4 pt-4">
+        <div className="min-w-0">
+          <Eyebrow>{p.role}</Eyebrow>
+          <h2 className="mb-1.5 text-[24px] font-extrabold leading-[1.2] tracking-tight text-[#16171a]">{p.title}</h2>
+          <p className="text-[11px] leading-[1.4] text-[#6b6f78]">{p.summary}</p>
+        </div>
+        <ChipBadge i={s.proj} className="mt-1 w-[76px]" />
+      </div>
+      <div className="grid min-h-0 flex-1 place-items-center px-4 pb-6 text-center">
+        <div>
+          <div className="text-[30px] font-extrabold tracking-tight text-[#16171a]">준비중입니다</div>
+          <p className="mt-2 text-[12px] leading-[1.6] text-[#6b6f78]">더 좋은 모습으로 곧 찾아뵙겠습니다.</p>
+        </div>
+      </div>
+    </div>
+  )
   return (
     <div className="relative h-full">
     <div data-scroll className="h-full overflow-y-auto bg-white [scrollbar-width:none]">
