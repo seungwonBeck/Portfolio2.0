@@ -1,5 +1,22 @@
 [
   {
+    "category": "AI",
+    "items": [
+      {
+        "name": "Claude (Claude Code)",
+        "level": 4
+      },
+      {
+        "name": "ChatGPT (Codex)",
+        "level": 4
+      },
+      {
+        "name": "Gemini (Antigravity)",
+        "level": 4
+      }
+    ]
+  },
+  {
     "category": "Frontend",
     "items": [
       {
@@ -41,36 +58,6 @@
       },
       {
         "name": "Premiere",
-        "level": 2
-      }
-    ]
-  },
-  {
-    "category": "AI",
-    "items": [
-      {
-        "name": "클로드(클로드코드)",
-        "level": 4
-      },
-      {
-        "name": "챗지피티(코덱스)",
-        "level": 4
-      },
-      {
-        "name": "제미나이(안티그래비티)",
-        "level": 4
-      }
-    ]
-  },
-  {
-    "category": "Etc",
-    "items": [
-      {
-        "name": "Node.js",
-        "level": 3
-      },
-      {
-        "name": "SQL",
         "level": 2
       }
     ]

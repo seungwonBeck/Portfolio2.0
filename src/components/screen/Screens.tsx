@@ -1,6 +1,7 @@
 import { ReactNode, RefObject, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Bomb, Code2, Download, Palette, Sparkles, Wrench, Github, Instagram, Wifi, CircleDot, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
+import SkillIcon from './SkillIcons'
 import { AVATAR_ORDER, Btn, contactItems, DOCK, State, TILES } from '../../store/nav'
 import { Avatar, AVATARS, Coin } from './avatars'
 import Logo from '../Logo'
@@ -433,6 +434,13 @@ function Detail({ s }: { s: State }) {
   )
 }
 
+// 이름 뒤 괄호(예: Claude (Claude Code))는 작고 옅게 보여 레벨 글자와 겹치지 않게 한다
+function skillLabel(name: string) {
+  const m = name.match(/^(.*?)\s*(\(.*\))$/)
+  if (!m) return name
+  return <>{m[1]} <span className="text-[8px] font-semibold text-ink-sub">{m[2]}</span></>
+}
+
 const SKILL_COLOR = ['#1fb6e8', '#ff4b3e', '#34c759', '#ff9f43']
 // 카테고리별 제목 아이콘 (없는 이름이면 Wrench)
 const SKILL_ICON: Record<string, typeof Code2> = { Frontend: Code2, Design: Palette, AI: Sparkles, Etc: Wrench }
@@ -450,7 +458,7 @@ function Skills() {
                 const tight = g.items.length > 4 // 항목이 많은 카드는 간격을 좁혀 한 화면에 들어오게
                 return (
                 <div key={it.name} className={`last:mb-0 ${tight ? 'mb-1.5' : 'mb-2.5'}`}>
-                  <div className={`flex items-baseline justify-between font-bold ${tight ? 'mb-0.5 text-[11px]' : 'mb-1 text-[12px]'}`}>{it.name}<span className="text-[10px] font-semibold text-ink-sub">LV.{it.level}</span></div>
+                  <div className={`flex items-center justify-between gap-2 font-bold ${tight ? 'mb-0.5 text-[11px]' : 'mb-1 text-[12px]'}`}><span className="flex min-w-0 items-center gap-1.5"><SkillIcon name={it.name} /><span className="whitespace-nowrap">{skillLabel(it.name)}</span></span><span className="text-[10px] font-semibold text-ink-sub">LV.{it.level}</span></div>
                   <div className="flex gap-[3px]">
                     {[1, 2, 3, 4, 5].map(n => <i key={n} className={`flex-1 rounded-full ${tight ? 'h-[5px]' : 'h-[7px]'}`} style={{ background: n <= it.level ? `linear-gradient(180deg, ${c}, ${c}bb)` : 'rgba(0,0,0,.09)' }} />)}
                   </div>
