@@ -352,7 +352,12 @@ function Detail({ s }: { s: State }) {
   const imgs = ((p as { images?: string[] }).images ?? []).map(f => (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`))
   // heroImages: 첫 화면 슬라이드에 쓸 사진만 따로 고를 때 (없으면 images 전체)
   const heroImgs = ((p as { heroImages?: string[] }).heroImages ?? []).map(f => (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`))
-  const slideImgs = heroImgs.length ? heroImgs : imgs
+  // banners: 배너 작품 목록. 한 줄에 배너 사진(왼쪽) + 브랜드 로고·상품명·설명(오른쪽)으로 보여 준다
+  type Banner = { image?: string; logo?: string; name?: string; text?: string }
+  const resolve = (f?: string) => (f ? (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`) : '')
+  const banners = (p as { banners?: Banner[] }).banners
+  const bannerImgs = (banners ?? []).map(b => resolve(b.image)).filter(Boolean)
+  const slideImgs = heroImgs.length ? heroImgs : imgs.length ? imgs : bannerImgs
   const fit = (p as { imageFit?: string }).imageFit
   const contain = fit === 'contain' || fit === 'slide' || fit === 'a4' // slide: 16:9 슬라이드/PDF 캡처, a4: 세로로 긴 상세 페이지를 A4 비율로 잘라 둔 것, 잘리지 않게 칸도 같은 비율
   // 슬라이드 사진은 16:9 칸에 꽉 채운다(원본 비율이 소수점 단위로 달라 contain이면 가장자리에 1px 틈이 생김)
@@ -372,6 +377,7 @@ function Detail({ s }: { s: State }) {
     { title: own[2]?.title || '역할과 기간', text: own[2]?.text || `역할은 ${p.role}, 작업 기간은 ${p.period}입니다.` },
     { title: own[3]?.title || p.title, text: own[3]?.text || '사이트에서 더 자세한 결과물을 확인해 보세요.' },
   ]
+  const showBtns = !!site || !banners // 링크가 없는 배너 작업은 버튼 줄 자체를 숨김
   const siteBtn = (cls: string) => site ? (
     <a href={site} target="_blank" rel="noopener" className={`inline-flex items-center gap-1 rounded-full text-[11px] font-bold hover:brightness-110 ${cls}`}>{siteLabel} <ExternalLink size={12} /></a>
   ) : (
@@ -389,7 +395,7 @@ function Detail({ s }: { s: State }) {
             <Eyebrow>{p.role}</Eyebrow>
             <h2 className="mb-1.5 text-[24px] font-extrabold leading-[1.2] tracking-tight text-[#16171a]">{p.title}</h2>
             <p className="line-clamp-1 text-[11px] leading-[1.4] text-[#6b6f78]">{p.summary}</p>
-            <div className="mt-3 flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-4 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>
+            {showBtns && <div className="mt-3 flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-4 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
           </div>
           <ChipBadge i={s.proj} className="mt-1 w-[76px]" />
         </div>
@@ -399,13 +405,37 @@ function Detail({ s }: { s: State }) {
       {/* 띠마다 글자는 가운데 정렬, 사진은 그 아래 가운데에 놓는다 */}
       {/* band 1: white, text, then the photo on a grey panel */}
       <section className="bg-white px-4 py-6 text-center">
-        <Eyebrow>Overview</Eyebrow>
+        <Eyebrow>{banners ? 'Concept' : 'Overview'}</Eyebrow>
         <h3 className={`${H3} text-[#16171a]`}>{sec[0].title}</h3>
         <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[0].text}</p>
-        <div className={`mx-auto mt-4 ${panelW} rounded-xl bg-[#f1f2f7] p-2.5`}>
-          <Photo src={imgs[1]} i={s.proj} k={1} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
-        </div>
+        {!banners && (
+          <div className={`mx-auto mt-4 ${panelW} rounded-xl bg-[#f1f2f7] p-2.5`}>
+            <Photo src={imgs[1]} i={s.proj} k={1} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
+          </div>
+        )}
       </section>
+
+      {/* 배너 목록: 사진은 왼쪽, 브랜드 로고·상품명·설명은 오른쪽. 내용이 비어 있으면 자리표시로 틀만 보여 준다 */}
+      {banners && (
+        <section className="bg-[#f6f7fb] px-4 py-2">
+          {banners.map((b, k) => (
+            <div key={k} className="mx-auto flex max-w-[560px] items-center gap-8 border-b border-black/[.06] py-5 last:border-b-0">
+              <div className="relative aspect-square w-[34%] shrink-0 overflow-hidden rounded-xl bg-[#e6e8ef]">
+                {b.image ? <img src={resolve(b.image)} alt="" draggable={false} decoding="async" className="absolute inset-0 h-full w-full object-contain" /> : (
+                  <span aria-hidden className="absolute inset-0 grid place-items-center text-[11px] font-extrabold tracking-[0.2em] text-[#9aa0ad]">BANNER {String(k + 1).padStart(2, '0')}</span>
+                )}
+              </div>
+              <div className="min-w-0 flex-1 text-left">
+                <div className="mb-3 flex h-8 items-center">
+                  {b.logo ? <img src={resolve(b.logo)} alt="" draggable={false} decoding="async" className="max-h-8 max-w-[70%] object-contain" /> : <span className="text-[11px] font-extrabold tracking-[0.2em] text-[#b4b9c4]">BRAND LOGO</span>}
+                </div>
+                <div className="mb-1.5 text-[14px] font-extrabold leading-[1.3] text-[#16171a]">{b.name || '상품명'}</div>
+                <p className={`${BODY} text-[#3c3f46]`}>{b.text || '브랜드와 상품에 대한 설명이 들어가는 자리입니다.'}</p>
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
 
       {/* band 2: white, text, the big number 24px under it, then the photo panel */}
       <section className="bg-white px-4 py-6 text-center">
@@ -417,9 +447,11 @@ function Detail({ s }: { s: State }) {
           <div className="w-[35%]"><div className="text-[22px] font-extrabold leading-none text-[#16171a]">100%</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">작업 비중</div></div>
           {tools && <div className="w-[30%]"><div className="text-[10px] font-extrabold leading-[22px] text-[#16171a]">{tools.split(' · ').map(t => <span key={t} className="mx-[2px] inline-block whitespace-nowrap">{t}</span>)}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">사용 도구</div></div>}
         </div>
-        <div className={`mx-auto mt-4 ${panelW} rounded-xl bg-[#f1f2f7] p-2.5`}>
-          <Photo src={imgs[4]} i={s.proj} k={4} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
-        </div>
+        {!banners && (
+          <div className={`mx-auto mt-4 ${panelW} rounded-xl bg-[#f1f2f7] p-2.5`}>
+            <Photo src={imgs[4]} i={s.proj} k={4} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
+          </div>
+        )}
       </section>
 
       {/* band 3: dark closing band */}
@@ -427,8 +459,8 @@ function Detail({ s }: { s: State }) {
         <Eyebrow dark>Next</Eyebrow>
         <h3 className={`${H3}`}>{sec[3].title}</h3>
         <p className={`mx-auto max-w-[460px] ${BODY} text-white/65`}>{sec[3].text}</p>
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-2">{site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}{downloadBtn('bg-transparent px-3.5 py-1 text-white ring-1 ring-white/50')}</div>
-        <Photo src={imgs[5]} i={s.proj} k={5} plain contain={fit === 'contain'} className={`mx-auto mt-4 ${ratio} ${panelW} rounded-lg`} />
+        {showBtns && <div className="mt-3 flex flex-wrap items-center justify-center gap-2">{site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}{downloadBtn('bg-transparent px-3.5 py-1 text-white ring-1 ring-white/50')}</div>}
+        {!banners && <Photo src={imgs[5]} i={s.proj} k={5} plain contain={fit === 'contain'} className={`mx-auto mt-4 ${ratio} ${panelW} rounded-lg`} />}
       </section>
     </div>
   )
