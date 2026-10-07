@@ -46,6 +46,23 @@
     ]
   },
   {
+    "category": "AI",
+    "items": [
+      {
+        "name": "클로드(클로드코드)",
+        "level": 4
+      },
+      {
+        "name": "챗지피티(코덱스)",
+        "level": 4
+      },
+      {
+        "name": "제미나이(안티그래비티)",
+        "level": 4
+      }
+    ]
+  },
+  {
     "category": "Etc",
     "items": [
       {

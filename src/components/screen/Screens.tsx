@@ -1,6 +1,6 @@
 import { ReactNode, RefObject, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Bomb, Code2, Download, Palette, Wrench, Github, Instagram, Wifi, CircleDot, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
+import { Bomb, Code2, Download, Palette, Sparkles, Wrench, Github, Instagram, Wifi, CircleDot, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
 import { AVATAR_ORDER, Btn, contactItems, DOCK, State, TILES } from '../../store/nav'
 import { Avatar, AVATARS, Coin } from './avatars'
 import Logo from '../Logo'
@@ -435,7 +435,7 @@ function Detail({ s }: { s: State }) {
 
 const SKILL_COLOR = ['#1fb6e8', '#ff4b3e', '#34c759', '#ff9f43']
 // 카테고리별 제목 아이콘 (없는 이름이면 Wrench)
-const SKILL_ICON: Record<string, typeof Code2> = { Frontend: Code2, Design: Palette, Etc: Wrench }
+const SKILL_ICON: Record<string, typeof Code2> = { Frontend: Code2, Design: Palette, AI: Sparkles, Etc: Wrench }
 function Skills() {
   return (
     <div data-scroll className="h-full overflow-y-auto px-7 pb-3 [scrollbar-width:none]">
