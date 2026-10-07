@@ -203,6 +203,10 @@ function About({ s }: { s: State }) {
           <p className="mt-2 text-[11px] text-ink-sub"><span className="rounded bg-card px-1.5 py-0.5 font-bold text-ink ring-1 ring-black/10">◀ ▶</span> 캐릭터 고르기</p>
         </div>
       </div>
+      {/* 사이트 한 줄 소개(두 줄): 닌텐도처럼 시대에 맞게 바뀌는 나, 그래서 seungwon.2 */}
+      <p className="mb-4 border-l-[3px] border-accent-blue pl-3 text-[14px] font-extrabold leading-[1.6] tracking-tight text-ink">
+        {profile.statement.map(line => <span key={line} className="block">{line}</span>)}
+      </p>
       <p className="mb-4 text-[13px] leading-relaxed">{profile.intro}</p>
       <div className="label mb-2">Timeline</div>
       {profile.timeline.map(t => (
