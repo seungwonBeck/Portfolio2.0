@@ -6,12 +6,36 @@
   "avatar": "",
   "email": "bsw9965@gmail.com",
   "links": [
-    { "label": "GitHub", "url": "https://github.com/seungwonBeck", "handle": "seungwonBeck" },
-    { "label": "Instagram", "url": "https://www.instagram.com/a.cc.2.0", "handle": "@a.cc.2.0" }
+    {
+      "label": "GitHub",
+      "url": "https://github.com/seungwonBeck",
+      "handle": "seungwonBeck"
+    },
+    {
+      "label": "Instagram",
+      "url": "https://www.instagram.com/a.cc.2.0",
+      "handle": "@a.cc.2.0"
+    }
   ],
   "timeline": [
-    { "period": "2024 — NOW", "title": "Product Designer & Developer", "desc": "스타트업에서 디자인부터 프론트엔드 구현까지 담당" },
-    { "period": "2022 — 2024", "title": "Frontend Developer", "desc": "React 기반 웹 서비스 개발, 디자인 시스템 구축" },
-    { "period": "2020 — 2022", "title": "UI Designer", "desc": "모바일 앱 UI/UX 디자인 및 프로토타이핑" }
+    {
+      "period": "2024 — NOW",
+      "title": "Product Designer & Developer",
+      "desc": "스타트업에서 디자인부터 프론트엔드 구현까지 담당"
+    },
+    {
+      "period": "2022 — 2024",
+      "title": "Frontend Developer",
+      "desc": "React 기반 웹 서비스 개발, 디자인 시스템 구축"
+    },
+    {
+      "period": "2020 — 2022",
+      "title": "UI Designer",
+      "desc": "모바일 앱 UI/UX 디자인 및 프로토타이핑"
+    }
+  ],
+  "statement": [
+    "시대가 바뀔 때마다 새로워지는 닌텐도처럼, 저 역시 계속 업데이트되는 디자이너입니다.",
+    "포트폴리오를 웹사이트 속 게임기로 만들었고, 그래서 이름도 seungwon.2입니다."
   ]
 }
