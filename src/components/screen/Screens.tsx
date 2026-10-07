@@ -1,6 +1,7 @@
 import { ReactNode, RefObject, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Bomb, Code2, Palette, Wrench, Github, Instagram, Wifi, CircleDot, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
+import { Bomb, Code2, Download, Maximize2, X, Palette, Sparkles, Wrench, Github, Instagram, Wifi, CircleDot, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
+import SkillIcon from './SkillIcons'
 import { AVATAR_ORDER, Btn, contactItems, DOCK, State, TILES } from '../../store/nav'
 import { Avatar, AVATARS, Coin } from './avatars'
 import Logo from '../Logo'
@@ -10,8 +11,8 @@ const tileIcon = { ABOUT: User, PROJECTS: FolderOpen, SKILLS: Gauge, CONTACT: Ma
 const Scroll = ({ children }: { children: ReactNode }) => (
   <div data-scroll className="h-full overflow-y-auto px-7 pb-6 [scrollbar-width:none]">{children}</div>
 )
-const Title = ({ children }: { children: ReactNode }) => (
-  <h2 className="mb-3 flex items-center gap-2.5 text-[20px] font-extrabold tracking-tight"><span aria-hidden className="h-[18px] w-1.5 rounded-full bg-accent-blue" />{children}</h2>
+const Title = ({ children, small = false }: { children: ReactNode; small?: boolean }) => (
+  <h2 className={`flex items-center gap-2.5 font-extrabold tracking-tight ${small ? 'mb-2 text-[16px]' : 'mb-3 text-[20px]'}`}><span aria-hidden className={`w-1.5 rounded-full bg-accent-blue ${small ? 'h-[14px]' : 'h-[18px]'}`} />{children}</h2>
 )
 /** Box art per project (same colours as the case rack), shared by the list thumbnails and the detail hero. */
 const PROJ_ART = [['#ff7a6b', '#b3261a'], ['#4fd0f5', '#0b6f98'], ['#ffc14d', '#b86a00'], ['#4fd98a', '#12803f'], ['#b07bff', '#4a21a8'], ['#ff8fba', '#a82a63'], ['#9fb0c8', '#37455c']]
@@ -351,7 +352,12 @@ function Detail({ s }: { s: State }) {
   const imgs = ((p as { images?: string[] }).images ?? []).map(f => (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`))
   // heroImages: 첫 화면 슬라이드에 쓸 사진만 따로 고를 때 (없으면 images 전체)
   const heroImgs = ((p as { heroImages?: string[] }).heroImages ?? []).map(f => (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`))
-  const slideImgs = heroImgs.length ? heroImgs : imgs
+  // banners: 배너 작품 목록. 한 줄에 배너 사진(왼쪽) + 브랜드 로고·상품명·설명(오른쪽)으로 보여 준다
+  type Banner = { image?: string; logo?: string; name?: string; text?: string }
+  const resolve = (f?: string) => (f ? (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`) : '')
+  const banners = (p as { banners?: Banner[] }).banners
+  const bannerImgs = (banners ?? []).map(b => resolve(b.image)).filter(Boolean)
+  const slideImgs = heroImgs.length ? heroImgs : imgs.length ? imgs : bannerImgs
   const fit = (p as { imageFit?: string }).imageFit
   const contain = fit === 'contain' || fit === 'slide' || fit === 'a4' // slide: 16:9 슬라이드/PDF 캡처, a4: 세로로 긴 상세 페이지를 A4 비율로 잘라 둔 것, 잘리지 않게 칸도 같은 비율
   // 슬라이드 사진은 16:9 칸에 꽉 채운다(원본 비율이 소수점 단위로 달라 contain이면 가장자리에 1px 틈이 생김)
@@ -362,6 +368,8 @@ function Detail({ s }: { s: State }) {
   const tools = (p as { tools?: string }).tools // 사이트 작업의 사용 도구 (예: VSCODE · HTML · CSS · JS)
   const pdf = (p.links as { pdf?: string }).pdf
   const site = p.links.demo || (pdf ? `${import.meta.env.BASE_URL}${pdf}` : '') // 사이트가 없는 작업은 PDF를 바로 연다
+  const pdfHref = pdf ? `${import.meta.env.BASE_URL}${pdf}` : ''
+  const pdfOnly = !p.links.demo && !!pdf // 사이트 링크 없이 PDF만 있는 작업: 보기 + 다운로드 두 버튼
   const siteLabel = !p.links.demo ? 'PDF 보기' : /behance\.net/.test(p.links.demo) ? 'Behance 보기' : /figma\.com/.test(p.links.demo) ? 'Figma에서 보기' : '사이트 보기' // 링크 종류에 맞는 버튼 글자
   const sec = [
     { title: own[0]?.title || '프로젝트 소개', text: own[0]?.text || p.description },
@@ -369,12 +377,16 @@ function Detail({ s }: { s: State }) {
     { title: own[2]?.title || '역할과 기간', text: own[2]?.text || `역할은 ${p.role}, 작업 기간은 ${p.period}입니다.` },
     { title: own[3]?.title || p.title, text: own[3]?.text || '사이트에서 더 자세한 결과물을 확인해 보세요.' },
   ]
+  const [zoomSrc, setZoomSrc] = useState<string | null>(null) // 배너를 확대해서 보는 중인 사진 (없으면 닫힘)
+  const showBtns = !!site || !banners // 링크가 없는 배너 작업은 버튼 줄 자체를 숨김
   const siteBtn = (cls: string) => site ? (
     <a href={site} target="_blank" rel="noopener" className={`inline-flex items-center gap-1 rounded-full text-[11px] font-bold hover:brightness-110 ${cls}`}>{siteLabel} <ExternalLink size={12} /></a>
   ) : (
     <span aria-disabled className="inline-block cursor-not-allowed rounded-full bg-black/[.08] px-3.5 py-1 text-[11px] font-bold text-ink-sub">링크 준비 중</span>
   )
+  const downloadBtn = (cls: string) => pdfOnly ? <a href={pdfHref} download className={`inline-flex items-center gap-1 rounded-full text-[11px] font-bold hover:brightness-110 ${cls}`}>PDF 다운로드 <Download size={12} /></a> : null
   return (
+    <div className="relative h-full">
     <div data-scroll className="h-full overflow-y-auto bg-white [scrollbar-width:none]">
       {/* hero: left-aligned text with the button set apart from the title, then the photo edge to edge */}
       <section className="relative flex h-full flex-col overflow-hidden bg-[#f4f6fb]">
@@ -385,7 +397,7 @@ function Detail({ s }: { s: State }) {
             <Eyebrow>{p.role}</Eyebrow>
             <h2 className="mb-1.5 text-[24px] font-extrabold leading-[1.2] tracking-tight text-[#16171a]">{p.title}</h2>
             <p className="line-clamp-1 text-[11px] leading-[1.4] text-[#6b6f78]">{p.summary}</p>
-            <div className="mt-3">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}</div>
+            {showBtns && <div className="mt-3 flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-4 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
           </div>
           <ChipBadge i={s.proj} className="mt-1 w-[76px]" />
         </div>
@@ -395,13 +407,44 @@ function Detail({ s }: { s: State }) {
       {/* 띠마다 글자는 가운데 정렬, 사진은 그 아래 가운데에 놓는다 */}
       {/* band 1: white, text, then the photo on a grey panel */}
       <section className="bg-white px-4 py-6 text-center">
-        <Eyebrow>Overview</Eyebrow>
+        <Eyebrow>{banners ? 'Concept' : 'Overview'}</Eyebrow>
         <h3 className={`${H3} text-[#16171a]`}>{sec[0].title}</h3>
         <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[0].text}</p>
-        <div className={`mx-auto mt-4 ${panelW} rounded-xl bg-[#f1f2f7] p-2.5`}>
-          <Photo src={imgs[1]} i={s.proj} k={1} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
-        </div>
+        {!banners && (
+          <div className={`mx-auto mt-4 ${panelW} rounded-xl bg-[#f1f2f7] p-2.5`}>
+            <Photo src={imgs[1]} i={s.proj} k={1} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
+          </div>
+        )}
       </section>
+
+      {/* 배너 목록: 사진은 왼쪽, 브랜드 로고·상품명·설명은 오른쪽. 내용이 비어 있으면 자리표시로 틀만 보여 준다 */}
+      {banners && (
+        <section className="bg-[#f6f7fb] px-4 py-2">
+          {banners.map((b, k) => (
+            <div key={k} className="mx-auto flex max-w-[560px] items-center gap-8 border-b border-black/[.06] py-5 last:border-b-0">
+              <div className="w-[34%] shrink-0">
+                <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-[#e6e8ef]">
+                  {b.image ? <img src={resolve(b.image)} alt="" draggable={false} decoding="async" className="absolute inset-0 h-full w-full object-contain" /> : (
+                    <span aria-hidden className="absolute inset-0 grid place-items-center text-[11px] font-extrabold tracking-[0.2em] text-[#9aa0ad]">BANNER {String(k + 1).padStart(2, '0')}</span>
+                  )}
+                </div>
+                {/* 사진 바로 밑: 확대해서 보기 (사진이 아직 없으면 눌리지 않게 흐리게) */}
+                <button type="button" tabIndex={-1} disabled={!b.image} onClick={() => setZoomSrc(resolve(b.image))}
+                  className="mt-2 flex w-full items-center justify-center gap-1 rounded-full bg-white py-1 text-[10px] font-bold text-[#0a6cff] ring-1 ring-[#0a6cff]/40 hover:brightness-95 disabled:cursor-not-allowed disabled:text-[#9aa0ad] disabled:ring-black/10">
+                  확대해서 보기 <Maximize2 size={11} />
+                </button>
+              </div>
+              <div className="min-w-0 flex-1 text-left">
+                <div className="mb-3 flex h-8 items-center">
+                  {b.logo ? <img src={resolve(b.logo)} alt="" draggable={false} decoding="async" className="max-h-8 max-w-[70%] object-contain" /> : <span className="text-[11px] font-extrabold tracking-[0.2em] text-[#b4b9c4]">BRAND LOGO</span>}
+                </div>
+                <div className="mb-1.5 text-[14px] font-extrabold leading-[1.3] text-[#16171a]">{b.name || '상품명'}</div>
+                <p className={`${BODY} text-[#3c3f46]`}>{b.text || '브랜드와 상품에 대한 설명이 들어가는 자리입니다.'}</p>
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
 
       {/* band 2: white, text, the big number 24px under it, then the photo panel */}
       <section className="bg-white px-4 py-6 text-center">
@@ -413,9 +456,11 @@ function Detail({ s }: { s: State }) {
           <div className="w-[35%]"><div className="text-[22px] font-extrabold leading-none text-[#16171a]">100%</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">작업 비중</div></div>
           {tools && <div className="w-[30%]"><div className="text-[10px] font-extrabold leading-[22px] text-[#16171a]">{tools.split(' · ').map(t => <span key={t} className="mx-[2px] inline-block whitespace-nowrap">{t}</span>)}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">사용 도구</div></div>}
         </div>
-        <div className={`mx-auto mt-4 ${panelW} rounded-xl bg-[#f1f2f7] p-2.5`}>
-          <Photo src={imgs[4]} i={s.proj} k={4} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
-        </div>
+        {!banners && (
+          <div className={`mx-auto mt-4 ${panelW} rounded-xl bg-[#f1f2f7] p-2.5`}>
+            <Photo src={imgs[4]} i={s.proj} k={4} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
+          </div>
+        )}
       </section>
 
       {/* band 3: dark closing band */}
@@ -423,33 +468,50 @@ function Detail({ s }: { s: State }) {
         <Eyebrow dark>Next</Eyebrow>
         <h3 className={`${H3}`}>{sec[3].title}</h3>
         <p className={`mx-auto max-w-[460px] ${BODY} text-white/65`}>{sec[3].text}</p>
-        <div className="mt-3">{site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}</div>
-        <Photo src={imgs[5]} i={s.proj} k={5} plain contain={fit === 'contain'} className={`mx-auto mt-4 ${ratio} ${panelW} rounded-lg`} />
+        {showBtns && <div className="mt-3 flex flex-wrap items-center justify-center gap-2">{site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}{downloadBtn('bg-transparent px-3.5 py-1 text-white ring-1 ring-white/50')}</div>}
+        {!banners && <Photo src={imgs[5]} i={s.proj} k={5} plain contain={fit === 'contain'} className={`mx-auto mt-4 ${ratio} ${panelW} rounded-lg`} />}
       </section>
+    </div>
+    {/* 확대해서 보기: 화면 위에 사진을 크게 띄운다. 바깥을 누르거나 닫기 버튼으로 닫는다 */}
+    <AnimatePresence>
+      {zoomSrc && (
+        <motion.div key="zoom" className="absolute inset-0 z-10 grid place-items-center bg-black/85 p-3" onClick={() => setZoomSrc(null)}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+          <img src={zoomSrc} alt="" draggable={false} className="max-h-full max-w-full rounded-lg object-contain" />
+          <button type="button" tabIndex={-1} aria-label="닫기" onClick={() => setZoomSrc(null)} className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full bg-white/90 text-[#16171a] hover:bg-white"><X size={15} strokeWidth={2.6} /></button>
+        </motion.div>
+      )}
+    </AnimatePresence>
     </div>
   )
 }
 
+// 이름 뒤 괄호(예: Claude (Claude Code))는 작고 옅게 보여 레벨 글자와 겹치지 않게 한다
+function skillLabel(name: string) {
+  const m = name.match(/^(.*?)\s*(\(.*\))$/)
+  if (!m) return name
+  return <span className="flex flex-col leading-tight">{m[1]}<span className="text-[9px] font-semibold text-ink-sub">{m[2].slice(1, -1)}</span></span>
+}
+
 const SKILL_COLOR = ['#1fb6e8', '#ff4b3e', '#34c759', '#ff9f43']
 // 카테고리별 제목 아이콘 (없는 이름이면 Wrench)
-const SKILL_ICON: Record<string, typeof Code2> = { Frontend: Code2, Design: Palette, Etc: Wrench }
+const SKILL_ICON: Record<string, typeof Code2> = { Frontend: Code2, Design: Palette, AI: Sparkles, Etc: Wrench }
 function Skills() {
   return (
-    <div data-scroll className="h-full overflow-y-auto px-7 pb-3 [scrollbar-width:none]">
-      <Title>SKILLS</Title>
-      <div className="grid grid-cols-3 gap-3">
+    <div data-scroll className="h-full overflow-y-auto px-7 pb-5 [scrollbar-width:none]">
+      <Title small>SKILLS</Title>
+      <div className="grid grid-cols-3 gap-4">
         {skills.map((g, gi) => {
           const c = SKILL_COLOR[gi % SKILL_COLOR.length]
           return (
-            <div key={g.category} className="rounded-2xl bg-card px-4 pb-3 pt-3 shadow-[0_6px_14px_-8px_rgba(0,0,0,.35)] ring-1 ring-black/10">
-              <div className="mb-2.5 flex items-center gap-2"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg text-white shadow-[0_2px_5px_-1px_rgba(0,0,0,.4)]" style={{ background: `linear-gradient(160deg, ${c}, ${c}cc)` }}>{(() => { const I = SKILL_ICON[g.category] ?? Wrench; return <I size={14} strokeWidth={2.3} /> })()}</span><span className="label !text-ink">{g.category}</span></div>
+            <div key={g.category} className="rounded-2xl bg-card px-4 pb-4 pt-4 shadow-[0_6px_14px_-8px_rgba(0,0,0,.35)] ring-1 ring-black/10">
+              <div className="mb-4 flex items-center gap-2.5"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg text-white shadow-[0_2px_5px_-1px_rgba(0,0,0,.4)]" style={{ background: `linear-gradient(160deg, ${c}, ${c}cc)` }}>{(() => { const I = SKILL_ICON[g.category] ?? Wrench; return <I size={14} strokeWidth={2.3} /> })()}</span><span className="text-[13px] font-extrabold tracking-tight text-ink">{g.category}</span></div>
               {g.items.map(it => {
-                const tight = g.items.length > 4 // 항목이 많은 카드는 간격을 좁혀 한 화면에 들어오게
                 return (
-                <div key={it.name} className={`last:mb-0 ${tight ? 'mb-1.5' : 'mb-2.5'}`}>
-                  <div className={`flex items-baseline justify-between font-bold ${tight ? 'mb-0.5 text-[11px]' : 'mb-1 text-[12px]'}`}>{it.name}<span className="text-[10px] font-semibold text-ink-sub">LV.{it.level}</span></div>
+                <div key={it.name} className="mb-3.5 last:mb-0">
+                  <div className={`flex items-center justify-between gap-3 font-bold mb-1.5 text-[12px]`}><span className="flex min-w-0 items-center gap-2 whitespace-nowrap"><SkillIcon name={it.name} /><span className="whitespace-nowrap">{skillLabel(it.name)}</span></span><span className="text-[10px] font-semibold text-ink-sub">LV.{it.level}</span></div>
                   <div className="flex gap-[3px]">
-                    {[1, 2, 3, 4, 5].map(n => <i key={n} className={`flex-1 rounded-full ${tight ? 'h-[5px]' : 'h-[7px]'}`} style={{ background: n <= it.level ? `linear-gradient(180deg, ${c}, ${c}bb)` : 'rgba(0,0,0,.09)' }} />)}
+                    {[1, 2, 3, 4, 5].map(n => <i key={n} className="h-[6px] flex-1 rounded-full" style={{ background: n <= it.level ? `linear-gradient(180deg, ${c}, ${c}bb)` : 'rgba(0,0,0,.09)' }} />)}
                   </div>
                 </div>
                 )
