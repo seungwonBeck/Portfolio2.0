@@ -52,6 +52,27 @@ export default function SkillIcon({ name }: { name: string }) {
       </svg>
     </Tile>
   )
+  if (key === 'next.js') return <Tile className="bg-black"><span className="text-[10px] font-black leading-none text-white">N</span></Tile>
+  if (key === 'javascript') return <Tile className="bg-[#f7df1e]"><span className="text-[9px] font-extrabold leading-none text-black">JS</span></Tile>
+  if (key.startsWith('copilot')) return (
+    <Tile className="bg-white">
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" strokeWidth="3.2" strokeLinecap="round">
+        <defs>
+          <linearGradient id="copilotG" x1="3" y1="21" x2="21" y2="3" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor="#0f9bff" /><stop offset=".5" stopColor="#8a5cf6" /><stop offset="1" stopColor="#ff8a3c" />
+          </linearGradient>
+        </defs>
+        <path d="M17 7.5A7 7 0 1 0 17 16.5" stroke="url(#copilotG)" />
+      </svg>
+    </Tile>
+  )
+  if (key.startsWith('perplexity')) return (
+    <Tile className="bg-[#20808d]">
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round">
+        <path d="M12 2.5v19M5 6.5l7 5.5 7-5.5M5 17.5l7-5.5 7 5.5M5 6.5v11M19 6.5v11" />
+      </svg>
+    </Tile>
+  )
   if (key === 'typescript') return <Tile className="bg-[#3178c6]"><span className="text-[9px] font-extrabold leading-none text-white">TS</span></Tile>
   if (key === 'tailwind') return (
     <Tile className="bg-white">

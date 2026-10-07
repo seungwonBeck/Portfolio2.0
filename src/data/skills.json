@@ -13,23 +13,14 @@
       {
         "name": "Gemini (Antigravity)",
         "level": 4
-      }
-    ]
-  },
-  {
-    "category": "Frontend",
-    "items": [
-      {
-        "name": "React",
-        "level": 5
       },
       {
-        "name": "TypeScript",
-        "level": 4
+        "name": "Copilot",
+        "level": 3
       },
       {
-        "name": "Tailwind",
-        "level": 5
+        "name": "Perplexity",
+        "level": 3
       }
     ]
   },
@@ -59,6 +50,31 @@
       {
         "name": "Premiere",
         "level": 2
+      }
+    ]
+  },
+  {
+    "category": "Frontend",
+    "items": [
+      {
+        "name": "React",
+        "level": 5
+      },
+      {
+        "name": "Next.js",
+        "level": 3
+      },
+      {
+        "name": "TypeScript",
+        "level": 4
+      },
+      {
+        "name": "JavaScript",
+        "level": 4
+      },
+      {
+        "name": "Tailwind",
+        "level": 5
       }
     ]
   }

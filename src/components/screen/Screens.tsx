@@ -11,8 +11,8 @@ const tileIcon = { ABOUT: User, PROJECTS: FolderOpen, SKILLS: Gauge, CONTACT: Ma
 const Scroll = ({ children }: { children: ReactNode }) => (
   <div data-scroll className="h-full overflow-y-auto px-7 pb-6 [scrollbar-width:none]">{children}</div>
 )
-const Title = ({ children }: { children: ReactNode }) => (
-  <h2 className="mb-3 flex items-center gap-2.5 text-[20px] font-extrabold tracking-tight"><span aria-hidden className="h-[18px] w-1.5 rounded-full bg-accent-blue" />{children}</h2>
+const Title = ({ children, small = false }: { children: ReactNode; small?: boolean }) => (
+  <h2 className={`flex items-center gap-2.5 font-extrabold tracking-tight ${small ? 'mb-2 text-[16px]' : 'mb-3 text-[20px]'}`}><span aria-hidden className={`w-1.5 rounded-full bg-accent-blue ${small ? 'h-[14px]' : 'h-[18px]'}`} />{children}</h2>
 )
 /** Box art per project (same colours as the case rack), shared by the list thumbnails and the detail hero. */
 const PROJ_ART = [['#ff7a6b', '#b3261a'], ['#4fd0f5', '#0b6f98'], ['#ffc14d', '#b86a00'], ['#4fd98a', '#12803f'], ['#b07bff', '#4a21a8'], ['#ff8fba', '#a82a63'], ['#9fb0c8', '#37455c']]
@@ -438,7 +438,7 @@ function Detail({ s }: { s: State }) {
 function skillLabel(name: string) {
   const m = name.match(/^(.*?)\s*(\(.*\))$/)
   if (!m) return name
-  return <>{m[1]} <span className="text-[8px] font-semibold text-ink-sub">{m[2]}</span></>
+  return <>{m[1]} <span className="text-[8.5px] font-semibold text-ink-sub">{m[2]}</span></>
 }
 
 const SKILL_COLOR = ['#1fb6e8', '#ff4b3e', '#34c759', '#ff9f43']
@@ -447,18 +447,18 @@ const SKILL_ICON: Record<string, typeof Code2> = { Frontend: Code2, Design: Pale
 function Skills() {
   return (
     <div data-scroll className="h-full overflow-y-auto px-7 pb-3 [scrollbar-width:none]">
-      <Title>SKILLS</Title>
+      <Title small>SKILLS</Title>
       <div className="grid grid-cols-3 gap-3">
         {skills.map((g, gi) => {
           const c = SKILL_COLOR[gi % SKILL_COLOR.length]
           return (
             <div key={g.category} className="rounded-2xl bg-card px-4 pb-3 pt-3 shadow-[0_6px_14px_-8px_rgba(0,0,0,.35)] ring-1 ring-black/10">
-              <div className="mb-2.5 flex items-center gap-2"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg text-white shadow-[0_2px_5px_-1px_rgba(0,0,0,.4)]" style={{ background: `linear-gradient(160deg, ${c}, ${c}cc)` }}>{(() => { const I = SKILL_ICON[g.category] ?? Wrench; return <I size={14} strokeWidth={2.3} /> })()}</span><span className="label !text-ink">{g.category}</span></div>
+              <div className="mb-2.5 flex items-center gap-2"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg text-white shadow-[0_2px_5px_-1px_rgba(0,0,0,.4)]" style={{ background: `linear-gradient(160deg, ${c}, ${c}cc)` }}>{(() => { const I = SKILL_ICON[g.category] ?? Wrench; return <I size={14} strokeWidth={2.3} /> })()}</span><span className="text-[13px] font-extrabold tracking-tight text-ink">{g.category}</span></div>
               {g.items.map(it => {
                 const tight = g.items.length > 4 // 항목이 많은 카드는 간격을 좁혀 한 화면에 들어오게
                 return (
                 <div key={it.name} className={`last:mb-0 ${tight ? 'mb-1.5' : 'mb-2.5'}`}>
-                  <div className={`flex items-center justify-between gap-2 font-bold ${tight ? 'mb-0.5 text-[11px]' : 'mb-1 text-[12px]'}`}><span className="flex min-w-0 items-center gap-1.5"><SkillIcon name={it.name} /><span className="whitespace-nowrap">{skillLabel(it.name)}</span></span><span className="text-[10px] font-semibold text-ink-sub">LV.{it.level}</span></div>
+                  <div className={`flex items-center justify-between gap-3 font-bold ${tight ? 'mb-0.5 text-[11px]' : 'mb-1 text-[12px]'}`}><span className="flex min-w-0 items-center gap-1.5 whitespace-nowrap"><SkillIcon name={it.name} /><span className="whitespace-nowrap">{skillLabel(it.name)}</span></span><span className="text-[10px] font-semibold text-ink-sub">LV.{it.level}</span></div>
                   <div className="flex gap-[3px]">
                     {[1, 2, 3, 4, 5].map(n => <i key={n} className={`flex-1 rounded-full ${tight ? 'h-[5px]' : 'h-[7px]'}`} style={{ background: n <= it.level ? `linear-gradient(180deg, ${c}, ${c}bb)` : 'rgba(0,0,0,.09)' }} />)}
                   </div>
