@@ -1,6 +1,6 @@
 import { ReactNode, RefObject, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Bomb, Code2, Download, Palette, Sparkles, Wrench, Github, Instagram, Wifi, CircleDot, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
+import { Bomb, Code2, Download, Maximize2, X, Palette, Sparkles, Wrench, Github, Instagram, Wifi, CircleDot, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
 import SkillIcon from './SkillIcons'
 import { AVATAR_ORDER, Btn, contactItems, DOCK, State, TILES } from '../../store/nav'
 import { Avatar, AVATARS, Coin } from './avatars'
@@ -377,6 +377,7 @@ function Detail({ s }: { s: State }) {
     { title: own[2]?.title || '역할과 기간', text: own[2]?.text || `역할은 ${p.role}, 작업 기간은 ${p.period}입니다.` },
     { title: own[3]?.title || p.title, text: own[3]?.text || '사이트에서 더 자세한 결과물을 확인해 보세요.' },
   ]
+  const [zoomSrc, setZoomSrc] = useState<string | null>(null) // 배너를 확대해서 보는 중인 사진 (없으면 닫힘)
   const showBtns = !!site || !banners // 링크가 없는 배너 작업은 버튼 줄 자체를 숨김
   const siteBtn = (cls: string) => site ? (
     <a href={site} target="_blank" rel="noopener" className={`inline-flex items-center gap-1 rounded-full text-[11px] font-bold hover:brightness-110 ${cls}`}>{siteLabel} <ExternalLink size={12} /></a>
@@ -385,6 +386,7 @@ function Detail({ s }: { s: State }) {
   )
   const downloadBtn = (cls: string) => pdfOnly ? <a href={pdfHref} download className={`inline-flex items-center gap-1 rounded-full text-[11px] font-bold hover:brightness-110 ${cls}`}>PDF 다운로드 <Download size={12} /></a> : null
   return (
+    <div className="relative h-full">
     <div data-scroll className="h-full overflow-y-auto bg-white [scrollbar-width:none]">
       {/* hero: left-aligned text with the button set apart from the title, then the photo edge to edge */}
       <section className="relative flex h-full flex-col overflow-hidden bg-[#f4f6fb]">
@@ -420,10 +422,17 @@ function Detail({ s }: { s: State }) {
         <section className="bg-[#f6f7fb] px-4 py-2">
           {banners.map((b, k) => (
             <div key={k} className="mx-auto flex max-w-[560px] items-center gap-8 border-b border-black/[.06] py-5 last:border-b-0">
-              <div className="relative aspect-square w-[34%] shrink-0 overflow-hidden rounded-xl bg-[#e6e8ef]">
-                {b.image ? <img src={resolve(b.image)} alt="" draggable={false} decoding="async" className="absolute inset-0 h-full w-full object-contain" /> : (
-                  <span aria-hidden className="absolute inset-0 grid place-items-center text-[11px] font-extrabold tracking-[0.2em] text-[#9aa0ad]">BANNER {String(k + 1).padStart(2, '0')}</span>
-                )}
+              <div className="w-[34%] shrink-0">
+                <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-[#e6e8ef]">
+                  {b.image ? <img src={resolve(b.image)} alt="" draggable={false} decoding="async" className="absolute inset-0 h-full w-full object-contain" /> : (
+                    <span aria-hidden className="absolute inset-0 grid place-items-center text-[11px] font-extrabold tracking-[0.2em] text-[#9aa0ad]">BANNER {String(k + 1).padStart(2, '0')}</span>
+                  )}
+                </div>
+                {/* 사진 바로 밑: 확대해서 보기 (사진이 아직 없으면 눌리지 않게 흐리게) */}
+                <button type="button" tabIndex={-1} disabled={!b.image} onClick={() => setZoomSrc(resolve(b.image))}
+                  className="mt-2 flex w-full items-center justify-center gap-1 rounded-full bg-white py-1 text-[10px] font-bold text-[#0a6cff] ring-1 ring-[#0a6cff]/40 hover:brightness-95 disabled:cursor-not-allowed disabled:text-[#9aa0ad] disabled:ring-black/10">
+                  확대해서 보기 <Maximize2 size={11} />
+                </button>
               </div>
               <div className="min-w-0 flex-1 text-left">
                 <div className="mb-3 flex h-8 items-center">
@@ -462,6 +471,17 @@ function Detail({ s }: { s: State }) {
         {showBtns && <div className="mt-3 flex flex-wrap items-center justify-center gap-2">{site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}{downloadBtn('bg-transparent px-3.5 py-1 text-white ring-1 ring-white/50')}</div>}
         {!banners && <Photo src={imgs[5]} i={s.proj} k={5} plain contain={fit === 'contain'} className={`mx-auto mt-4 ${ratio} ${panelW} rounded-lg`} />}
       </section>
+    </div>
+    {/* 확대해서 보기: 화면 위에 사진을 크게 띄운다. 바깥을 누르거나 닫기 버튼으로 닫는다 */}
+    <AnimatePresence>
+      {zoomSrc && (
+        <motion.div key="zoom" className="absolute inset-0 z-10 grid place-items-center bg-black/85 p-3" onClick={() => setZoomSrc(null)}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+          <img src={zoomSrc} alt="" draggable={false} className="max-h-full max-w-full rounded-lg object-contain" />
+          <button type="button" tabIndex={-1} aria-label="닫기" onClick={() => setZoomSrc(null)} className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full bg-white/90 text-[#16171a] hover:bg-white"><X size={15} strokeWidth={2.6} /></button>
+        </motion.div>
+      )}
+    </AnimatePresence>
     </div>
   )
 }
