@@ -54,6 +54,13 @@ body { background: var(--color-bg); color: var(--color-ink); font-family: var(--
 
 @media (prefers-reduced-motion: reduce) { * { transition-duration: 0s !important; animation-duration: 0s !important; } }
 
+/* dice tumble when rolled */
+@keyframes diceRoll {
+  0% { transform: rotate(-24deg) scale(.7) translateY(-8px); }
+  55% { transform: rotate(14deg) scale(1.08); }
+  100% { transform: rotate(0) scale(1); }
+}
+
 /* glow pulse on the loaded game case */
 @keyframes casePulse {
   0%, 100% { opacity: 1; }

@@ -10,16 +10,30 @@ const GHOST = ['...gggggg...', '..gggggggg..', '.gggggggggg.', '.ggwkggwkgg.', '
 const ALIEN = ['.g........g.', '..g......g..', '..gggggggg..', '.gggggggggg.', '.gwwkggwwkg.', '.gwwkggwwkg.', '.gggggggggg.', '..gggddggg..', '...gggggg...', '....gggg....']
 const K = '#16171a', W = '#ffffff'
 
-type Entry = { name: string; bg: string; src?: string; fit?: 'cover' | 'contain'; rows?: string[]; pal?: Record<string, string> }
+type Entry = { name: string; bg: string; src?: string; fit?: 'cover' | 'contain'; rows?: string[]; pal?: Record<string, string>; leg?: string }
 export const AVATARS: Entry[] = [
   { name: 'ME', bg: '#ffffff', src: img('me.webp') },
   { name: 'PHOTO', bg: '#ffffff', src: img('photo.webp'), fit: 'contain' },
-  { name: 'BLOB', bg: '#ff9f43', rows: BLOB, pal: { b: '#1fb6e8', w: W, e: K, r: '#ff4b3e' } },
-  { name: 'ROBOT', bg: '#3b6cff', rows: ROBOT, pal: { a: '#c4ccd6', b: '#6b7683', r: '#ff4b3e', w: W, k: K } },
-  { name: 'CAT', bg: '#34c759', rows: CAT, pal: { o: '#ff9f43', p: '#ff6b8a', w: W, k: K } },
+  { name: 'BLOB', bg: '#ff9f43', rows: BLOB, pal: { b: '#1fb6e8', w: W, e: K, r: '#ff4b3e' }, leg: '#0e7fa8' },
+  { name: 'ROBOT', bg: '#3b6cff', rows: ROBOT, pal: { a: '#c4ccd6', b: '#6b7683', r: '#ff4b3e', w: W, k: K }, leg: '#6b7683' },
+  { name: 'CAT', bg: '#34c759', rows: CAT, pal: { o: '#ff9f43', p: '#ff6b8a', w: W, k: K }, leg: '#d97a1a' },
   { name: 'GHOST', bg: '#7c6cf0', rows: GHOST, pal: { g: '#f1f1ff', w: W, k: K } },
-  { name: 'ALIEN', bg: '#ff4b3e', rows: ALIEN, pal: { g: '#34c759', d: '#0b6b2b', w: W, k: K } },
+  { name: 'ALIEN', bg: '#ff4b3e', rows: ALIEN, pal: { g: '#34c759', d: '#0b6b2b', w: W, k: K }, leg: '#0b6b2b' },
 ]
+
+/**
+ * 달리기 게임용 프레임: 캐릭터 픽셀 스프라이트 아래에 다리 두 줄을 붙인다. frame 0/1 = 두 걸음, 2 = 점프.
+ * 유령은 다리가 없어서 한 칸 위아래로 둥둥 뜨는 걸로 대신한다.
+ */
+export function runFrame(i: number, frame: 0 | 1 | 2): { rows: string[]; pal: Record<string, string>; bob: number } {
+  const a = AVATARS[i], rows = a.rows ?? [], w = rows[0].length
+  const pal = { ...a.pal!, L: a.leg ?? '#000' }
+  if (!a.leg) return { rows, pal, bob: frame === 1 ? 1 : 0 }
+  const lx = Math.round(w * 0.3), rx = Math.round(w * 0.62)
+  const put = (xs: number[]) => Array.from({ length: w }, (_, x) => (xs.includes(x) ? 'L' : '.')).join('')
+  const legs = frame === 0 ? [put([lx, rx]), put([lx - 1, lx, rx, rx + 1])] : frame === 1 ? [put([lx, rx]), put([lx + 1, rx - 1])] : [put([lx, rx]), put([lx - 1, rx + 1])]
+  return { rows: [...rows, ...legs], pal, bob: 0 }
+}
 
 /** Round avatar. Size comes from className (e.g. "h-6 w-6"). */
 export function Avatar({ i, className = '' }: { i: number; className?: string }) {

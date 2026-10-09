@@ -1,9 +1,10 @@
 import { ReactNode, RefObject, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Bomb, Code2, Download, Maximize2, X, Palette, Sparkles, Wrench, Github, Instagram, Wifi, CircleDot, ExternalLink, FolderOpen, Flag, Footprints, Gamepad2, Gauge, LayoutGrid, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
+import { Code2, Dices, Download, Maximize2, X, Palette, Sparkles, Wrench, Github, Instagram, Wifi, CircleDot, ExternalLink, FolderOpen, Footprints, Gamepad2, Gauge, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
 import SkillIcon from './SkillIcons'
 import { AVATAR_ORDER, Btn, contactItems, DOCK, State, TILES } from '../../store/nav'
-import { Avatar, AVATARS, Coin } from './avatars'
+import { Avatar, AVATARS, Coin, runFrame } from './avatars'
+import Yacht from './Yacht'
 import Logo from '../Logo'
 import { profile, projects, skills } from '../../types'
 
@@ -574,37 +575,19 @@ function Contact({ s }: { s: State }) {
   )
 }
 
-const FRAMES = {
-  run1: ['..............', '....bbbbbb....', '..bbbbbbbbbb..', '..bbbbbbbbbb..', '..bbwwbbwwbb..', '..bbwebbwebb..', '..bbbbbbbbbb..', '..bbbbrrbbbb..', '..bbbbbbbbbb..', '...bbbbbbbb...', '....bbbbbb....', '....bbbbbb....', '....nn..nn....', '...nnn..nnn...'],
-  run2: ['..............', '....bbbbbb....', '..bbbbbbbbbb..', '..bbbbbbbbbb..', '..bbwwbbwwbb..', '..bbwebbwebb..', '..bbbbbbbbbb..', '..bbbbrrbbbb..', '..bbbbbbbbbb..', '...bbbbbbbb...', '....bbbbbb....', '....bbbbbb....', '.....nnnn.....', '.....nn.nn....'],
-  jump: ['..............', '....bbbbbb....', '..bbbbbbbbbb..', '..bbbbbbbbbb..', '..bbwwbbwwbb..', '..bbwebbwebb..', '..bbbbbbbbbb..', '..bbbbrrbbbb..', '..bbbbbbbbbb..', '...bbbbbbbb...', '....bbbbbb....', '....bbbbbb....', '...nn....nn...', '..............'],
-}
-const PAL: Record<string, string> = { b: '#1fb6e8', n: '#0e7fa8', w: '#ffffff', e: '#16171a', r: '#ff4b3e' }
 const GW = 576, GH = 200, GROUND = GH - 28, PX = 4, PW = 14 * PX
 
-/** Lighten (+) / darken (-) a #rrggbb color. */
-const shade = (hex: string, amt: number) => {
-  const n = parseInt(hex.slice(1), 16)
-  const ch = (v: number) => Math.max(0, Math.min(255, Math.round(v + (amt > 0 ? (255 - v) : v) * amt)))
-  return `rgb(${ch(n >> 16)},${ch((n >> 8) & 255)},${ch(n & 255)})`
-}
-
-/** Draw a sprite as lit voxel cubes: bright top edge, dark bottom/right edge, plus a ground shadow that shrinks in the air. */
-function drawVoxels(c: CanvasRenderingContext2D, rows: string[], x0: number, y0: number, air: number) {
-  c.fillStyle = `rgba(0,0,0,${0.28 * (1 - Math.min(air / 140, 0.7))})`
-  c.beginPath(); c.ellipse(x0 + PW / 2, GROUND + 5, PW * 0.5 * (1 - Math.min(air / 220, 0.5)), 5, 0, 0, 7); c.fill()
+/** 플랫 픽셀 스프라이트: 칸마다 단색 사각형 하나, 조명·그림자 없음. */
+function drawPixels(c: CanvasRenderingContext2D, rows: string[], pal: Record<string, string>, x0: number, y0: number, px = PX) {
   rows.forEach((row, r) => [...row].forEach((ch, col) => {
     if (ch === '.') return
-    const x = x0 + col * PX, y = y0 + r * PX, base = PAL[ch]
-    c.fillStyle = base; c.fillRect(x, y, PX, PX)
-    if (rows[r - 1]?.[col] !== ch) { c.fillStyle = shade(base, 0.4); c.fillRect(x, y, PX, 1) }
-    else { c.fillStyle = shade(base, 0.12); c.fillRect(x, y, 1, PX) }
-    c.fillStyle = shade(base, -0.32); c.fillRect(x, y + PX - 1, PX, 1); c.fillRect(x + PX - 1, y, 1, PX)
+    c.fillStyle = pal[ch]; c.fillRect(x0 + col * px, y0 + r * px, px, px)
   }))
 }
 
-/** Side quest: an endless runner. A = jump, collect coins, dodge blocks. The hero is an original sprite. */
+/** Side quest: an endless runner. A = jump, collect coins, dodge blocks. 달리는 캐릭터는 ABOUT에서 고른 픽셀 캐릭터(안 골랐으면 2번째 BLOB). */
 function Runner({ s }: { s: State }) {
+  const hero = s.avatar >= 2 ? s.avatar : 2 // 내 캐릭터(ME)·증명사진은 스프라이트가 아니라서 2번째 캐릭터로 고정
   const cv = useRef<HTMLCanvasElement>(null)
   const seen = useRef(0)
   const [phase, setPhase] = useState<'idle' | 'play' | 'dead'>('idle')
@@ -625,8 +608,8 @@ function Runner({ s }: { s: State }) {
     for (const o of st.obs) c.fillRect(o.x, GROUND - o.h, o.w, o.h)
     c.fillStyle = '#f5c518'
     for (const k of st.coins) { c.beginPath(); c.arc(k.x, k.y, 7, 0, 7); c.fill() }
-    const frame = st.y > 0 ? FRAMES.jump : phase === 'play' && Math.floor(st.dist / 22) % 2 ? FRAMES.run2 : FRAMES.run1
-    drawVoxels(c, frame, 60, GROUND - 14 * PX - st.y, st.y)
+    const f = runFrame(hero, st.y > 0 ? 2 : phase === 'play' && Math.floor(st.dist / 22) % 2 ? 1 : 0)
+    drawPixels(c, f.rows, f.pal, 60 + (PW - f.rows[0].length * PX) / 2, GROUND - f.rows.length * PX - st.y + f.bob * PX)
     void t
   }
 
@@ -688,7 +671,7 @@ function Runner({ s }: { s: State }) {
       </div>
       <canvas ref={cv} width={GW} height={GH} className="w-full rounded-xl ring-1 ring-black/10" style={{ imageRendering: 'pixelated' }} />
       <p className="mt-2 text-[11px] text-ink-sub">
-        {phase === 'idle' && 'A로 시작 · A로 점프 — 빨간 블록을 피하고 코인을 모으세요'}
+        {phase === 'idle' && `A로 시작 · A로 점프 — 빨간 블록을 피하고 코인을 모으세요 · 달리는 캐릭터는 ABOUT에서 고른 ${AVATARS[hero].name}`}
         {phase === 'play' && 'A · 점프'}
         {phase === 'dead' && '앗! A로 다시 도전'}
       </p>
@@ -712,102 +695,6 @@ function Arcade({ title, score, best, cv, hint }: { title: string; score: number
       <p className="mt-2 text-[11px] text-ink-sub">{hint}</p>
     </div>
   )
-}
-
-const SHAPES = [[[1, 1, 1, 1]], [[1, 1], [1, 1]], [[0, 1, 0], [1, 1, 1]], [[0, 1, 1], [1, 1, 0]], [[1, 1, 0], [0, 1, 1]], [[1, 0, 0], [1, 1, 1]], [[0, 0, 1], [1, 1, 1]]]
-const BLOCK_COLORS = ['#1fb6e8', '#f5c518', '#a45cff', '#34c759', '#ff4b3e', '#3b6cff', '#ff9f43']
-const CELL = 9, BX = 243, BY = 10
-const rot = (m: number[][]) => m[0].map((_, i) => m.map(r => r[i]).reverse())
-
-/** Falling-blocks puzzle. ◀▶ move · ▼ soft drop · ▲ hard drop · A rotate. */
-function Blocks({ s }: { s: State }) {
-  const cv = useRef<HTMLCanvasElement>(null)
-  const seen = useRef(s.pad.n)
-  const [phase, setPhase] = useState<'idle' | 'play' | 'dead'>('idle')
-  const [score, setScore] = useState(0)
-  const [best, setBest] = useState(() => best0('folio-blocks-best'))
-  const g = useRef({ b: [] as number[][], m: SHAPES[0], x: 3, y: 0, c: 0, nx: 0, acc: 0, lines: 0, score: 0, drop: false })
-  const rnd = () => Math.floor(Math.random() * 7)
-
-  const fits = (m: number[][], x: number, y: number) => m.every((r, j) => r.every((v, i) =>
-    !v || (x + i >= 0 && x + i < 10 && y + j < 20 && !g.current.b[y + j]?.[x + i])))
-
-  const spawn = () => { // false when the stack reached the top
-    const st = g.current
-    st.c = st.nx; st.m = SHAPES[st.c]; st.nx = rnd(); st.x = 3; st.y = 0
-    return fits(st.m, st.x, st.y)
-  }
-  const lock = () => {
-    const st = g.current
-    st.m.forEach((r, j) => r.forEach((v, i) => { if (v) st.b[st.y + j][st.x + i] = st.c + 1 }))
-    const rest = st.b.filter(r => r.some(v => !v)), n = 20 - rest.length
-    st.b = [...Array.from({ length: n }, () => Array(10).fill(0)), ...rest]
-    st.lines += n; st.score += [0, 100, 300, 500, 800][n]
-    return spawn()
-  }
-
-  const cell = (c: CanvasRenderingContext2D, x: number, y: number, ci: number) => {
-    const col = BLOCK_COLORS[ci - 1]
-    c.fillStyle = col; c.fillRect(x, y, CELL, CELL)
-    c.fillStyle = shade(col, 0.4); c.fillRect(x, y, CELL, 1)
-    c.fillStyle = shade(col, -0.32); c.fillRect(x, y + CELL - 1, CELL, 1); c.fillRect(x + CELL - 1, y, 1, CELL)
-  }
-  const draw = () => {
-    const c = cv.current?.getContext('2d'); if (!c) return
-    const st = g.current
-    c.fillStyle = '#16171a'; c.fillRect(0, 0, GW, GH)
-    c.fillStyle = '#23252b'; c.fillRect(BX, BY, 10 * CELL, 20 * CELL)
-    st.b.forEach((r, j) => r.forEach((v, i) => { if (v) cell(c, BX + i * CELL, BY + j * CELL, v) }))
-    if (phase === 'play') st.m.forEach((r, j) => r.forEach((v, i) => { if (v) cell(c, BX + (st.x + i) * CELL, BY + (st.y + j) * CELL, st.c + 1) }))
-    c.fillStyle = '#fff'; c.font = FONT
-    c.fillText('NEXT', 350, 24); c.fillText(`LINES ${st.lines}`, 350, 110)
-    SHAPES[st.nx].forEach((r, j) => r.forEach((v, i) => { if (v) cell(c, 350 + i * CELL, 34 + j * CELL, st.nx + 1) }))
-  }
-  useEffect(draw, [phase])
-
-  useEffect(() => { // pad presses: A starts, then move / rotate / drop
-    if (s.pad.n === seen.current) return
-    seen.current = s.pad.n
-    const st = g.current, b = s.pad.b
-    if (phase !== 'play') {
-      if (b !== 'A') return
-      Object.assign(st, { b: Array.from({ length: 20 }, () => Array(10).fill(0)), acc: 0, lines: 0, score: 0, nx: rnd(), drop: false })
-      spawn(); setScore(0); setPhase('play'); return
-    }
-    if (b === 'left' && fits(st.m, st.x - 1, st.y)) st.x--
-    else if (b === 'right' && fits(st.m, st.x + 1, st.y)) st.x++
-    else if (b === 'down' && fits(st.m, st.x, st.y + 1)) st.y++
-    else if (b === 'up') { while (fits(st.m, st.x, st.y + 1)) st.y++; st.drop = true } // locks on the next frame
-    else if (b === 'A') { const r = rot(st.m); if (fits(r, st.x, st.y)) st.m = r }
-    draw()
-  }, [s.pad.n])
-
-  useEffect(() => {
-    if (phase !== 'play') return
-    const st = g.current
-    let id = 0, last = performance.now()
-    const loop = (now: number) => {
-      st.acc += now - last; last = now
-      const every = Math.max(120, 700 - st.lines * 30)
-      let alive = true
-      if (st.drop) { st.drop = false; st.acc = 0; alive = lock() }
-      while (alive && st.acc >= every) {
-        st.acc -= every
-        if (fits(st.m, st.x, st.y + 1)) st.y++; else alive = lock()
-      }
-      setScore(st.score); draw()
-      if (!alive) {
-        setPhase('dead')
-        if (st.score > best) { setBest(st.score); saveBest('folio-blocks-best', st.score) }
-        return
-      }
-      id = requestAnimationFrame(loop)
-    }
-    id = requestAnimationFrame(loop)
-    return () => cancelAnimationFrame(id)
-  }, [phase])
-
-  return <Arcade title="BLOCKS" score={score} best={best} cv={cv} hint={phase === 'idle' ? 'A로 시작 · ◀▶ 이동 · ▼ 내리기 · ▲ 바로 떨어뜨리기 · A 회전' : phase === 'play' ? 'A 회전 · ▲ 하드드롭' : '게임 오버! A로 다시 도전'} />
 }
 
 const SHIP = ['....a....', '...aaa...', '...aba...', '.aaaaaaa.', 'aacaaacaa', 'aa.....aa']
@@ -911,156 +798,310 @@ function Starfighter({ s }: { s: State }) {
   return <Arcade title="STAR FIGHTER" score={score} best={best} cv={cv} hint={phase === 'idle' ? 'A로 시작 · ◀▶ 조종(계속 이동) · ▼ 정지 · A 발사' : phase === 'play' ? 'A 발사 · ◀▶ 방향 전환' : '격추당했어요! A로 다시 도전'} />
 }
 
-const MW = 9, MH = 9, MINES = 10
-type MCell = { mine: boolean; open: boolean; flag: boolean; n: number }
-const MCOLORS = ['', '#2a7bf0', '#2ea44f', '#e5473a', '#7a45d6', '#a3362c', '#12a3a3', '#16171a', '#6b6f78']
-const mkBoard = (): MCell[] => Array.from({ length: MW * MH }, () => ({ mine: false, open: false, flag: false, n: 0 }))
-const around = (i: number) => {
-  const x = i % MW, y = Math.floor(i / MW), out: number[] = []
-  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-    const nx = x + dx, ny = y + dy
-    if ((dx || dy) && nx >= 0 && nx < MW && ny >= 0 && ny < MH) out.push(ny * MW + nx)
-  }
-  return out
+const PITCHES = 10
+const ZX = 254, ZY = 126, ZW = 68, ZH = 46 // 스트라이크존(뒤에서 본 홈플레이트 위 사각형)
+const WIND_MS = 1000 // 투수 동작 전체 시간. 공은 이 중 80% 지점(0.8)에서 손을 떠난다
+const REL_AT = 0.8
+const RANK = ['MISS', 'FOUL', 'HIT', 'HR'] as const
+type Res = (typeof RANK)[number]
+/** 타이밍 판정: 공이 존에 도착하는 시각과 스윙 시각의 차이(초). 조준이 빗나가면 아래 단계로 내려간다. */
+const judge = (d: number): Res => (Math.abs(d) < 0.07 ? 'HR' : Math.abs(d) < 0.14 ? 'HIT' : Math.abs(d) < 0.24 ? 'FOUL' : 'MISS')
+const POINTS = { HR: 100, HIT: 40, FOUL: 10, MISS: 0 }
+const LABEL = { HR: '홈런!', HIT: '안타', FOUL: '파울', MISS: '헛스윙' }
+const BPX = 10 // 타자 스프라이트 확대(앞에 크게 보인다)
+const BAT = { x: 410, y: 150, len: 100 } // 배트 축(타자 몸 좌표)·길이
+const CONTACT_MS = 170 // A를 누른 뒤 배트가 공을 맞히는 순간까지의 시간(판정도 이 시각 기준)
+const HITSTOP_MS = 70 // 맞는 순간 배트가 잠깐 멈추는 시간(타격감)
+const FOLLOW_MS = 900 // 휘두른 뒤 마무리 자세를 유지하는 시간
+const BATTER = { cx: 450, feet: GH + 34 } // 타자 발 위치: 몸 회전·기울기의 중심
+// 구종: mul = 비행 시간 배율, bend = 옆으로 휘는 정도, lift = 떠올랐다 떨어지는 정도, off = 구속 기준
+const PITCH_TYPES = [
+  { name: '직구', mul: 1, bend: 0, lift: 0, off: 130 },
+  { name: '커브', mul: 1.2, bend: 30, lift: 0, off: 112 },
+  { name: '체인지업', mul: 1.45, bend: 0, lift: 12, off: 100 },
+]
+
+const clamp01 = (v: number) => Math.max(0, Math.min(1, v))
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+const smooth = (t: number) => t * t * (3 - 2 * t)
+const seg = (tn: number, a: number, b: number) => smooth(clamp01((tn - a) / (b - a))) // tn이 a~b 사이에서 0→1로 부드럽게
+
+/** 투수 동작(tn: 0~1). 몸 기울기·던지는 팔 각도·팔 길이를 시간표로 만든다: 올려 차기 → 팔을 뒤로 → 머리 위로 → 채찍처럼 내려치기 */
+const leanAt = (tn: number) => -0.14 * seg(tn, 0, 0.4) + 0.4 * seg(tn, 0.5, 0.85) - 0.28 * seg(tn, 0.9, 1)
+const armAt = (tn: number) => (tn < 0.45 ? lerp(1.7, 0.2, seg(tn, 0, 0.45)) : tn < REL_AT ? lerp(0.2, -1.75, seg(tn, 0.45, REL_AT)) : lerp(-1.75, 1.7, seg(tn, REL_AT, 1)))
+const armLen = (tn: number) => 15 * (1 - 0.4 * seg(tn, REL_AT, 1))
+const HIP = { x: 288, y: 84 }, SHOULDER = { x: 295, y: 67 }
+/** 던지는 손 위치(몸 기울기까지 반영). 공은 손을 떠나는 순간(REL_AT)의 이 위치에서 출발한다 */
+const handAt = (tn: number) => {
+  const a = armAt(tn), l = leanAt(tn), len = armLen(tn)
+  const dx = SHOULDER.x + Math.cos(a) * len - HIP.x, dy = SHOULDER.y + Math.sin(a) * len - HIP.y
+  return { x: HIP.x + dx * Math.cos(l) - dy * Math.sin(l), y: HIP.y + dx * Math.sin(l) + dy * Math.cos(l) }
+}
+const REL = handAt(REL_AT)
+
+function drawPitcher(c: CanvasRenderingContext2D, tn: number) {
+  const kick = seg(tn, 0.1, 0.35) - seg(tn, 0.5, 0.7) // 다리를 들었다 내려 딛는다
+  c.fillStyle = 'rgba(0,0,0,.25)'; c.beginPath(); c.ellipse(288, 100, 17, 3.5, 0, 0, 7); c.fill()
+  c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = '#3b4252'; c.lineWidth = 5
+  c.beginPath(); c.moveTo(292, 84); c.lineTo(293, 100); c.stroke() // 축발
+  c.beginPath(); c.moveTo(285, 84); c.lineTo(283 - 5 * kick, 92 - 6 * kick); c.lineTo(285 - 2 * kick, 100 - 14 * kick); c.stroke() // 드는 다리
+  c.save(); c.translate(HIP.x, HIP.y); c.rotate(leanAt(tn)); c.translate(-HIP.x, -HIP.y)
+  c.fillStyle = '#f2f4f8'; c.fillRect(280, 62, 16, 23) // 유니폼
+  c.fillStyle = '#c8312a'; c.fillRect(280, 80, 16, 3) // 벨트
+  c.fillStyle = '#f1c9a0'; c.fillRect(283, 48, 10, 11) // 얼굴
+  c.fillStyle = '#16171b'; c.fillRect(285, 53, 2, 2); c.fillRect(290, 53, 2, 2)
+  c.fillStyle = '#1f46a0'; c.fillRect(282, 43, 12, 6); c.fillRect(282, 48, 14, 2) // 모자와 챙
+  const ga = 2.4 + 1.3 * Math.sin(clamp01(tn) * Math.PI) // 글러브 팔은 앞으로 뻗었다가 접힌다
+  const gx = 281 + Math.cos(ga) * 11, gy = 67 + Math.sin(ga) * 11
+  c.strokeStyle = '#f2f4f8'; c.lineWidth = 4
+  c.beginPath(); c.moveTo(281, 67); c.lineTo(gx, gy); c.stroke()
+  c.fillStyle = '#ff4b3e'; c.beginPath(); c.arc(gx, gy, 4.5, 0, 7); c.fill()
+  const a = armAt(tn), len = armLen(tn) // 던지는 팔
+  const hx = SHOULDER.x + Math.cos(a) * len, hy = SHOULDER.y + Math.sin(a) * len
+  c.beginPath(); c.moveTo(SHOULDER.x, SHOULDER.y); c.lineTo(hx, hy); c.stroke()
+  c.fillStyle = '#f1c9a0'; c.beginPath(); c.arc(hx, hy, 2.5, 0, 7); c.fill()
+  c.restore()
 }
 
-/** Minesweeper, 9x9 with 10 mines. Pad: ◀▶▲▼ move the cursor, A opens (on a number: opens the rest around it once enough flags are placed).
- *  Mouse: click opens, right-click flags. F (or the flag button) switches taps to flagging, for touch. The first open is always safe. */
-function Mines({ s }: { s: State }) {
-  const [board, setBoard] = useState(mkBoard)
-  const [phase, setPhase] = useState<'idle' | 'play' | 'won' | 'dead'>('idle')
-  const [cur, setCur] = useState(40)
-  const [flagMode, setFlagMode] = useState(false)
-  const [time, setTime] = useState(0)
-  const [best, setBest] = useState(() => { try { return +(localStorage.getItem('folio-mines-best') ?? 0) } catch { return 0 } })
+/** 타자를 뒤에서 본 모습: 얼굴(눈·입·코)을 몸 색으로 덮고, 머리 윗부분은 헬멧 색으로 바꾼다 */
+function backView(rows: string[]): string[] {
+  const count: Record<string, number> = {}
+  rows.forEach(r => [...r].forEach(ch => { if (ch !== '.' && ch !== 'L') count[ch] = (count[ch] ?? 0) + 1 }))
+  const main = Object.keys(count).sort((a, b) => count[b] - count[a])[0]
+  return rows.map((row, ri) => [...row].map(ch => {
+    if (ch === '.' || ch === 'L') return ch
+    if ('wekpd'.includes(ch) || (ch === 'r' && ri >= 3)) ch = main
+    return ri >= 2 && ri <= 4 && ch === main ? 'H' : ch
+  }).join(''))
+}
+
+/** 홈런 더비(타자 뒤쪽 시점): ◀▶▲▼로 조준, 공이 존에 올 때 A로 스윙. 타자는 ABOUT에서 고른 캐릭터(투수를 바라보는 뒷모습). */
+function Baseball({ s }: { s: State }) {
+  const hero = s.avatar >= 2 ? s.avatar : 2
+  const cv = useRef<HTMLCanvasElement>(null)
   const seen = useRef(s.pad.n)
-  const over = phase === 'won' || phase === 'dead'
+  const [phase, setPhase] = useState<'idle' | 'play' | 'over'>('idle')
+  const [score, setScore] = useState(0)
+  const [best, setBest] = useState(() => best0('folio-hr-best'))
+  // pitchAt: 공이 손을 떠나는 시각, dur: 존까지 비행 시간, (tx,ty): 도착 지점, (cx,cy,vx,vy): 조준점과 속도, fly: 맞은 공, trail: 공 궤적, fx: 타격 이펙트
+  const g = useRef({
+    n: 0, score: 0, pitchAt: 0, dur: 1000, swingAt: 0, hitAt: 0, pend: null as null | { vx: number; vy: number; gr: number }, res: '' as '' | Res, nextAt: 0, tx: 288, ty: 150, cx: 288, cy: 150, vx: 0, vy: 0, hr: 0, far: 0, msg: '',
+    type: PITCH_TYPES[0], bend: 0, kmh: 0, trail: [] as { x: number; y: number; r: number }[],
+    fly: null as null | { x: number; y: number; vx: number; vy: number; gr: number; r: number },
+    fx: null as null | { at: number; kind: Res; x: number; y: number },
+  })
 
-  const finish = (b: MCell[], hit: boolean) => {
-    if (hit) {
-      b.forEach(c => { if (c.mine) c.open = true })
-      setPhase('dead')
-    } else if (b.every(c => c.mine || c.open)) {
-      b.forEach(c => { if (c.mine) c.flag = true })
-      setPhase('won')
-      if (!best || time < best) { setBest(time); try { localStorage.setItem('folio-mines-best', String(time)) } catch { /* private mode */ } }
+  /** 투구 진행도 p(0=손, 1=존 도착)에서의 공 위치와 크기. 커브는 휘고 체인지업은 떠올랐다 떨어진다 */
+  const ballAt = (p: number) => {
+    const st = g.current
+    return {
+      x: REL.x + (st.tx - REL.x) * p + st.bend * 4 * p * p * (1 - p),
+      y: REL.y + (st.ty - REL.y) * Math.pow(p, 1.6) - st.type.lift * Math.sin(Math.PI * clamp01(p)),
+      r: 2.5 + 6.5 * p,
     }
-    setBoard(b)
   }
-  const flood = (b: MCell[], from: number[]) => {
-    const stack = [...from]; let hit = false
-    while (stack.length) {
-      const k = stack.pop()!, c = b[k]
-      if (c.open || c.flag) continue
-      c.open = true
-      if (c.mine) hit = true
-      else if (c.n === 0) stack.push(...around(k))
-    }
-    finish(b, hit)
-  }
-  const reveal = (i: number) => {
-    if (over || board[i].flag || board[i].open) return
-    const b = board.map(c => ({ ...c }))
-    if (phase === 'idle') { // first open is always safe: mines go anywhere except there and around it
-      const ban = new Set([i, ...around(i)]), free = b.map((_, k) => k).filter(k => !ban.has(k))
-      for (let m = 0; m < MINES; m++) b[free.splice(Math.floor(Math.random() * free.length), 1)[0]].mine = true
-      b.forEach((c, k) => { c.n = around(k).filter(a => b[a].mine).length })
-      setPhase('play'); setTime(0)
-    }
-    flood(b, [i])
-  }
-  const chord = (i: number) => {
-    const c = board[i], ring = around(i)
-    if (over || !c.open || !c.n || ring.filter(a => board[a].flag).length !== c.n) return
-    flood(board.map(x => ({ ...x })), ring)
-  }
-  const flag = (i: number) => {
-    if (over || board[i].open) return
-    setBoard(board.map((c, k) => (k === i ? { ...c, flag: !c.flag } : c)))
-  }
-  const act = (i: number) => (board[i].open ? chord(i) : flagMode ? flag(i) : reveal(i))
-  const restart = () => { setBoard(mkBoard()); setPhase('idle'); setTime(0) }
 
-  useEffect(() => { // pad
+  /** 조준점: 실제 위치 + 살짝 떨리는 흔들림(손이 떨리는 느낌). 스윙 판정도 이 위치를 쓴다 */
+  const aim = (now: number) => ({ x: g.current.cx + Math.sin(now / 170) * 2.4, y: g.current.cy + Math.cos(now / 230) * 1.8 })
+
+  const draw = (now: number) => {
+    const c = cv.current?.getContext('2d'); if (!c) return
+    const st = g.current
+    const fxT = st.fx ? now - st.fx.at : 9999 // 맞는 순간(fx.at)부터 재생: 그 전엔 음수라 안 그린다
+    const shake = st.fx && st.fx.kind !== 'MISS' && fxT >= 0 && fxT < 200 ? (1 - fxT / 200) * (st.fx.kind === 'HR' ? 5 : 3) : 0
+    c.save(); c.translate((Math.random() - 0.5) * 2 * shake, (Math.random() - 0.5) * 2 * shake)
+    c.fillStyle = '#f4b266'; c.fillRect(-8, -8, GW + 16, GH + 16) // 노을 하늘
+    c.fillStyle = '#b9b2a8'; c.fillRect(0, 40, GW, 34) // 먼 건물
+    c.fillStyle = '#8f8a82'; for (let i = 0; i < 12; i++) c.fillRect(i * 52 + 6, 46, 30, 28)
+    c.fillStyle = '#1f6a35'; c.fillRect(0, 70, GW, 8) // 펜스
+    c.fillStyle = '#2f8f4a'; c.fillRect(0, 78, GW, 12)
+    c.fillStyle = '#d9b27c'; c.fillRect(0, 90, GW, GH - 90) // 흙 운동장
+    c.fillStyle = '#cfa56c'; for (let i = 0; i < 5; i++) c.fillRect(0, 100 + i * 22, GW, 8)
+    c.fillStyle = '#c99a62'; c.beginPath(); c.ellipse(288, 99, 26, 5, 0, 0, 7); c.fill() // 마운드
+    c.fillStyle = '#fff'; c.fillRect(196, 120, 3, 80); c.fillRect(377, 120, 3, 80) // 타석 라인
+    c.beginPath(); c.moveTo(270, 186); c.lineTo(306, 186); c.lineTo(306, 192); c.lineTo(288, 200); c.lineTo(270, 192); c.fill() // 홈플레이트
+
+    // 투수: 동작 진행도 tn(0~1)을 시간으로 계산한다. 공이 손을 떠나기 전엔 손에 쥐고 있다
+    const startAt = st.pitchAt - WIND_MS * REL_AT
+    const tn = st.pitchAt && now >= startAt ? (now - startAt) / WIND_MS : 0
+    drawPitcher(c, tn > 1 ? 0 : tn)
+    if (st.pitchAt && tn > 0 && tn < REL_AT) {
+      const h = handAt(tn); c.fillStyle = '#fff'; c.beginPath(); c.arc(h.x, h.y, 3, 0, 7); c.fill()
+    }
+
+    // 스트라이크존 + 조준 틀: 공이 가까워질수록 조여든다
+    const p = st.pitchAt && now >= st.pitchAt ? (now - st.pitchAt) / st.dur : 0
+    const a = aim(now), flying = st.pitchAt && p > 0 && p < 1.1 && !st.res
+    c.strokeStyle = 'rgba(255,75,62,.9)'; c.lineWidth = 2; c.strokeRect(ZX, ZY, ZW, ZH)
+    c.fillStyle = 'rgba(255,75,62,.12)'; c.fillRect(ZX, ZY, ZW, ZH)
+    const rr = flying ? 20 - 9 * clamp01(p) : 20, flash = st.swingAt && now - st.swingAt < 120
+    c.save(); c.translate(a.x, a.y); c.rotate(flying ? p * 1.6 : Math.sin(now / 400) * 0.08)
+    c.strokeStyle = flash ? '#fff' : '#16171b'; c.lineWidth = 2
+    for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { // 네 모서리 괄호
+      c.beginPath(); c.moveTo(sx * rr, sy * (rr - 7)); c.lineTo(sx * rr, sy * rr); c.lineTo(sx * (rr - 7), sy * rr); c.stroke()
+    }
+    c.beginPath(); c.moveTo(-5, 0); c.lineTo(5, 0); c.moveTo(0, -5); c.lineTo(0, 5); c.stroke()
+    c.fillStyle = '#ffd84a'; c.fillRect(-1.5, -1.5, 3, 3)
+    c.restore()
+
+    // 공: 궤적 + 회전하는 실밥. 커브는 휘고 체인지업은 떠올랐다 떨어진다
+    if (st.fly) { c.fillStyle = '#fff'; c.beginPath(); c.arc(st.fly.x, st.fly.y, st.fly.r, 0, 7); c.fill() }
+    else if (st.pitchAt && p > 0 && p < 1.3) {
+      const { x: bx, y: by, r } = ballAt(p)
+      st.trail.push({ x: bx, y: by, r }); if (st.trail.length > 8) st.trail.shift()
+      st.trail.forEach((t, i) => { c.fillStyle = `rgba(255,255,255,${(i / st.trail.length) * 0.35})`; c.beginPath(); c.arc(t.x, t.y, t.r * 0.9, 0, 7); c.fill() })
+      c.fillStyle = '#fff'; c.beginPath(); c.arc(bx, by, r, 0, 7); c.fill()
+      c.strokeStyle = '#d63a30'; c.lineWidth = Math.max(1, r * 0.22); c.beginPath(); c.arc(bx, by, r * 0.62, now / 55, now / 55 + 1.5); c.stroke()
+    }
+
+    // 타자: 투수를 바라보는 뒷모습. 공이 올 때 뒤로 체중을 싣고(load) → 스윙 → 타격 정지 → 마무리 → 제자리
+    let ts = st.swingAt ? (now - st.swingAt) / 1000 : -1 // 스윙 시작 후 경과 시간(초)
+    const hitS = CONTACT_MS / 1000, stopS = HITSTOP_MS / 1000
+    if (ts >= 0 && st.res !== 'MISS' && st.hitAt) ts = ts < hitS ? ts : ts < hitS + stopS ? hitS : ts - stopS // 맞는 순간 잠깐 멈춤
+    const swing = ts >= 0 ? seg(ts, 0, hitS) : 0 // 0→1: 스윙 진행(1에서 공을 맞힌다)
+    const follow = ts >= 0 ? seg(ts, hitS, hitS + 0.28) : 0 // 맞은 뒤 마무리
+    const back = ts >= 0 ? seg(ts, hitS + FOLLOW_MS / 1000, hitS + FOLLOW_MS / 1000 + 0.4) : 0 // 제자리로 돌아오기
+    const load = ts < 0 && st.pitchAt && p > 0 ? seg(p, 0, 0.9) : 0 // 공이 날아오는 동안 서서히 뒤로 체중 이동
+    const pose = swing * (1 - back) // 스윙 자세 정도
+    const rot = 0.08 * load * (1 - pose) - 0.22 * pose - 0.05 * follow * (1 - back) // 몸통 기울기(+ 뒤로 / - 앞으로 돌며)
+    const tx = 7 * load * (1 - pose) - 16 * pose - 4 * follow * (1 - back) // 몸 이동
+    const sx = 1 + 0.08 * pose // 허리 회전으로 옆으로 넓어짐
+    const bob = ts < 0 ? Math.sin(now / 280) * 1.4 * (1 - load) : 0
+    const batAng = ts < 0 ? -1.0 + 0.08 * load + Math.sin(now / 90) * 0.02 * load : lerp(lerp(-1.0, -2.95, swing), -3.5, follow) * (1 - back) + -1.0 * back
+    const f = runFrame(hero, 0), rows = backView(f.rows), w = rows[0].length * BPX
+    const x0 = BATTER.cx - w / 2, y0 = BATTER.feet - rows.length * BPX
+    c.save(); c.translate(BATTER.cx + tx, BATTER.feet + bob); c.rotate(rot); c.scale(sx, 1); c.translate(-BATTER.cx, -BATTER.feet)
+    drawPixels(c, rows, { ...f.pal, H: '#c8312a' }, x0, y0, BPX)
+    c.fillStyle = '#fff'; c.font = '800 26px Paperlogy, sans-serif'; c.textAlign = 'center'
+    c.fillText('2', BATTER.cx, y0 + rows.length * BPX * 0.62); c.textAlign = 'left' // 등번호
+    const skin = f.pal[rows[Math.floor(rows.length / 2)][Math.floor(rows[0].length / 2)]] ?? '#888'
+    c.strokeStyle = skin; c.lineWidth = 9; c.lineCap = 'round' // 두 팔: 어깨에서 배트 손잡이까지
+    c.beginPath(); c.moveTo(BATTER.cx - 24, y0 + 54); c.lineTo(BAT.x, BAT.y); c.moveTo(BATTER.cx + 22, y0 + 54); c.lineTo(BAT.x + 5, BAT.y + 3); c.stroke()
+    if (swing > 0 && swing < 1 && ts >= 0) { // 배트가 지나간 부채꼴 잔상
+      c.fillStyle = 'rgba(255,255,255,.3)'; c.beginPath(); c.moveTo(BAT.x, BAT.y); c.arc(BAT.x, BAT.y, BAT.len, -1.0, batAng, true); c.fill()
+    }
+    c.strokeStyle = '#3a2a22'; c.lineWidth = 9
+    c.beginPath(); c.moveTo(BAT.x, BAT.y); c.lineTo(BAT.x + Math.cos(batAng) * BAT.len, BAT.y + Math.sin(batAng) * BAT.len); c.stroke()
+    c.strokeStyle = '#c58b4e'; c.lineWidth = 6
+    c.beginPath(); c.moveTo(BAT.x + Math.cos(batAng) * 30, BAT.y + Math.sin(batAng) * 30); c.lineTo(BAT.x + Math.cos(batAng) * BAT.len, BAT.y + Math.sin(batAng) * BAT.len); c.stroke()
+    c.fillStyle = '#16171b'; c.beginPath(); c.arc(BAT.x, BAT.y, 6, 0, 7); c.fill() // 장갑
+    c.restore()
+
+    // 타격 이펙트: 충격 고리 + 불꽃 + 화면 번쩍임
+    if (st.fx && st.fx.kind !== 'MISS' && fxT >= 0 && fxT < 380) {
+      const k = fxT / 380, col = st.fx.kind === 'HR' ? '255,216,74' : '255,255,255'
+      c.strokeStyle = `rgba(${col},${1 - k})`; c.lineWidth = 3
+      c.beginPath(); c.arc(st.fx.x, st.fx.y, 6 + k * (st.fx.kind === 'HR' ? 46 : 28), 0, 7); c.stroke()
+      for (let i = 0; i < 10; i++) {
+        const an = (i / 10) * 6.283 + 0.3, d0 = 8 + k * 38
+        c.beginPath(); c.moveTo(st.fx.x + Math.cos(an) * d0, st.fx.y + Math.sin(an) * d0); c.lineTo(st.fx.x + Math.cos(an) * (d0 + 9), st.fx.y + Math.sin(an) * (d0 + 9)); c.stroke()
+      }
+      if (st.fx.kind === 'HR' && fxT < 260) { c.fillStyle = `rgba(255,255,255,${0.4 * (1 - fxT / 260)})`; c.fillRect(0, 0, GW, GH) }
+    }
+    c.restore()
+
+    // 상태판
+    c.fillStyle = 'rgba(31,70,150,.88)'; c.fillRect(8, 8, 118, 40); c.fillRect(8, 54, 70, 22)
+    c.fillStyle = '#fff'; c.font = FONT
+    c.fillText(`홈런  ${st.hr} 본`, 16, 24); c.fillText(`최고 비거리 ${st.far} m`, 16, 41)
+    c.fillText(`남은 ${Math.max(PITCHES - st.n, 0)} 구`, 16, 70)
+    if (st.pitchAt && now > st.pitchAt && now < st.pitchAt + 1800) { // 구종·구속
+      c.fillStyle = 'rgba(22,23,27,.8)'; c.fillRect(GW - 118, 8, 110, 22)
+      c.fillStyle = '#fff'; c.textAlign = 'right'; c.fillText(`${st.type.name}  ${st.kmh}km/h`, GW - 14, 23); c.textAlign = 'left'
+    }
+    if (st.res && now >= st.hitAt && now - st.hitAt < 1500 && st.msg) {
+      c.font = '800 24px Paperlogy, sans-serif'; c.textAlign = 'center'
+      c.fillStyle = '#16171b'; c.fillText(st.msg, GW / 2 + 1.5, 29.5)
+      c.fillStyle = st.res === 'HR' ? '#fff' : st.res === 'MISS' ? '#ff4b3e' : '#ffd84a'
+      c.fillText(st.msg, GW / 2, 28); c.textAlign = 'left'
+    }
+  }
+
+  useEffect(() => { draw(performance.now()) }, [phase])
+
+  useEffect(() => { // 패드: 방향키 = 조준 가속, A = 시작 / 스윙
     if (s.pad.n === seen.current) return
     seen.current = s.pad.n
-    const b = s.pad.b, x = cur % MW, y = Math.floor(cur / MW)
-    if (b === 'A') return over ? restart() : act(cur)
-    if (b === 'left') setCur(y * MW + Math.max(0, x - 1))
-    else if (b === 'right') setCur(y * MW + Math.min(MW - 1, x + 1))
-    else if (b === 'up') setCur(Math.max(0, y - 1) * MW + x)
-    else if (b === 'down') setCur(Math.min(MH - 1, y + 1) * MW + x)
+    const st = g.current, b = s.pad.b, now = performance.now()
+    if (phase !== 'play') {
+      if (b !== 'A') return
+      Object.assign(st, { n: 0, score: 0, pitchAt: 0, swingAt: 0, hitAt: 0, pend: null, res: '', msg: '', nextAt: now + 600, fly: null, fx: null, trail: [], hr: 0, far: 0, cx: 288, cy: 150, vx: 0, vy: 0 })
+      setScore(0); setPhase('play'); return
+    }
+    if (b === 'left' || b === 'right' || b === 'up' || b === 'down') { // 누를수록 그 방향으로 빨라지고 천천히 멈춘다
+      if (b === 'left' || b === 'right') st.vx = Math.max(-190, Math.min(190, st.vx + (b === 'left' ? -110 : 110)))
+      else st.vy = Math.max(-160, Math.min(160, st.vy + (b === 'up' ? -90 : 90)))
+      return
+    }
+    if (b !== 'A' || st.swingAt || !st.pitchAt || st.res || now < st.pitchAt) return
+    st.swingAt = now; st.hitAt = now + CONTACT_MS
+    const q = aim(now), miss = Math.hypot(q.x - st.tx, q.y - st.ty) // 조준점과 공 도착점의 거리
+    const rank = Math.max(0, RANK.indexOf(judge((st.hitAt - (st.pitchAt + st.dur)) / 1000)) - (miss > 44 ? 4 : miss > 26 ? 1 : 0))
+    const r = RANK[rank]
+    st.res = r; st.score += POINTS[r]; setScore(st.score)
+    st.nextAt = st.hitAt + 1600
+    const bp = ballAt((st.hitAt - st.pitchAt) / st.dur) // 배트가 닿는 순간 공이 있는 자리
+    st.fx = { at: st.hitAt, kind: r, x: bp.x, y: bp.y }
+    const dx = (q.x - 288) * 3 // 존의 어느 쪽을 맞췄는지에 따라 좌우로 날아간다
+    const m = r === 'HR' ? 110 + Math.round(Math.random() * 70) : 40 + Math.round(Math.random() * 50)
+    st.msg = r === 'HR' ? `홈런! ${m}m` : LABEL[r]
+    if (r === 'HR') { st.hr++; st.far = Math.max(st.far, m); st.pend = { vx: dx, vy: -150, gr: 40 } }
+    else if (r === 'HIT') st.pend = { vx: dx, vy: -90, gr: 160 }
+    else if (r === 'FOUL') st.pend = { vx: -130, vy: -50, gr: 200 }
   }, [s.pad.n])
 
   useEffect(() => {
     if (phase !== 'play') return
-    const id = setInterval(() => setTime(t => Math.min(999, t + 1)), 1000)
-    return () => clearInterval(id)
+    const st = g.current
+    let id = 0, last = performance.now()
+    const loop = (now: number) => {
+      const dt = Math.min(0.033, (now - last) / 1000); last = now
+      // 조준점 이동: 속도 × 시간, 마찰로 서서히 멈추고 가장자리에서 튕긴다
+      st.cx += st.vx * dt; st.cy += st.vy * dt
+      const damp = Math.max(0, 1 - 3.2 * dt); st.vx *= damp; st.vy *= damp
+      if (st.cx < ZX - 10 || st.cx > ZX + ZW + 10) { st.cx = Math.max(ZX - 10, Math.min(ZX + ZW + 10, st.cx)); st.vx *= -0.3 }
+      if (st.cy < ZY - 10 || st.cy > ZY + ZH + 10) { st.cy = Math.max(ZY - 10, Math.min(ZY + ZH + 10, st.cy)); st.vy *= -0.3 }
+      if (st.pend && now >= st.hitAt) { // 배트에 맞는 순간 타구가 시작된다
+        st.fly = { x: st.fx?.x ?? st.tx, y: st.fx?.y ?? st.ty, ...st.pend, r: 9 }; st.pend = null
+      }
+      if (st.fly) { // 맞은 공: 멀어지며 작아진다
+        const b = st.fly
+        b.vy += b.gr * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.r = Math.max(1.5, b.r - 4 * dt)
+      }
+      if (st.pitchAt && !st.res && now > st.pitchAt + st.dur + 280) { // 스윙 안 하고 지나가면 스트라이크 처리
+        st.res = 'MISS'; st.msg = '스트라이크'; st.hitAt = now; st.nextAt = now + 1100
+      }
+      if (now >= st.nextAt && (!st.pitchAt || st.res)) {
+        if (st.n >= PITCHES) {
+          setPhase('over')
+          if (st.score > best) { setBest(st.score); saveBest('folio-hr-best', st.score) }
+          draw(now); return
+        }
+        st.n++; st.swingAt = 0; st.hitAt = 0; st.pend = null; st.res = ''; st.msg = ''; st.fly = null; st.fx = null; st.trail = []
+        const roll = Math.random()
+        const type = roll < 0.5 ? PITCH_TYPES[0] : roll < 0.8 ? PITCH_TYPES[1] : PITCH_TYPES[2] // 직구 50% · 커브 30% · 체인지업 20%
+        const base = Math.max(560, 1000 - st.n * 45) + Math.random() * 100 // 갈수록 빨라진다
+        st.type = type; st.bend = type.bend * (Math.random() < 0.5 ? -1 : 1)
+        st.dur = base * type.mul; st.kmh = type.off + Math.round((1000 - base) / 12)
+        st.pitchAt = now + WIND_MS * REL_AT // 공은 와인드업이 끝나는 시점에 손을 떠난다
+        st.tx = ZX + 8 + Math.random() * (ZW - 16); st.ty = ZY + 8 + Math.random() * (ZH - 16) // 공이 도착할 곳
+        st.nextAt = Infinity
+      }
+      draw(now)
+      id = requestAnimationFrame(loop)
+    }
+    id = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(id)
   }, [phase])
 
-  useEffect(() => { // F toggles flag mode
-    const k = (e: KeyboardEvent) => { if ((e.key === 'f' || e.key === 'F' || e.code === 'KeyF') && !e.metaKey && !e.ctrlKey) setFlagMode(v => !v) }
-    addEventListener('keydown', k)
-    return () => removeEventListener('keydown', k)
-  }, [])
-
-  const left = MINES - board.filter(c => c.flag).length
-  const msg = phase === 'won' ? '클리어! 🎉' : phase === 'dead' ? '펑! 지뢰를 밟았어요' : phase === 'idle' ? '아무 칸이나 열어 시작' : '지뢰를 피해 모두 열어요'
-  const help = [
-    { Icon: Move, t: '방향키로 칸 이동' },
-    { Icon: CircleDot, t: 'A 로 열기', d: '숫자 위 A: 주변 열기' },
-    { Icon: MousePointerClick, t: '클릭 열기', d: '우클릭 깃발' },
-    { Icon: Flag, t: 'F 깃발 모드', d: '터치는 이 모드로 깃발' },
-  ]
-  return (
-    <div className="px-7">
-      <div className="flex items-baseline justify-between">
-        <Title>MINES</Title>
-        <span className="label">Time {time} · Best {best || '-'}</span>
-      </div>
-      {/* three columns: the two side panels are equal width and centred in their column, so both sit the same distance from the board */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-        {/* left: status + buttons */}
-        <div className="mx-auto flex w-[138px] flex-col items-center gap-3 text-center">
-          <div className="flex items-center justify-center gap-2 text-[22px] font-extrabold leading-none"><Flag size={20} className="fill-accent-red text-accent-red" />{left}</div>
-          <div className="text-[13px] font-bold leading-snug [word-break:keep-all]">{msg}</div>
-          <button type="button" tabIndex={-1} onClick={() => setFlagMode(v => !v)} aria-pressed={flagMode}
-            className={`flex w-full items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-bold ring-1 ${flagMode ? 'bg-accent-red text-white ring-accent-red' : 'bg-card ring-black/10'}`}>
-            <Flag size={13} />깃발 모드 {flagMode ? 'ON' : 'OFF'}
-          </button>
-          <button type="button" tabIndex={-1} onClick={restart} className="w-full rounded-full bg-card px-3 py-1.5 text-[12px] font-bold ring-1 ring-black/10">다시 시작</button>
-        </div>
-        {/* center: the board */}
-        <div className="grid rounded-xl bg-[#c9cdd5] p-1 ring-1 ring-black/10" style={{ gridTemplateColumns: `repeat(${MW}, 22px)`, gap: 2 }} onContextMenu={e => e.preventDefault()}>
-          {board.map((c, i) => (
-            <button key={i} type="button" aria-label={`칸 ${i + 1}`} tabIndex={-1}
-              onClick={() => { setCur(i); act(i) }} onContextMenu={e => { e.preventDefault(); setCur(i); flag(i) }}
-              className={`grid h-[22px] w-[22px] place-items-center rounded-[4px] text-[13px] font-extrabold leading-none
-                ${c.open ? (c.mine ? 'bg-accent-red text-white' : 'bg-[#f3f4f6]') : 'bg-gradient-to-b from-white to-[#dfe3ea] shadow-[0_1px_0_rgba(0,0,0,.25)] hover:to-white'}
-                ${i === cur ? 'ring-2 ring-accent-blue' : ''}`}>
-              {c.open ? (c.mine ? <Bomb size={13} /> : c.n ? <span style={{ color: MCOLORS[c.n] }}>{c.n}</span> : null) : c.flag ? <Flag size={12} className="fill-accent-red text-accent-red" /> : null}
-            </button>
-          ))}
-        </div>
-        {/* right: controls */}
-        <ul className="mx-auto flex w-[138px] flex-col gap-3">
-          {help.map(h => (
-            <li key={h.t} className="flex items-start gap-2.5">
-              <h.Icon size={18} strokeWidth={2} className="mt-px shrink-0 text-accent-blue" />
-              <div className="text-[12px] leading-tight"><div className="font-extrabold">{h.t}</div>{h.d && <div className="mt-0.5 text-[10.5px] text-ink-sub">{h.d}</div>}</div>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  )
+  return <Arcade title="HOME RUN DERBY" score={score} best={best} cv={cv} hint={phase === 'idle' ? `A로 시작 · ◀▶▲▼ 조준(누를수록 이동) · 공이 존에 올 때 A로 스윙 · ${PITCHES}구 · 타자: ${AVATARS[hero].name}` : phase === 'play' ? '◀▶▲▼ 조준 · A 스윙 (조준·타이밍이 맞으면 홈런)' : `끝! ${score}점 · A로 다시 도전`} />
 }
 
 const ARCADE = [
   { name: 'SIDE QUEST', sub: 'A · 점프', color: '#1fb6e8', Icon: Footprints, View: Runner },
-  { name: 'BLOCKS', sub: '떨어지는 블록 쌓기', color: '#a45cff', Icon: LayoutGrid, View: Blocks },
   { name: 'STAR FIGHTER', sub: '우주 슈팅', color: '#ff4b3e', Icon: Rocket, View: Starfighter },
-  { name: 'MINES', sub: '지뢰찾기', color: '#2ea44f', Icon: Bomb, View: Mines },
+  { name: 'YACHT', sub: '주사위 · 1vsCOM / 2P', color: '#e0a21c', Icon: Dices, View: Yacht },
+  { name: 'HOME RUN', sub: 'A · 타이밍', color: '#2ea44f', Icon: CircleDot, View: Baseball },
 ]
 
 /** GAME tab: pick one of the mini games (◀▶ + A); B goes back to this menu. */
