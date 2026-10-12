@@ -228,7 +228,7 @@ function Projects({ s }: { s: State }) {
       {projects.map((p, i) => (
         <div key={p.id} ref={el => { if (i === s.proj) el?.scrollIntoView({ block: 'nearest' }) }}
           role="button" tabIndex={-1} onClick={() => pickRow('PROJECTS', i)}
-          className={`mb-2.5 flex cursor-pointer items-center gap-3 rounded-xl bg-card py-2 pl-2 pr-4 transition-transform hover:scale-[1.01] ${i === s.proj ? FOCUS : REST}`}>
+          className={`mb-2 flex cursor-pointer items-center gap-3 rounded-xl bg-card py-1.5 pl-2 pr-4 transition-transform hover:scale-[1.01] ${i === s.proj ? FOCUS : REST}`}>
           {/* cartridge-style thumbnail with its shelf number */}
           <span className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-lg text-[13px] font-extrabold text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,.3)]" style={{ background: `linear-gradient(155deg, ${PROJ_ART[i % PROJ_ART.length][0]}, ${PROJ_ART[i % PROJ_ART.length][1]})` }}>
             <span aria-hidden className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.4),transparent_55%)]" />
@@ -553,18 +553,24 @@ function Skills() {
   )
 }
 
-const CONTACT_ICON = [{ Icon: Mail, c: '#1fb6e8' }, { Icon: Github, c: '#2b2d33' }, { Icon: Instagram, c: '#e1306c' }]
+// 라벨로 아이콘을 찾는다. Behance는 lucide에 로고가 없어 글자(Bē)로 대신한다.
+const CONTACT_ICON: Record<string, { Icon?: typeof Mail; c: string }> = {
+  Email: { Icon: Mail, c: '#1fb6e8' },
+  GitHub: { Icon: Github, c: '#2b2d33' },
+  Behance: { c: '#1769ff' },
+  Instagram: { Icon: Instagram, c: '#e1306c' },
+}
 function Contact({ s }: { s: State }) {
   const pickRow = useContext(RowContext)
   return (
     <div className="px-7">
       <Title>CONTACT</Title>
       {contactItems.map((c, i) => {
-        const { Icon, c: col } = CONTACT_ICON[i % CONTACT_ICON.length]
+        const { Icon, c: col } = CONTACT_ICON[c.label] ?? CONTACT_ICON.Email
         return (
           <div key={c.label} role="link" tabIndex={-1} onClick={() => { pickRow('CONTACT', i); window.open(c.url, '_blank', 'noopener') }}
-            className={`mb-2.5 flex cursor-pointer items-center gap-3 rounded-xl bg-card py-2 pl-2 pr-4 text-[13px] font-bold transition-transform hover:scale-[1.01] ${i === s.contact ? FOCUS : REST}`}>
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-white shadow-[0_3px_6px_-2px_rgba(0,0,0,.4)]" style={{ background: `linear-gradient(160deg, ${col}, ${col}cc)` }}><Icon size={18} strokeWidth={2.1} /></span>
+            className={`mb-2 flex cursor-pointer items-center gap-3 rounded-xl bg-card py-1.5 pl-2 pr-4 text-[13px] font-bold transition-transform hover:scale-[1.01] ${i === s.contact ? FOCUS : REST}`}>
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-white shadow-[0_3px_6px_-2px_rgba(0,0,0,.4)]" style={{ background: `linear-gradient(160deg, ${col}, ${col}cc)` }}>{Icon ? <Icon size={18} strokeWidth={2.1} /> : <span className="text-[16px] font-black leading-none tracking-tight">Bē</span>}</span>
             {c.label}
             <span className="ml-auto flex items-center gap-1.5 text-[11px] font-normal text-ink-sub">{'handle' in c ? c.handle : profile.email}<ExternalLink size={12} /></span>
           </div>
