@@ -12,6 +12,11 @@
       "handle": "seungwonBeck"
     },
     {
+      "label": "Behance",
+      "url": "https://www.behance.net/dc44a02a",
+      "handle": "dc44a02a"
+    },
+    {
       "label": "Instagram",
       "url": "https://www.instagram.com/a.cc.2.0",
       "handle": "@a.cc.2.0"
@@ -19,19 +24,24 @@
   ],
   "timeline": [
     {
-      "period": "2024 — NOW",
-      "title": "Product Designer & Developer",
-      "desc": "스타트업에서 디자인부터 프론트엔드 구현까지 담당"
+      "period": "2026",
+      "title": "웹디자인 · 퍼블리싱",
+      "desc": "UX/UI 기획, 프로토타이핑, React 반응형 웹 구현"
     },
     {
-      "period": "2022 — 2024",
-      "title": "Frontend Developer",
-      "desc": "React 기반 웹 서비스 개발, 디자인 시스템 구축"
+      "period": "2024",
+      "title": "공연 디자인",
+      "desc": "기획서 작성, 포스터·배너 디자인"
     },
     {
-      "period": "2020 — 2022",
-      "title": "UI Designer",
-      "desc": "모바일 앱 UI/UX 디자인 및 프로토타이핑"
+      "period": "2021 — 2022",
+      "title": "교육 디자인",
+      "desc": "교육 과정 기획, 교육 자료·홍보물 제작"
+    },
+    {
+      "period": "2021 — 2024",
+      "title": "산업디자인 전공",
+      "desc": "시각·브랜드 디자인 기초"
     }
   ],
   "statement": [
