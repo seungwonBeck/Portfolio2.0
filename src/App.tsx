@@ -25,11 +25,15 @@ function Scaled({ children, maxH = Infinity, zoom = 1, dockY, screenOff, overlay
   }, [])
   const k = Math.min(w * zoom, maxH * (CANVAS.w / CANVAS.h)) / CANVAS.w
   const cw = CANVAS.w * k
+  // 콘솔이 화면보다 넓으면 조이콘이 양옆에서 잘린다. 이때 조이콘이 화면 안으로 1~3px만 삐져나오면 가는 줄처럼 보이므로
+  // (뷰포트 폭마다 달라진다) 일정 폭(28px) 미만만 보이는 경우엔 조이콘 부분을 아예 잘라 내고 본체만 보여 준다.
+  const joy = 233 * k, over = Math.max(0, (cw - w) / 2) // 조이콘 폭, 한쪽 가장자리로 넘친 폭
+  const sliver = over > 0 && joy - over > 0 && joy - over < 28
   return (
-    <div ref={box} className="w-full" style={{ '--k': k } as React.CSSProperties}>
+    <div ref={box} className="w-full" style={{ '--k': k, '--joy': `${joy}px` } as React.CSSProperties}>
       {/* zoom > 1 (phone held upright): the console is wider than the screen and centred, its Joy-Cons are cropped by the viewport edges */}
       <div className="relative mx-auto" style={{ width: cw, height: CANVAS.h * k, marginLeft: cw > w ? (w - cw) / 2 : undefined }}>
-        <motion.div className="absolute inset-0" style={dockY ? { y: dockY } : undefined}>
+        <motion.div className={`absolute inset-0 ${sliver ? '[clip-path:inset(-200px_var(--joy)_-200px_var(--joy))]' : ''}`} style={dockY ? { y: dockY } : undefined}>
           <div style={{ width: CANVAS.w, height: CANVAS.h, transform: `scale(${k})`, transformOrigin: 'top left' }}>{children}</div>
           {screenOff && <motion.div aria-hidden className="pointer-events-none absolute bg-[#08080a]" style={{ opacity: screenOff, left: '18%', top: '9.35%', width: '63.5%', height: '81.7%' }} />}
         </motion.div>
