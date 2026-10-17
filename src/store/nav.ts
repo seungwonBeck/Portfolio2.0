@@ -46,7 +46,7 @@ function step(s: State, b: Action): State {
       const { row, i } = b.open
       if (s.screen === 'BOOT' || s.screen === 'LOAD') return s
       if (s.screen !== 'HOME' && !(row === 'dock' && DOCK[i] === 'ABOUT')) return s // 프로필 클릭: 어느 화면에서든 ABOUT으로 이동
-      if (row === 'dock') return { ...s, row, dock: i, screen: DOCK[i], hits: 0, dir: 1 }
+      if (row === 'dock') return { ...s, row: 'tile', dock: i, screen: DOCK[i], hits: 0, dir: 1 } // 홈 화면에 독이 없으므로 항상 타일 줄에 포커스
       if (TILES[i] === 'PROJECTS' && s.only !== null) return { ...s, row, home: i, screen: 'DETAIL', proj: s.only, dir: 1 }
       return { ...s, row, home: i, screen: TILES[i], hits: 0, dir: 1 }
     }
@@ -79,14 +79,12 @@ function step(s: State, b: Action): State {
         return { ...s, avatar: o[i < 0 ? 0 : clamp(i + d, o.length)] }
       }
       if (s.screen !== 'HOME') return s
-      return s.row === 'tile' ? { ...s, home: clamp(s.home + d, TILES.length) } : { ...s, dock: clamp(s.dock + d, DOCK.length) }
+      return { ...s, home: clamp(s.home + d, TILES.length) }
     case 'up': case 'down':
-      if (s.screen === 'HOME') return { ...s, row: b === 'up' ? 'tile' : 'dock' }
       if (s.screen === 'PROJECTS') return { ...s, proj: clamp(s.proj + d, projects.length) }
       if (s.screen === 'CONTACT') return { ...s, contact: clamp(s.contact + d, contactItems.length) }
       return s
     case 'A':
-      if (s.screen === 'HOME' && s.row === 'dock') return { ...s, screen: DOCK[s.dock], hits: 0, dir: 1 }
       // the project tile is the cartridge in the console: it opens that project, or the list if nothing is inserted
       if (s.screen === 'HOME' && TILES[s.home] === 'PROJECTS' && s.only !== null) return { ...s, screen: 'DETAIL', proj: s.only, dir: 1 }
       if (s.screen === 'HOME') return { ...s, screen: TILES[s.home], hits: 0, dir: 1 }

@@ -36,9 +36,9 @@ function Battery() {
   const low = level <= 20 && !charging
   return (
     <span role="img" aria-label={`배터리 ${level}%`} className="flex items-center">
-      <span className="relative h-[14px] w-[30px] overflow-hidden rounded-[4px] border-[1.5px] border-ink/25">
+      <span className="relative h-[14px] w-[30px] overflow-hidden rounded-[4px] border-[1.5px] border-ink/40">
         <span className={`absolute inset-y-0 left-0 ${low ? 'bg-[#ff453a]' : 'bg-[#4cd964]'}`} style={{ width: `${Math.max(level, 6)}%` }} />
-        <span className="absolute inset-0 grid place-items-center text-[8px] font-semibold leading-none text-ink/45">{level}</span>
+        <span className="absolute inset-0 grid place-items-center text-[9px] font-extrabold leading-none text-white [text-shadow:0_1px_1px_rgba(0,0,0,.6)]">{level}</span>
       </span>
       <span aria-hidden className="ml-[1px] h-[5px] w-[2px] rounded-r-full bg-ink/25" />
     </span>
@@ -89,10 +89,10 @@ function Home({ s }: { s: State }) {
   const open = useContext(OpenContext)
   const cur = TILES[s.home]
   return (
-    <div className="relative h-full">
-      <div className="absolute inset-x-0 top-0 overflow-hidden py-4 pl-7">
-      {/* the row slides left so the focused tile stays on screen (one tile = 132px + 14px gap) */}
-      <motion.div className="flex gap-3.5 py-1" animate={{ x: -Math.max(0, s.home - 2) * 146 }} transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}>
+    <div className="relative flex h-full flex-col items-center justify-center">
+      <div className="overflow-hidden px-2 py-3">
+      {/* 다섯 칸(116px 정사각형 + 간격 8px)이 한 줄에 다 보이고, 타일 줄과 이름·설명은 화면 가운데에 놓는다 */}
+      <div className="flex gap-2.5 py-1">
         {TILES.map((t, i) => {
           const sel = tileFocus && i === s.home
           const [hi, lo] = TILE_ART[t]
@@ -100,8 +100,8 @@ function Home({ s }: { s: State }) {
           const chip = t === 'PROJECTS' && s.only !== null // 칩이 꽂히면 이 칸은 그 프로젝트의 로고 + 제목으로 바뀐다
           return (
             <div key={t} className="shrink-0">
-              <motion.button aria-label={label(t)} onClick={() => open('tile', i)} animate={{ scale: sel ? 1.07 : 1, y: sel ? -3 : 0 }} transition={{ type: 'spring', stiffness: 380, damping: 26 }}
-                className={`relative block h-[132px] w-[132px] overflow-hidden rounded-[14px] text-left ${sel ? 'animate-[tileGlow_1.6s_ease-in-out_infinite]' : 'shadow-[0_8px_16px_-6px_rgba(0,0,0,.35)]'}`}
+              <motion.button aria-label={label(t)} onClick={() => open('tile', i)} animate={{ scale: sel ? 1.04 : 1, y: sel ? -3 : 0 }} transition={{ type: 'spring', stiffness: 380, damping: 26 }}
+                className={`relative block h-[116px] w-[116px] overflow-hidden rounded-[14px] text-left ${sel ? 'animate-[tileGlow_1.6s_ease-in-out_infinite]' : 'shadow-[0_8px_16px_-6px_rgba(0,0,0,.35)]'}`}
                 style={{ background: `linear-gradient(155deg, ${hi} 0%, ${lo} 100%)` }}>
                 {chip ? (
                   <>
@@ -114,48 +114,29 @@ function Home({ s }: { s: State }) {
                 ) : (
                   <>
                     {/* big faint glyph as the box art, a sheen from the top-left, a rim light, then the title on a scrim */}
-                    <Icon aria-hidden size={92} strokeWidth={1.2} className="absolute -right-3 -top-2 text-white/25" />
+                    <Icon aria-hidden size={84} strokeWidth={1.2} className="absolute -right-3 -top-1 text-white/25" />
                     <span aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.06) 38%, transparent 52%)' }} />
                     <span aria-hidden className="absolute inset-0 rounded-[14px]" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,.28), inset 0 -26px 34px -18px rgba(0,0,0,.5)' }} />
-                    <span className="absolute left-3 top-3 grid h-7 w-7 place-items-center rounded-lg bg-white/90 shadow-[0_2px_4px_rgba(0,0,0,.25)]"><Icon size={16} strokeWidth={2.2} style={{ color: lo }} /></span>
-                    <span className="absolute inset-x-0 bottom-0 p-3 text-[15px] font-bold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,.45)]">{label(t)}</span>
+                    <span className="absolute left-2.5 top-2.5 grid h-8 w-8 place-items-center rounded-xl bg-white/90 shadow-[0_2px_4px_rgba(0,0,0,.25)]"><Icon size={18} strokeWidth={2.2} style={{ color: lo }} /></span>
+                    <span className="absolute inset-x-0 bottom-0 p-2.5 text-[15px] font-extrabold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,.45)]">{label(t)}</span>
                   </>
                 )}
               </motion.button>
             </div>
           )
         })}
-        <div className="shrink-0"><div className="h-[132px] w-[132px] rounded-[14px] bg-black/[.06] shadow-[inset_0_2px_6px_rgba(0,0,0,.12)] ring-1 ring-black/5" /></div>
-      </motion.div>
+      </div>
       </div>
       {/* the focused tile's name and blurb */}
-      <div className="absolute inset-x-0 top-[176px] h-10 pl-7 pr-7">
+      <div className="mt-5 h-12 w-full px-7 text-center">
         <AnimatePresence mode="wait" initial={false}>
           {tileFocus && (
             <motion.div key={cur} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.16 }}>
-              <div className="text-[15px] font-extrabold leading-tight">{label(cur)}</div>
-              <div className="text-[11px] text-ink-sub">{s.only !== null && cur === 'PROJECTS' ? projects[s.only].summary : TILE_SUB[cur]}</div>
+              <div className="text-[17px] font-extrabold leading-tight">{label(cur)}</div>
+              <div className="mt-0.5 text-[13px] text-ink-sub">{s.only !== null && cur === 'PROJECTS' ? projects[s.only].summary : TILE_SUB[cur]}</div>
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-      {/* dock: the five menus as round coloured icons */}
-      <div className="absolute inset-x-0 bottom-1 flex flex-col items-center">
-        <div className="flex items-center gap-[18px]">
-          {DOCK.map((t, i) => {
-            const Icon = tileIcon[t]
-            const sel = !tileFocus && i === s.dock
-            return (
-              <motion.button key={t} aria-label={t} onClick={() => open('dock', i)} animate={{ scale: sel ? 1.18 : 1 }} transition={{ type: 'spring', stiffness: 380, damping: 24 }}
-                className={`relative grid h-[38px] w-[38px] place-items-center rounded-full shadow-[0_4px_8px_-2px_rgba(0,0,0,.35)] ${sel ? 'ring-[3px] ring-accent-blue ring-offset-[3px] ring-offset-screen' : 'ring-2 ring-white/80'}`}
-                style={{ background: `linear-gradient(160deg, ${dockColor[t]}, ${dockColor[t]}cc)` }}>
-                <span aria-hidden className="absolute inset-x-1 top-0.5 h-1/2 rounded-full bg-gradient-to-b from-white/45 to-transparent" />
-                <Icon size={19} strokeWidth={2} className="relative text-white" />
-              </motion.button>
-            )
-          })}
-        </div>
-        <div className="mt-1.5 h-4 text-[12px] font-bold text-accent-blue">{tileFocus ? '' : DOCK[s.dock]}</div>
       </div>
     </div>
   )
@@ -212,9 +193,9 @@ function About({ s }: { s: State }) {
       <div className="label mb-2">Timeline</div>
       {profile.timeline.map(t => (
         <div key={t.period} className="mb-3 border-l-2 border-accent-blue pl-3">
-          <div className="text-[10px] font-semibold text-accent-blue">{t.period}</div>
+          <div className="text-[11px] font-semibold text-accent-blue">{t.period}</div>
           <div className="text-[13px] font-bold">{t.title}</div>
-          <div className="text-[11px] text-ink-sub">{t.desc}</div>
+          <div className="text-[12px] text-ink-sub">{t.desc}</div>
         </div>
       ))}
     </Scroll>
@@ -237,13 +218,13 @@ function Projects({ s }: { s: State }) {
           </span>
           <div className="min-w-0 flex-1">
             <div className="truncate text-[13px] font-bold">{p.title}</div>
-            <div className="truncate text-[11px] text-ink-sub">{p.summary}</div>
+            <div className="truncate text-[12px] text-ink-sub">{p.summary}</div>
           </div>
           {(p as { soon?: boolean }).soon ? (
-            <span className="rounded-full bg-accent-blue/10 px-2.5 py-0.5 text-[10px] font-bold text-accent-blue">COMING SOON</span>
+            <span className="rounded-full bg-accent-blue/10 px-2.5 py-0.5 text-[11px] font-bold text-accent-blue">COMING SOON</span>
           ) : (
             <>
-              <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-[10px] font-bold text-ink-sub">{p.role}</span>
+              <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-[11px] font-bold text-ink-sub">{p.role}</span>
               <span className="label">{p.period.slice(0, 4)}</span>
             </>
           )}
@@ -286,7 +267,7 @@ function ChipBadge({ i, className = '', bare = false }: { i: number; className?:
 /** A photo slot: the project's own picture when `images[k]` is filled in projects.json, otherwise a box-art placeholder in the project colours. */
 function Photo({ src, i, k, className = '', plain = false, contain = false }: { src?: string; i: number; k: number; className?: string; plain?: boolean; contain?: boolean }) {
   return (
-    <div className={`relative overflow-hidden rounded-xl ${contain ? 'bg-[#f2f3f0]' : 'bg-[#d9d9d9]'} ${plain ? '' : 'shadow-[0_8px_16px_-8px_rgba(0,0,0,.4)]'} ${className}`}>
+    <div className={`relative overflow-hidden rounded-xl ${contain ? 'bg-d-bg2' : 'bg-[#d9d9d9]'} ${plain ? '' : 'shadow-[0_8px_16px_-8px_rgba(0,0,0,.4)]'} ${className}`}>
       {src ? <img src={src} alt="" draggable={false} loading="lazy" decoding="async" className={`absolute inset-0 h-full w-full ${contain ? 'object-contain' : 'object-cover'}`} /> : (
         <>
           <Thumb i={i} className="absolute inset-0" />
@@ -299,6 +280,22 @@ function Photo({ src, i, k, className = '', plain = false, contain = false }: { 
 }
 
 /** The big hero photo as an auto-advancing slideshow: each slide sweeps in from the right with a horizontal motion-blur streak while the old one is pulled out to the left. Uses the project's own pictures, or box-art colour cards until they exist. */
+/** 사진을 64×16 캔버스에 꽉 채워(cover) 그려 두면, 화면에 늘려 보일 때 부드럽게 번져 흐린 배경처럼 보인다. */
+function GlowCanvas({ src }: { src: string }) {
+  const ref = useRef<HTMLCanvasElement>(null)
+  useEffect(() => {
+    const im = new Image()
+    im.onload = () => {
+      const c = ref.current, g = c?.getContext('2d')
+      if (!c || !g) return
+      const r = Math.max(c.width / im.width, c.height / im.height)
+      g.drawImage(im, (c.width - im.width * r) / 2, (c.height - im.height * r) / 2, im.width * r, im.height * r)
+    }
+    im.src = src
+  }, [src])
+  return <canvas ref={ref} width={64} height={16} className="h-full w-full" />
+}
+
 function HeroSlides({ imgs: all, i, className = '', contain = false, dark = false, glow = false }: { imgs: string[]; i: number; className?: string; contain?: boolean; dark?: boolean; glow?: boolean }) {
   const imgs = [...new Set(all)] // 같은 사진이 여러 칸에 쓰여도 슬라이드는 한 번만
   const n = imgs.length || 4
@@ -307,22 +304,27 @@ function HeroSlides({ imgs: all, i, className = '', contain = false, dark = fals
     const t = setInterval(() => setIdx(v => (v + 1) % n), 1500)
     return () => clearInterval(t)
   }, [n])
+  // 다음 사진이 넘어오는 순간 비어 보이지 않도록 모든 사진을 미리 받아 둔다
+  useEffect(() => { imgs.forEach(src => { const im = new Image(); im.decoding = 'async'; im.src = src }) }, [imgs.join('|')]) // eslint-disable-line react-hooks/exhaustive-deps
   return (
-    <div className={`relative overflow-hidden ${dark ? 'bg-[#0d0d0f]' : contain ? 'bg-[#f2f3f0]' : 'bg-[#d9d9d9]'} ${className}`}>
-      {/* glow: 지금 슬라이드를 흐리게 키워 뒤에 깔아, 슬라이드 양옆 빈 곳이 같은 사진 색으로 번지게 한다 */}
+    <div className={`relative overflow-hidden ${dark ? 'bg-[#0d0d0f]' : contain ? 'bg-d-bg2' : 'bg-[#d9d9d9]'} ${className}`}>
+      {/* glow: 지금 슬라이드를 아주 작은 캔버스에 줄여 그린 뒤 늘려서(흐린 효과) 뒤에 깔아, 슬라이드 양옆 빈 곳이 같은 사진 색으로 번지게 한다.
+          blur 필터는 확대 화면에서 매 프레임 다시 그려져 끊겨서 쓰지 않는다. */}
       {glow && imgs.length > 0 && (
         <AnimatePresence initial={false}>
-          <motion.img key={`g${idx}`} aria-hidden src={imgs[idx]} alt="" draggable={false} decoding="async" className="pointer-events-none absolute inset-0 h-full w-full scale-125 object-cover blur-2xl"
-            initial={{ opacity: 0 }} animate={{ opacity: 0.55 }} exit={{ opacity: 0 }} transition={{ duration: 0.45 }} />
+          <motion.div key={`g${idx}`} aria-hidden className="pointer-events-none absolute inset-0"
+            initial={{ opacity: 0 }} animate={{ opacity: 0.55 }} exit={{ opacity: 0.55, transition: { duration: 0, delay: 0.45 } }} transition={{ duration: 0.45 }}>
+            <GlowCanvas src={imgs[idx]} />
+          </motion.div>
         </AnimatePresence>
       )}
       <AnimatePresence initial={false}>
         <motion.div
           key={idx}
-          className="absolute inset-0"
-          initial={{ x: '100%', scaleX: 1.08, filter: 'blur(8px)' }}
-          animate={{ x: 0, scaleX: 1, filter: 'blur(0px)' }}
-          exit={{ x: '-45%', opacity: 0 }}
+          className="absolute inset-0 [will-change:transform]"
+          initial={{ x: '100%' }}
+          animate={{ x: 0 }}
+          exit={{ x: '-30%' }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         >
           {imgs.length ? <img src={imgs[idx]} alt="" draggable={false} decoding="async" className={`h-full w-full ${contain ? 'object-contain' : 'object-cover'}`} /> : (
@@ -343,7 +345,7 @@ function HeroSlides({ imgs: all, i, className = '', contain = false, dark = fals
 
 // 프로젝트 페이지 글자 규격: 띠 제목·본문·라벨 간격을 모든 띠에서 같게 쓴다
 const H3 = 'mb-1.5 text-[16px] font-extrabold leading-[1.3] tracking-tight'
-const BODY = 'text-[10px] leading-[1.6]'
+const BODY = 'text-[11px] leading-[1.6]'
 const Eyebrow = ({ children, dark = false }: { children: ReactNode; dark?: boolean }) => (
   <div className={`mb-1 text-[10px] font-bold leading-none tracking-wide ${dark ? 'text-[#4aa3ff]' : 'text-[#0a6cff]'}`}>{children}</div>
 )
@@ -392,41 +394,41 @@ function Detail({ s }: { s: State }) {
   const soon = !!(p as { soon?: boolean }).soon // 준비중인 작업: 상세 내용 대신 안내만 보여 준다
   const showBtns = !!site || !banners // 링크가 없는 배너 작업은 버튼 줄 자체를 숨김
   const siteBtn = (cls: string) => site ? (
-    <a href={site} target="_blank" rel="noopener" className={`inline-flex items-center gap-1 rounded-full text-[11px] font-bold hover:brightness-110 ${cls}`}>{siteLabel} <ExternalLink size={12} /></a>
+    <a href={site} target="_blank" rel="noopener" className={`inline-flex items-center gap-1 rounded-full text-[12px] font-bold hover:brightness-110 ${cls}`}>{siteLabel} <ExternalLink size={12} /></a>
   ) : (
-    <span aria-disabled className="inline-block cursor-not-allowed rounded-full bg-black/[.08] px-3.5 py-1 text-[11px] font-bold text-ink-sub">링크 준비 중</span>
+    <span aria-disabled className="inline-block cursor-not-allowed rounded-full bg-black/[.08] px-3.5 py-1 text-[12px] font-bold text-ink-sub">링크 준비 중</span>
   )
-  const downloadBtn = (cls: string) => pdfOnly ? <a href={pdfHref} download className={`inline-flex items-center gap-1 rounded-full text-[11px] font-bold hover:brightness-110 ${cls}`}>PDF 다운로드 <Download size={12} /></a> : null
+  const downloadBtn = (cls: string) => pdfOnly ? <a href={pdfHref} download className={`inline-flex items-center gap-1 rounded-full text-[12px] font-bold hover:brightness-110 ${cls}`}>PDF 다운로드 <Download size={12} /></a> : null
   if (soon) return (
-    <div data-scroll className="flex h-full flex-col bg-[#f4f6fb] [scrollbar-width:none]">
+    <div data-scroll className="flex h-full flex-col bg-d-bg1 [scrollbar-width:none]">
       <div className="flex shrink-0 items-start justify-between gap-3 px-4 pb-4 pt-4">
         <div className="min-w-0">
           <Eyebrow>{p.role}</Eyebrow>
-          <h2 className="mb-1.5 text-[24px] font-extrabold leading-[1.2] tracking-tight text-[#16171a]">{p.title}</h2>
-          <p className="text-[11px] leading-[1.4] text-[#6b6f78]">{p.summary}</p>
+          <h2 className="mb-1.5 text-[24px] font-extrabold leading-[1.2] tracking-tight text-ink">{p.title}</h2>
+          <p className="text-[12px] leading-[1.4] text-d-sub">{p.summary}</p>
         </div>
         <ChipBadge i={s.proj} className="mt-1 w-[76px]" />
       </div>
       <div className="grid min-h-0 flex-1 place-items-center px-4 pb-6 text-center">
         <div>
-          <div className="text-[30px] font-extrabold tracking-tight text-[#16171a]">준비중입니다</div>
-          <p className="mt-2 text-[12px] leading-[1.6] text-[#6b6f78]">더 좋은 모습으로 곧 찾아뵙겠습니다.</p>
+          <div className="text-[30px] font-extrabold tracking-tight text-ink">준비중입니다</div>
+          <p className="mt-2 text-[12px] leading-[1.6] text-d-sub">더 좋은 모습으로 곧 찾아뵙겠습니다.</p>
         </div>
       </div>
     </div>
   )
   return (
     <div className="relative h-full">
-    <div data-scroll className="h-full overflow-y-auto bg-white [scrollbar-width:none]">
+    <div data-scroll className="h-full overflow-y-auto bg-d-band [scrollbar-width:none]">
       {/* hero: left-aligned text with the button set apart from the title, then the photo edge to edge */}
-      <section className="relative flex h-full flex-col overflow-hidden bg-[#f4f6fb]">
+      <section className="relative flex h-full flex-col overflow-hidden bg-d-bg1">
         {/* 슬라이드형 작업: 메인 사진을 첫 화면 전체 배경에 흐리고 옅게 깐다 */}
         {(fit === 'slide' || fit === 'a4') && slideImgs[0] && <img aria-hidden src={slideImgs[0]} alt="" draggable={false} decoding="async" className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-2xl" />}
         <div className="relative flex shrink-0 items-start justify-between gap-3 px-4 pb-4 pt-4">
           <div className="min-w-0">
             <Eyebrow>{p.role}</Eyebrow>
-            <h2 className="mb-1.5 text-[24px] font-extrabold leading-[1.2] tracking-tight text-[#16171a]">{p.title}</h2>
-            <p className="line-clamp-1 text-[11px] leading-[1.4] text-[#6b6f78]">{p.summary}</p>
+            <h2 className="mb-1.5 text-[24px] font-extrabold leading-[1.2] tracking-tight text-ink">{p.title}</h2>
+            <p className="line-clamp-1 text-[12px] leading-[1.4] text-d-sub">{p.summary}</p>
             {showBtns && <div className="mt-3 flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-4 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
           </div>
           <ChipBadge i={s.proj} className="mt-1 w-[76px]" />
@@ -436,12 +438,12 @@ function Detail({ s }: { s: State }) {
 
       {/* 띠마다 글자는 가운데 정렬, 사진은 그 아래 가운데에 놓는다 */}
       {/* band 1: white, text, then the photo on a grey panel */}
-      <section className="bg-white px-4 py-6 text-center">
+      <section className="bg-d-band px-4 py-6 text-center">
         <Eyebrow>{banners ? 'Concept' : 'Overview'}</Eyebrow>
-        <h3 className={`${H3} text-[#16171a]`}>{sec[0].title}</h3>
-        <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[0].text}</p>
+        <h3 className={`${H3} text-ink`}>{sec[0].title}</h3>
+        <p className={`mx-auto max-w-[460px] ${BODY} text-d-body`}>{sec[0].text}</p>
         {!banners && (
-          <div className={`mx-auto mt-4 ${panelW} rounded-xl bg-[#f1f2f7] p-2.5`}>
+          <div className={`mx-auto mt-4 ${panelW} rounded-xl bg-d-bg2 p-2.5`}>
             <Photo src={imgs[1]} i={s.proj} k={1} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
           </div>
         )}
@@ -449,27 +451,27 @@ function Detail({ s }: { s: State }) {
 
       {/* 배너 목록: 사진은 왼쪽, 브랜드 로고·상품명·설명은 오른쪽. 내용이 비어 있으면 자리표시로 틀만 보여 준다 */}
       {banners && (
-        <section className="bg-[#f6f7fb] px-4 py-2">
+        <section className="bg-d-bg3 px-4 py-2">
           {banners.map((b, k) => (
             <div key={k} className="mx-auto flex max-w-[560px] items-center gap-8 border-b border-black/[.06] py-5 last:border-b-0">
               <div className="w-[34%] shrink-0">
-                <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-[#e6e8ef]">
+                <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-d-line">
                   {b.image ? <img src={resolve(b.image)} alt="" draggable={false} decoding="async" className="absolute inset-0 h-full w-full object-contain" /> : (
-                    <span aria-hidden className="absolute inset-0 grid place-items-center text-[11px] font-extrabold tracking-[0.2em] text-[#9aa0ad]">BANNER {String(k + 1).padStart(2, '0')}</span>
+                    <span aria-hidden className="absolute inset-0 grid place-items-center text-[11px] font-extrabold tracking-[0.2em] text-d-mute">BANNER {String(k + 1).padStart(2, '0')}</span>
                   )}
                 </div>
                 {/* 사진 바로 밑: 확대해서 보기 (사진이 아직 없으면 눌리지 않게 흐리게) */}
                 <button type="button" tabIndex={-1} disabled={!b.image} onClick={() => setZoomSrc(resolve(b.image))}
-                  className="mt-2 flex w-full items-center justify-center gap-1 rounded-full bg-white py-1 text-[10px] font-bold text-[#0a6cff] ring-1 ring-[#0a6cff]/40 hover:brightness-95 disabled:cursor-not-allowed disabled:text-[#9aa0ad] disabled:ring-black/10">
+                  className="mt-2 flex w-full items-center justify-center gap-1 rounded-full bg-white py-1 text-[10px] font-bold text-[#0a6cff] ring-1 ring-[#0a6cff]/40 hover:brightness-95 disabled:cursor-not-allowed disabled:text-d-mute disabled:ring-black/10">
                   확대해서 보기 <Maximize2 size={11} />
                 </button>
               </div>
               <div className="min-w-0 flex-1 text-left">
                 <div className="mb-3 flex h-8 items-center">
-                  {b.logo ? <img src={resolve(b.logo)} alt="" draggable={false} decoding="async" className="max-h-8 max-w-[70%] object-contain" /> : <span className="text-[11px] font-extrabold tracking-[0.2em] text-[#b4b9c4]">BRAND LOGO</span>}
+                  {b.logo ? <img src={resolve(b.logo)} alt="" draggable={false} decoding="async" className="max-h-8 max-w-[70%] object-contain" /> : <span className="text-[11px] font-extrabold tracking-[0.2em] text-d-faint">BRAND LOGO</span>}
                 </div>
-                <div className="mb-1.5 text-[14px] font-extrabold leading-[1.3] text-[#16171a]">{b.name || '상품명'}</div>
-                <p className={`${BODY} text-[#3c3f46]`}>{b.text || '브랜드와 상품에 대한 설명이 들어가는 자리입니다.'}</p>
+                <div className="mb-1.5 text-[14px] font-extrabold leading-[1.3] text-ink">{b.name || '상품명'}</div>
+                <p className={`${BODY} text-d-body`}>{b.text || '브랜드와 상품에 대한 설명이 들어가는 자리입니다.'}</p>
               </div>
             </div>
           ))}
@@ -477,17 +479,17 @@ function Detail({ s }: { s: State }) {
       )}
 
       {/* band 2: white, text, the big number 24px under it, then the photo panel */}
-      <section className="bg-white px-4 py-6 text-center">
+      <section className="bg-d-band px-4 py-6 text-center">
         <Eyebrow>Role</Eyebrow>
-        <h3 className={`${H3} text-[#16171a]`}>{sec[2].title}</h3>
-        <p className={`mx-auto max-w-[460px] ${BODY} text-[#3c3f46]`}>{sec[2].text}</p>
+        <h3 className={`${H3} text-ink`}>{sec[2].title}</h3>
+        <p className={`mx-auto max-w-[460px] ${BODY} text-d-body`}>{sec[2].text}</p>
         <div className="mx-auto mt-6 flex max-w-[460px] justify-center">
-          <div className="w-[35%]"><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.period}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">작업 기간</div></div>
-          <div className="w-[35%]"><div className="text-[22px] font-extrabold leading-none text-[#16171a]">100%</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">작업 비중</div></div>
-          {tools && <div className="w-[30%]"><div className="text-[10px] font-extrabold leading-[22px] text-[#16171a]">{tools.split(' · ').map(t => <span key={t} className="mx-[2px] inline-block whitespace-nowrap">{t}</span>)}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">사용 도구</div></div>}
+          <div className="w-[35%]"><div className="text-[22px] font-extrabold leading-none text-ink">{p.period}</div><div className="mt-1.5 text-[9px] text-d-sub">작업 기간</div></div>
+          <div className="w-[35%]"><div className="text-[22px] font-extrabold leading-none text-ink">100%</div><div className="mt-1.5 text-[9px] text-d-sub">작업 비중</div></div>
+          {tools && <div className="w-[30%]"><div className="text-[11px] font-extrabold leading-[22px] text-ink">{tools.split(' · ').map(t => <span key={t} className="mx-[2px] inline-block whitespace-nowrap">{t}</span>)}</div><div className="mt-1.5 text-[9px] text-d-sub">사용 도구</div></div>}
         </div>
         {!banners && (
-          <div className={`mx-auto mt-4 ${panelW} rounded-xl bg-[#f1f2f7] p-2.5`}>
+          <div className={`mx-auto mt-4 ${panelW} rounded-xl bg-d-bg2 p-2.5`}>
             <Photo src={imgs[4]} i={s.proj} k={4} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
           </div>
         )}
@@ -508,7 +510,7 @@ function Detail({ s }: { s: State }) {
         <motion.div key="zoom" className="absolute inset-0 z-10 grid place-items-center bg-black/85 p-3" onClick={() => setZoomSrc(null)}
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
           <img src={zoomSrc} alt="" draggable={false} className="max-h-full max-w-full rounded-lg object-contain" />
-          <button type="button" tabIndex={-1} aria-label="닫기" onClick={() => setZoomSrc(null)} className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full bg-white/90 text-[#16171a] hover:bg-white"><X size={15} strokeWidth={2.6} /></button>
+          <button type="button" tabIndex={-1} aria-label="닫기" onClick={() => setZoomSrc(null)} className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full bg-white/90 text-ink hover:bg-white"><X size={15} strokeWidth={2.6} /></button>
         </motion.div>
       )}
     </AnimatePresence>

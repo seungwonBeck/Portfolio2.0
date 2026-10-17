@@ -30,15 +30,21 @@
   --color-ink-sub: #8a8b90;
   --color-screen: #ededed;
   --color-card: #ffffff;
+  /* 프로젝트 상세 화면 전용 색 (야간 모드에서는 아래 .screen-dark 에서 덮어쓴다) */
+  --color-d-sub: #6b6f78; --color-d-body: #3c3f46; --color-d-mute: #9aa0ad; --color-d-faint: #b4b9c4;
+  --color-d-bg1: #f4f6fb; --color-d-bg2: #f1f2f7; --color-d-bg3: #f6f7fb; --color-d-line: #e6e8ef; --color-d-band: #ffffff;
 }
 
 /* everything inside the device screen uses Paperlogy (beats the .font-display / .font-court / .label overrides) */
 .screen-font, .screen-font * { font-family: 'Paperlogy', 'Pretendard', 'Malgun Gothic', system-ui, sans-serif !important; }
 
 /* device screen dark theme: same tokens, overridden below the .screen-dark node */
-.screen-dark { --color-screen: #2d2d30; --color-card: #3a3a3f; --color-ink: #f2f2f2; --color-ink-sub: #a0a1a6; }
+.screen-dark { --color-screen: #2d2d30; --color-card: #3a3a3f; --color-ink: #f2f2f2; --color-ink-sub: #a0a1a6;
+  --color-d-sub: #a6a9b2; --color-d-body: #cfd1d8; --color-d-mute: #7d8190; --color-d-faint: #5d6170;
+  --color-d-bg1: #202126; --color-d-bg2: #292a30; --color-d-bg3: #1b1c1f; --color-d-line: #34353b; --color-d-band: #17181b; }
 
-body { background: var(--color-bg); color: var(--color-ink); font-family: var(--font-sans); font-weight: 400; }
+/* Switch 2 (2025) 배경 느낌: 왼쪽 하늘색 → 가운데 은은한 회보라 → 오른쪽 코랄. 눈이 편하도록 채도를 낮춘 파스텔 */
+body { background: var(--color-bg) linear-gradient(to right, #a9dcec 0%, #cfe6ee 30%, #ebe6ec 50%, #f1cfcc 75%, #f3bdb7 100%); color: var(--color-ink); font-family: var(--font-sans); font-weight: 400; }
 
 .label { font-family: var(--font-court); font-size: 10px; font-weight: 300; letter-spacing: 0.15em; text-transform: uppercase; color: var(--color-ink-sub); }
 
@@ -73,8 +79,8 @@ body { background: var(--color-bg); color: var(--color-ink); font-family: var(--
   55%, 100% { transform: rotate(-90deg); }
 }
 
-/* focused home tile: a white frame and a cyan frame that pulse, with a soft cyan glow under it */
+/* focused home tile: a white frame and a cyan frame that pulse (아래로 번지는 하늘색 그림자는 없앴다) */
 @keyframes tileGlow {
-  0%, 100% { box-shadow: 0 0 0 3px var(--color-screen), 0 0 0 6px #1fb6e8, 0 10px 22px -4px rgba(31,182,232,.5); }
-  50% { box-shadow: 0 0 0 3px var(--color-screen), 0 0 0 6px #8fe3ff, 0 14px 30px -4px rgba(31,182,232,.8); }
+  0%, 100% { box-shadow: 0 0 0 3px var(--color-screen), 0 0 0 6px #1fb6e8; }
+  50% { box-shadow: 0 0 0 3px var(--color-screen), 0 0 0 6px #8fe3ff; }
 }
