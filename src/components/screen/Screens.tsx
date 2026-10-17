@@ -201,17 +201,18 @@ function Projects({ s }: { s: State }) {
     return f ? (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`) : ''
   }
   return (
-    <div className="h-full overflow-y-auto px-7 pb-4 pt-0.5 [scrollbar-width:none]">
-      <Title>PROJECTS</Title>
-      <div className="grid grid-cols-2 gap-3 pb-1">
+    <div className="h-full overflow-y-auto px-5 pb-12 pt-1 [scrollbar-width:none]">
+      {/* 바깥 여백·제목과 카드 사이·카드 사이를 모두 20px로 같게 맞춘다 (아래는 화면 하단 조작 막대가 가리는 높이만큼 더 비운다) */}
+      <div className="mb-2"><Title>PROJECTS</Title></div>
+      <div className="grid grid-cols-2 gap-5">
         {projects.map((p, i) => {
           const soon = (p as { soon?: boolean }).soon
           const img = cover(p)
           return (
             <div key={p.id} ref={el => { if (i === s.proj) el?.scrollIntoView({ block: 'nearest' }) }}
               role="button" tabIndex={-1} onClick={() => pickRow('PROJECTS', i)}
-              className={`cursor-pointer overflow-hidden rounded-xl bg-card transition-transform hover:scale-[1.01] ${i === s.proj ? FOCUS : REST}`}>
-              <div className="relative aspect-[2/1] w-full overflow-hidden bg-d-bg2">
+              className={`scroll-mb-12 scroll-mt-5 cursor-pointer overflow-hidden rounded-xl bg-card transition-transform hover:scale-[1.01] ${i === s.proj ? FOCUS : REST}`}>
+              <div className="relative aspect-[9/4] w-full overflow-hidden bg-d-bg2">
                 {img ? <img src={img} alt="" draggable={false} decoding="async" className="absolute inset-0 h-full w-full object-cover object-top" />
                   : <ChipBadge i={i} bare className="!absolute !inset-0 !aspect-auto !rounded-none !shadow-none !ring-0" />}
                 <span className="absolute left-2 top-2 rounded-md bg-black/55 px-1.5 py-0.5 text-[11px] font-extrabold text-white">{String(i + 1).padStart(2, '0')}</span>
