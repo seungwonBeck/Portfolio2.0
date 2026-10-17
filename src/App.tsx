@@ -171,9 +171,11 @@ function Hero({ children, tv, onPick, onPickTv, onPress, onZoom, away }: { child
   const short = vh <= 500 && innerWidth > vh
   const portraitPhone = innerWidth < 768 && vh > innerWidth
   const ZOOM = portraitPhone ? 1.5 : short ? 1.3 : 1 // 폰: 확대샷 (기기 화면을 크게, 조이콘은 화면 가장자리에서 잘린다)
-  const PT = short ? 8 : portraitPhone ? 12 : 56 // stage top padding
-  const stagePad = short ? 'px-3 pt-2' : portraitPhone ? 'px-5 pt-3' : 'px-5 pt-14 md:px-20' 
-  const maxH = short ? vh - PT - 12 : Math.max(220, vh - topB - 80) // measured title + chips block (+56 frame padding, 24 breathing room): everything fits one viewport
+  // 데스크톱: 칩 줄 → 화면크게 버튼 → 기기 사이 간격을 같게 맞추려고 기기 위 여백을 32px 줄였다 (버튼 위 간격 mt-8 = 32px)
+  const GAP_SHIFT = short || portraitPhone ? 0 : 32
+  const PT = short ? 8 : portraitPhone ? 12 : 56 - GAP_SHIFT // stage top padding
+  const stagePad = short ? 'px-3 pt-2' : portraitPhone ? 'px-5 pt-3' : 'px-5 pt-6 md:px-20'
+  const maxH = short ? vh - PT - 12 : Math.max(220, vh - topB - (80 - GAP_SHIFT)) // measured title + chips block (+56 frame padding, 24 breathing room): everything fits one viewport
   const maxHz = short ? maxH * ZOOM : maxH // 가로 폰: 확대하면 기기가 화면 높이보다 커지고 위아래 베젤이 잘린다
   const est = Math.min(maxHz, (innerWidth - (short ? 24 : innerWidth >= 768 ? 160 : 40)) * ZOOM * (CANVAS.h / CANVAS.w)) // rendered console height
   const lift = short ? Math.min(0, -(est - (vh - PT - 12)) / 2) : 0 // 확대로 넘친 높이의 절반만큼 올려서 세로 가운데에 맞춘다
@@ -182,7 +184,7 @@ function Hero({ children, tv, onPick, onPickTv, onPress, onZoom, away }: { child
   const { scrollY: sy } = useScroll()
   const hintO = useTransform(sy, [0, 120], [1, 0]) // 첫 화면 안내: 스크롤을 시작하면 사라진다
   const centerY = useRef(0)
-  centerY.current = short ? 0 : Math.max(0, (vh - est) / 2 - 80)
+  centerY.current = short ? 0 : Math.max(0, (vh - est) / 2 - 80 + GAP_SHIFT)
   const toCenter = useTransform(po, v => Math.min(1, v / 0.06) * centerY.current)
   const y = useSpring(toCenter, soft)
   // TV: the console's UI size (640×360) scaled to fill the viewport, with a thin bezel and a stand
@@ -320,22 +322,67 @@ function Flying({ i, from, to, eject, wallTop, onDone }: { i: number; from: DOMR
   )
 }
 
-/** "TV mode": the device screen blown up to the whole page. Re-fits when the phone is turned. */
-function TvMode({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+/** 확대 화면 아래 조작부: 왼쪽 방향키, 가운데 안내 문구, 오른쪽 B / H / A 버튼 (누르면 기기 버튼과 똑같이 동작) */
+function TvControls({ press, compact }: { press: (b: Btn) => void; compact: boolean }) {
+  const key = compact ? 'h-9 w-9 text-[13px]' : 'h-14 w-14 text-[17px]'
+  const round = `grid ${key} touch-manipulation select-none place-items-center rounded-full bg-[#f3f1ea] font-extrabold text-[#3a3b3f] shadow-[0_4px_0_#9b9a92] transition-transform active:translate-y-[3px] active:shadow-[0_1px_0_#9b9a92]`
+  const arm = (b: Btn, node: React.ReactNode, cls: string) => (
+    <button type="button" aria-label={b} onPointerDown={e => { e.preventDefault(); press(b) }}
+      className={`absolute grid touch-manipulation select-none place-items-center bg-[#f3f1ea] text-[#6b6a63] active:bg-[#dcdad0] ${cls}`}>{node}</button>
+  )
+  const btn = (b: Btn, label: string, text: string) => (
+    <div className="flex flex-col items-center gap-1.5">
+      <button type="button" aria-label={label} onPointerDown={e => { e.preventDefault(); press(b) }} className={round}>{text}</button>
+      <span className={`font-bold tracking-widest text-white/60 ${compact ? 'text-[9px]' : 'text-[12px]'}`}>{label}</span>
+    </div>
+  )
+  return (
+    <div className="grid w-full max-w-5xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-6">
+      <div className="flex items-center gap-4 justify-self-start">
+        <span className={`font-bold leading-tight text-white/60 ${compact ? 'hidden text-[9px] sm:block' : 'text-[12px]'}`}>MOVE<br /><span className="text-[10px] font-medium">방향키</span></span>
+        {/* 십자 모양 방향키: 가로·세로 막대를 겹치고 네 방향에 눌리는 칸을 둔다 */}
+        <div className={`relative ${compact ? 'h-[84px] w-[84px] scale-75' : 'h-[96px] w-[96px]'}`}>
+          <span aria-hidden className="absolute left-[32px] top-0 h-full w-8 rounded-[8px] bg-[#f3f1ea] shadow-[0_4px_0_#9b9a92]" />
+          <span aria-hidden className="absolute left-0 top-[32px] h-8 w-full rounded-[8px] bg-[#f3f1ea]" />
+          {arm('up', <ChevronUp size={16} />, 'left-[32px] top-0 h-8 w-8 rounded-t-[8px]')}
+          {arm('down', <ChevronDown size={16} />, 'left-[32px] top-[64px] h-8 w-8 rounded-b-[8px]')}
+          {arm('left', <ChevronLeft size={16} />, 'left-0 top-[32px] h-8 w-8 rounded-l-[8px]')}
+          {arm('right', <ChevronRight size={16} />, 'left-[64px] top-[32px] h-8 w-8 rounded-r-[8px]')}
+        </div>
+      </div>
+      <p className={`text-center font-semibold leading-snug text-white/55 [word-break:keep-all] ${compact ? 'hidden text-[11px] md:block' : 'text-[13px]'}`}>방향키로 이동 · A 선택<br />B 뒤로 · H 홈</p>
+      <div className={`flex items-end justify-self-end ${compact ? 'gap-3' : 'gap-5'}`}>
+        {btn('B', 'BACK', 'B')}
+        {btn('HOME', 'HOME', 'H')}
+        {btn('A', 'OPEN', 'A')}
+      </div>
+    </div>
+  )
+}
+
+/** "TV mode": the device screen blown up to the whole page, with the controls underneath. Re-fits when the phone is turned. */
+function TvMode({ children, onClose, press }: { children: React.ReactNode; onClose: () => void; press: (b: Btn) => void }) {
   const [size, setSize] = useState({ w: innerWidth, h: innerHeight })
   useEffect(() => {
     const f = () => setSize({ w: innerWidth, h: innerHeight })
     addEventListener('resize', f)
     return () => removeEventListener('resize', f)
   }, [])
-  const k = Math.min(size.w / 640, size.h / 360)
+  const compact = size.h < 600 // 가로로 든 폰: 조작부를 작게
+  const barH = compact ? 96 : 150
+  const k = Math.min(size.w / 640, (size.h - barH) / 360)
   const portraitPhone = size.w < 768 && size.h > size.w // 세로로 든 폰은 폭이 모자라 화면이 작게 나온다
   return (
-    <div role="dialog" aria-label="화면 크게 보기" className="fixed inset-0 z-50 grid place-items-center bg-black">
-      <div className="overflow-hidden" style={{ width: 640 * k, height: 360 * k }}>
-        <div style={{ width: 640, height: 360, transform: `scale(${k})`, transformOrigin: 'top left' }}>{children}</div>
+    <div role="dialog" aria-label="화면 크게 보기" className="fixed inset-0 z-50 flex flex-col bg-black">
+      <div className="grid min-h-0 flex-1 place-items-center">
+        <div className="overflow-hidden" style={{ width: 640 * k, height: 360 * k }}>
+          <div style={{ width: 640, height: 360, transform: `scale(${k})`, transformOrigin: 'top left' }}>{children}</div>
+        </div>
       </div>
-      {portraitPhone && <p className="absolute inset-x-6 bottom-10 text-center text-[15px] font-bold text-white/80 [word-break:keep-all]">휴대폰을 가로로 돌리면 화면이 훨씬 더 크게 보여요</p>}
+      <div className="flex shrink-0 items-center justify-center bg-[#121212]" style={{ height: barH }}>
+        <TvControls press={press} compact={compact} />
+      </div>
+      {portraitPhone && <p className="pointer-events-none absolute inset-x-6 top-4 text-center text-[13px] font-bold text-white/70 [word-break:keep-all]">휴대폰을 가로로 돌리면 화면이 훨씬 더 크게 보여요</p>}
       <button onClick={onClose} aria-label="닫기 (P)" className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"><X size={20} /></button>
     </div>
   )
@@ -394,7 +441,7 @@ export default function App() {
       <MobilePad press={press} />
       <RotateNotice onZoom={() => setBig(true)} />
       <SoundButton sound={sound} onToggle={toggleSound} />
-      {big && <TvMode onClose={() => setBig(false)}><Screen s={state} bootMs={bootMs} dark={dark} /></TvMode>}
+      {big && <TvMode press={press} onClose={() => setBig(false)}><Screen s={state} bootMs={bootMs} dark={dark} /></TvMode>}
     </PressContext.Provider></RowContext.Provider></AvatarContext.Provider></OpenContext.Provider>
   )
 }

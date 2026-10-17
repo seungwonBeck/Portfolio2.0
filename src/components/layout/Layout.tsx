@@ -71,7 +71,7 @@ export const HowToPlay = () => {
 /** 칩(카트리지)과 콘솔 사이에 두는 "화면 크게" 버튼. 화면만 꽉 차게 보는 모드(키보드 P)를 누구나 찾을 수 있게 한다. */
 export const ZoomButton = ({ onZoom }: { onZoom: () => void }) => (
   <button type="button" onClick={onZoom} aria-label="게임기 화면 크게 보기"
-    className="mx-auto mt-5 flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-[15px] font-extrabold text-white shadow-[0_8px_18px_-6px_rgba(0,0,0,.5)] transition-transform hover:scale-105 active:scale-95">
+    className="mx-auto mt-8 flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-[15px] font-extrabold text-white shadow-[0_8px_18px_-6px_rgba(0,0,0,.5)] transition-transform hover:scale-105 active:scale-95">
     <Maximize2 size={18} strokeWidth={2.4} />화면 크게 보기
   </button>
 )
