@@ -319,14 +319,22 @@ function Flying({ i, from, to, eject, wallTop, onDone }: { i: number; from: DOMR
   )
 }
 
-/** "TV mode": the device screen blown up to the whole page. */
+/** "TV mode": the device screen blown up to the whole page. Re-fits when the phone is turned. */
 function TvMode({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
-  const k = Math.min(innerWidth / 640, innerHeight / 360)
+  const [size, setSize] = useState({ w: innerWidth, h: innerHeight })
+  useEffect(() => {
+    const f = () => setSize({ w: innerWidth, h: innerHeight })
+    addEventListener('resize', f)
+    return () => removeEventListener('resize', f)
+  }, [])
+  const k = Math.min(size.w / 640, size.h / 360)
+  const portraitPhone = size.w < 768 && size.h > size.w // 세로로 든 폰은 폭이 모자라 화면이 작게 나온다
   return (
     <div role="dialog" aria-label="화면 크게 보기" className="fixed inset-0 z-50 grid place-items-center bg-black">
       <div className="overflow-hidden" style={{ width: 640 * k, height: 360 * k }}>
         <div style={{ width: 640, height: 360, transform: `scale(${k})`, transformOrigin: 'top left' }}>{children}</div>
       </div>
+      {portraitPhone && <p className="absolute inset-x-6 bottom-10 text-center text-[15px] font-bold text-white/80 [word-break:keep-all]">휴대폰을 가로로 돌리면 화면이 훨씬 더 크게 보여요</p>}
       <button onClick={onClose} aria-label="닫기 (P)" className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"><X size={20} /></button>
     </div>
   )
@@ -371,7 +379,7 @@ export default function App() {
   }
   return (
     <OpenContext.Provider value={open}><AvatarContext.Provider value={setAvatar}><RowContext.Provider value={pickRow}><PressContext.Provider value={press}>
-      <Header />
+      <Header onZoom={() => setBig(true)} />
       {fly && <Flying {...fly} onDone={() => { const n = fly.next; setFly(null); n?.() }} />}
       <Hero onPick={insert} onPress={press} onPickTv={i => { if (fly || i === inserted) return; setInserted(i); pick(i); setTimeout(() => setOnly(i), 1600) /* like the console: the title only shows once the loading splash is over */ }} away={fly ? fly.i : inserted} tv={<Screen s={state} bootMs={bootMs} dark={dark} instantLoad />}>
         {sep => (
@@ -383,7 +391,7 @@ export default function App() {
       <Footer sound={sound} onToggle={toggleSound} />
       <Music on={sound} />
       <MobilePad press={press} />
-      <RotateNotice />
+      <RotateNotice onZoom={() => setBig(true)} />
       <SoundButton sound={sound} onToggle={toggleSound} />
       {big && <TvMode onClose={() => setBig(false)}><Screen s={state} bootMs={bootMs} dark={dark} /></TvMode>}
     </PressContext.Provider></RowContext.Provider></AvatarContext.Provider></OpenContext.Provider>

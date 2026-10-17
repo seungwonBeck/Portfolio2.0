@@ -1,15 +1,22 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
-import { ArrowUpRight, CircleDot, CircleHelp, Move, Home, Volume2, VolumeX } from 'lucide-react'
+import { ArrowUpRight, CircleDot, CircleHelp, Maximize2, Move, Home, Volume2, VolumeX } from 'lucide-react'
 import { profile, projects, skills } from '../../types'
 import { Thumb } from '../screen/Screens'
 import Logo from '../Logo'
 
-export const Header = () => (
+export const Header = ({ onZoom }: { onZoom: () => void }) => (
   <header className="relative z-20 flex items-center justify-between px-5 py-5 md:px-20">
     <span className="flex items-center gap-2 text-lg font-extrabold tracking-tight"><Logo drift={false} className="h-[18px] w-[18px] text-ink" /><span>seungwon<span className="text-accent-red">.</span></span></span>
     <span className="label hidden sm:block">An interactive portfolio</span>
-    <span className="label flex items-center gap-2"><i className="h-1.5 w-1.5 rounded-full bg-accent-blue" />Open to work</span>
+    <span className="flex items-center gap-4">
+      {/* 화면만 크게 보는 모드(키보드 P)를 누구나 찾을 수 있게 눈에 띄는 버튼으로 둔다 */}
+      <button type="button" onClick={onZoom} aria-label="게임기 화면 크게 보기"
+        className="flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-2 text-[13px] font-extrabold text-white shadow-[0_6px_14px_-6px_rgba(0,0,0,.5)] transition-transform hover:scale-105 active:scale-95">
+        <Maximize2 size={15} strokeWidth={2.4} />화면 크게
+      </button>
+      <span className="label hidden items-center gap-2 sm:flex"><i className="h-1.5 w-1.5 rounded-full bg-accent-blue" />Open to work</span>
+    </span>
   </header>
 )
 

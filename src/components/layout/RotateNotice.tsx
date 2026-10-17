@@ -4,7 +4,7 @@ import { RotateCw, Smartphone } from 'lucide-react'
 const PORTRAIT_PHONE = '(orientation: portrait) and (max-width: 767px)'
 
 /** Full-screen "turn your phone sideways" prompt, shown only on a phone held upright. Disappears by itself once rotated. */
-export default function RotateNotice() {
+export default function RotateNotice({ onZoom }: { onZoom: () => void }) {
   const [portrait, setPortrait] = useState(false)
   const [dismissed, setDismissed] = useState(() => { try { return sessionStorage.getItem('rotate-dismissed') === '1' } catch { return false } })
 
@@ -32,6 +32,8 @@ export default function RotateNotice() {
       setNote('이 기기에서는 자동으로 돌릴 수 없어요. 휴대폰을 직접 가로로 돌려주세요.')
     }
   }
+  // 안내를 닫고 게임기 화면만 꽉 차게 보여준다
+  const zoom = () => { dismiss(); onZoom() }
   const dismiss = () => { setDismissed(true); try { sessionStorage.setItem('rotate-dismissed', '1') } catch { /* private mode */ } }
 
   if (!portrait || dismissed) return null
@@ -46,6 +48,7 @@ export default function RotateNotice() {
         <p className="mt-3 text-[15px] leading-relaxed text-white/75 [word-break:keep-all]">게임기 화면이 훨씬 크게 보이고, 카트리지도 더 편하게 꽂을 수 있어요.</p>
         <button onClick={rotate} className="mt-7 w-full rounded-full bg-accent-blue py-3.5 text-base font-extrabold text-white active:scale-[.98]">가로 모드로 보기</button>
         {note && <p role="status" className="mt-3 rounded-xl bg-white/10 px-4 py-3 text-[14px] font-semibold leading-snug text-white [word-break:keep-all]">{note}</p>}
+        <button onClick={zoom} className="mt-3 w-full rounded-full bg-white/15 py-3 text-base font-extrabold text-white active:scale-[.98]">화면만 크게 보기</button>
         <button onClick={dismiss} className="mt-3 py-2 text-sm font-semibold text-white/60 underline underline-offset-4">그냥 세로로 볼게요</button>
       </div>
     </div>

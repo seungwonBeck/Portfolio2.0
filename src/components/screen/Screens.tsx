@@ -91,8 +91,8 @@ function Home({ s }: { s: State }) {
   return (
     <div className="relative h-full">
       <div className="absolute inset-x-0 top-0 overflow-hidden py-4 pl-7">
-      {/* the row slides left so the focused tile stays on screen (one tile = 132px + 14px gap) */}
-      <motion.div className="flex gap-3.5 py-1" animate={{ x: -Math.max(0, s.home - 2) * 146 }} transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}>
+      {/* 다섯 칸(108px + 간격 10px)이 한 줄에 다 보이도록 맞춘다 */}
+      <div className="flex gap-2.5 py-1">
         {TILES.map((t, i) => {
           const sel = tileFocus && i === s.home
           const [hi, lo] = TILE_ART[t]
@@ -101,7 +101,7 @@ function Home({ s }: { s: State }) {
           return (
             <div key={t} className="shrink-0">
               <motion.button aria-label={label(t)} onClick={() => open('tile', i)} animate={{ scale: sel ? 1.07 : 1, y: sel ? -3 : 0 }} transition={{ type: 'spring', stiffness: 380, damping: 26 }}
-                className={`relative block h-[132px] w-[132px] overflow-hidden rounded-[14px] text-left ${sel ? 'animate-[tileGlow_1.6s_ease-in-out_infinite]' : 'shadow-[0_8px_16px_-6px_rgba(0,0,0,.35)]'}`}
+                className={`relative block h-[108px] w-[108px] overflow-hidden rounded-[14px] text-left ${sel ? 'animate-[tileGlow_1.6s_ease-in-out_infinite]' : 'shadow-[0_8px_16px_-6px_rgba(0,0,0,.35)]'}`}
                 style={{ background: `linear-gradient(155deg, ${hi} 0%, ${lo} 100%)` }}>
                 {chip ? (
                   <>
@@ -114,27 +114,26 @@ function Home({ s }: { s: State }) {
                 ) : (
                   <>
                     {/* big faint glyph as the box art, a sheen from the top-left, a rim light, then the title on a scrim */}
-                    <Icon aria-hidden size={92} strokeWidth={1.2} className="absolute -right-3 -top-2 text-white/25" />
+                    <Icon aria-hidden size={76} strokeWidth={1.2} className="absolute -right-2 -top-1 text-white/25" />
                     <span aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.06) 38%, transparent 52%)' }} />
                     <span aria-hidden className="absolute inset-0 rounded-[14px]" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,.28), inset 0 -26px 34px -18px rgba(0,0,0,.5)' }} />
-                    <span className="absolute left-3 top-3 grid h-7 w-7 place-items-center rounded-lg bg-white/90 shadow-[0_2px_4px_rgba(0,0,0,.25)]"><Icon size={16} strokeWidth={2.2} style={{ color: lo }} /></span>
-                    <span className="absolute inset-x-0 bottom-0 p-3 text-[15px] font-bold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,.45)]">{label(t)}</span>
+                    <span className="absolute left-2.5 top-2.5 grid h-7 w-7 place-items-center rounded-lg bg-white/90 shadow-[0_2px_4px_rgba(0,0,0,.25)]"><Icon size={16} strokeWidth={2.2} style={{ color: lo }} /></span>
+                    <span className="absolute inset-x-0 bottom-0 p-2.5 text-[14px] font-bold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,.45)]">{label(t)}</span>
                   </>
                 )}
               </motion.button>
             </div>
           )
         })}
-        <div className="shrink-0"><div className="h-[132px] w-[132px] rounded-[14px] bg-black/[.06] shadow-[inset_0_2px_6px_rgba(0,0,0,.12)] ring-1 ring-black/5" /></div>
-      </motion.div>
+      </div>
       </div>
       {/* the focused tile's name and blurb */}
-      <div className="absolute inset-x-0 top-[176px] h-10 pl-7 pr-7">
+      <div className="absolute inset-x-0 top-[152px] h-10 pl-7 pr-7">
         <AnimatePresence mode="wait" initial={false}>
           {tileFocus && (
             <motion.div key={cur} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.16 }}>
               <div className="text-[15px] font-extrabold leading-tight">{label(cur)}</div>
-              <div className="text-[11px] text-ink-sub">{s.only !== null && cur === 'PROJECTS' ? projects[s.only].summary : TILE_SUB[cur]}</div>
+              <div className="text-[12px] text-ink-sub">{s.only !== null && cur === 'PROJECTS' ? projects[s.only].summary : TILE_SUB[cur]}</div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -212,9 +211,9 @@ function About({ s }: { s: State }) {
       <div className="label mb-2">Timeline</div>
       {profile.timeline.map(t => (
         <div key={t.period} className="mb-3 border-l-2 border-accent-blue pl-3">
-          <div className="text-[10px] font-semibold text-accent-blue">{t.period}</div>
+          <div className="text-[11px] font-semibold text-accent-blue">{t.period}</div>
           <div className="text-[13px] font-bold">{t.title}</div>
-          <div className="text-[11px] text-ink-sub">{t.desc}</div>
+          <div className="text-[12px] text-ink-sub">{t.desc}</div>
         </div>
       ))}
     </Scroll>
@@ -237,13 +236,13 @@ function Projects({ s }: { s: State }) {
           </span>
           <div className="min-w-0 flex-1">
             <div className="truncate text-[13px] font-bold">{p.title}</div>
-            <div className="truncate text-[11px] text-ink-sub">{p.summary}</div>
+            <div className="truncate text-[12px] text-ink-sub">{p.summary}</div>
           </div>
           {(p as { soon?: boolean }).soon ? (
-            <span className="rounded-full bg-accent-blue/10 px-2.5 py-0.5 text-[10px] font-bold text-accent-blue">COMING SOON</span>
+            <span className="rounded-full bg-accent-blue/10 px-2.5 py-0.5 text-[11px] font-bold text-accent-blue">COMING SOON</span>
           ) : (
             <>
-              <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-[10px] font-bold text-ink-sub">{p.role}</span>
+              <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-[11px] font-bold text-ink-sub">{p.role}</span>
               <span className="label">{p.period.slice(0, 4)}</span>
             </>
           )}
@@ -343,7 +342,7 @@ function HeroSlides({ imgs: all, i, className = '', contain = false, dark = fals
 
 // 프로젝트 페이지 글자 규격: 띠 제목·본문·라벨 간격을 모든 띠에서 같게 쓴다
 const H3 = 'mb-1.5 text-[16px] font-extrabold leading-[1.3] tracking-tight'
-const BODY = 'text-[10px] leading-[1.6]'
+const BODY = 'text-[11px] leading-[1.6]'
 const Eyebrow = ({ children, dark = false }: { children: ReactNode; dark?: boolean }) => (
   <div className={`mb-1 text-[10px] font-bold leading-none tracking-wide ${dark ? 'text-[#4aa3ff]' : 'text-[#0a6cff]'}`}>{children}</div>
 )
@@ -392,18 +391,18 @@ function Detail({ s }: { s: State }) {
   const soon = !!(p as { soon?: boolean }).soon // 준비중인 작업: 상세 내용 대신 안내만 보여 준다
   const showBtns = !!site || !banners // 링크가 없는 배너 작업은 버튼 줄 자체를 숨김
   const siteBtn = (cls: string) => site ? (
-    <a href={site} target="_blank" rel="noopener" className={`inline-flex items-center gap-1 rounded-full text-[11px] font-bold hover:brightness-110 ${cls}`}>{siteLabel} <ExternalLink size={12} /></a>
+    <a href={site} target="_blank" rel="noopener" className={`inline-flex items-center gap-1 rounded-full text-[12px] font-bold hover:brightness-110 ${cls}`}>{siteLabel} <ExternalLink size={12} /></a>
   ) : (
-    <span aria-disabled className="inline-block cursor-not-allowed rounded-full bg-black/[.08] px-3.5 py-1 text-[11px] font-bold text-ink-sub">링크 준비 중</span>
+    <span aria-disabled className="inline-block cursor-not-allowed rounded-full bg-black/[.08] px-3.5 py-1 text-[12px] font-bold text-ink-sub">링크 준비 중</span>
   )
-  const downloadBtn = (cls: string) => pdfOnly ? <a href={pdfHref} download className={`inline-flex items-center gap-1 rounded-full text-[11px] font-bold hover:brightness-110 ${cls}`}>PDF 다운로드 <Download size={12} /></a> : null
+  const downloadBtn = (cls: string) => pdfOnly ? <a href={pdfHref} download className={`inline-flex items-center gap-1 rounded-full text-[12px] font-bold hover:brightness-110 ${cls}`}>PDF 다운로드 <Download size={12} /></a> : null
   if (soon) return (
     <div data-scroll className="flex h-full flex-col bg-[#f4f6fb] [scrollbar-width:none]">
       <div className="flex shrink-0 items-start justify-between gap-3 px-4 pb-4 pt-4">
         <div className="min-w-0">
           <Eyebrow>{p.role}</Eyebrow>
           <h2 className="mb-1.5 text-[24px] font-extrabold leading-[1.2] tracking-tight text-[#16171a]">{p.title}</h2>
-          <p className="text-[11px] leading-[1.4] text-[#6b6f78]">{p.summary}</p>
+          <p className="text-[12px] leading-[1.4] text-[#6b6f78]">{p.summary}</p>
         </div>
         <ChipBadge i={s.proj} className="mt-1 w-[76px]" />
       </div>
@@ -426,7 +425,7 @@ function Detail({ s }: { s: State }) {
           <div className="min-w-0">
             <Eyebrow>{p.role}</Eyebrow>
             <h2 className="mb-1.5 text-[24px] font-extrabold leading-[1.2] tracking-tight text-[#16171a]">{p.title}</h2>
-            <p className="line-clamp-1 text-[11px] leading-[1.4] text-[#6b6f78]">{p.summary}</p>
+            <p className="line-clamp-1 text-[12px] leading-[1.4] text-[#6b6f78]">{p.summary}</p>
             {showBtns && <div className="mt-3 flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-4 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
           </div>
           <ChipBadge i={s.proj} className="mt-1 w-[76px]" />
@@ -484,7 +483,7 @@ function Detail({ s }: { s: State }) {
         <div className="mx-auto mt-6 flex max-w-[460px] justify-center">
           <div className="w-[35%]"><div className="text-[22px] font-extrabold leading-none text-[#16171a]">{p.period}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">작업 기간</div></div>
           <div className="w-[35%]"><div className="text-[22px] font-extrabold leading-none text-[#16171a]">100%</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">작업 비중</div></div>
-          {tools && <div className="w-[30%]"><div className="text-[10px] font-extrabold leading-[22px] text-[#16171a]">{tools.split(' · ').map(t => <span key={t} className="mx-[2px] inline-block whitespace-nowrap">{t}</span>)}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">사용 도구</div></div>}
+          {tools && <div className="w-[30%]"><div className="text-[11px] font-extrabold leading-[22px] text-[#16171a]">{tools.split(' · ').map(t => <span key={t} className="mx-[2px] inline-block whitespace-nowrap">{t}</span>)}</div><div className="mt-1.5 text-[9px] text-[#6b6f78]">사용 도구</div></div>}
         </div>
         {!banners && (
           <div className={`mx-auto mt-4 ${panelW} rounded-xl bg-[#f1f2f7] p-2.5`}>
