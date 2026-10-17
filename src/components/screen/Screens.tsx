@@ -90,9 +90,9 @@ function Home({ s }: { s: State }) {
   const cur = TILES[s.home]
   return (
     <div className="relative h-full">
-      <div className="absolute inset-x-0 top-0 overflow-hidden py-4 pl-7">
-      {/* 다섯 칸(108px + 간격 10px)이 한 줄에 다 보이도록 맞춘다 */}
-      <div className="flex gap-2.5 py-1">
+      <div className="absolute inset-x-0 top-0 overflow-hidden py-4 pl-6">
+      {/* 다섯 칸(112px + 간격 8px)이 한 줄에 다 보이고, 독이 없어진 만큼 위아래로 길게 늘린 상자 */}
+      <div className="flex gap-2 py-1">
         {TILES.map((t, i) => {
           const sel = tileFocus && i === s.home
           const [hi, lo] = TILE_ART[t]
@@ -101,7 +101,7 @@ function Home({ s }: { s: State }) {
           return (
             <div key={t} className="shrink-0">
               <motion.button aria-label={label(t)} onClick={() => open('tile', i)} animate={{ scale: sel ? 1.07 : 1, y: sel ? -3 : 0 }} transition={{ type: 'spring', stiffness: 380, damping: 26 }}
-                className={`relative block h-[108px] w-[108px] overflow-hidden rounded-[14px] text-left ${sel ? 'animate-[tileGlow_1.6s_ease-in-out_infinite]' : 'shadow-[0_8px_16px_-6px_rgba(0,0,0,.35)]'}`}
+                className={`relative block h-[176px] w-[112px] overflow-hidden rounded-[14px] text-left ${sel ? 'animate-[tileGlow_1.6s_ease-in-out_infinite]' : 'shadow-[0_8px_16px_-6px_rgba(0,0,0,.35)]'}`}
                 style={{ background: `linear-gradient(155deg, ${hi} 0%, ${lo} 100%)` }}>
                 {chip ? (
                   <>
@@ -114,11 +114,11 @@ function Home({ s }: { s: State }) {
                 ) : (
                   <>
                     {/* big faint glyph as the box art, a sheen from the top-left, a rim light, then the title on a scrim */}
-                    <Icon aria-hidden size={76} strokeWidth={1.2} className="absolute -right-2 -top-1 text-white/25" />
+                    <Icon aria-hidden size={104} strokeWidth={1.2} className="absolute -right-4 top-6 text-white/25" />
                     <span aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.06) 38%, transparent 52%)' }} />
                     <span aria-hidden className="absolute inset-0 rounded-[14px]" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,.28), inset 0 -26px 34px -18px rgba(0,0,0,.5)' }} />
-                    <span className="absolute left-2.5 top-2.5 grid h-7 w-7 place-items-center rounded-lg bg-white/90 shadow-[0_2px_4px_rgba(0,0,0,.25)]"><Icon size={16} strokeWidth={2.2} style={{ color: lo }} /></span>
-                    <span className="absolute inset-x-0 bottom-0 p-2.5 text-[14px] font-bold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,.45)]">{label(t)}</span>
+                    <span className="absolute left-3 top-3 grid h-9 w-9 place-items-center rounded-xl bg-white/90 shadow-[0_2px_4px_rgba(0,0,0,.25)]"><Icon size={20} strokeWidth={2.2} style={{ color: lo }} /></span>
+                    <span className="absolute inset-x-0 bottom-0 p-3 text-[16px] font-extrabold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,.45)]">{label(t)}</span>
                   </>
                 )}
               </motion.button>
@@ -128,33 +128,15 @@ function Home({ s }: { s: State }) {
       </div>
       </div>
       {/* the focused tile's name and blurb */}
-      <div className="absolute inset-x-0 top-[152px] h-10 pl-7 pr-7">
+      <div className="absolute inset-x-0 top-[212px] h-12 pl-7 pr-7">
         <AnimatePresence mode="wait" initial={false}>
           {tileFocus && (
             <motion.div key={cur} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.16 }}>
-              <div className="text-[15px] font-extrabold leading-tight">{label(cur)}</div>
-              <div className="text-[12px] text-ink-sub">{s.only !== null && cur === 'PROJECTS' ? projects[s.only].summary : TILE_SUB[cur]}</div>
+              <div className="text-[17px] font-extrabold leading-tight">{label(cur)}</div>
+              <div className="mt-0.5 text-[13px] text-ink-sub">{s.only !== null && cur === 'PROJECTS' ? projects[s.only].summary : TILE_SUB[cur]}</div>
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-      {/* dock: the five menus as round coloured icons */}
-      <div className="absolute inset-x-0 bottom-1 flex flex-col items-center">
-        <div className="flex items-center gap-[18px]">
-          {DOCK.map((t, i) => {
-            const Icon = tileIcon[t]
-            const sel = !tileFocus && i === s.dock
-            return (
-              <motion.button key={t} aria-label={t} onClick={() => open('dock', i)} animate={{ scale: sel ? 1.18 : 1 }} transition={{ type: 'spring', stiffness: 380, damping: 24 }}
-                className={`relative grid h-[38px] w-[38px] place-items-center rounded-full shadow-[0_4px_8px_-2px_rgba(0,0,0,.35)] ${sel ? 'ring-[3px] ring-accent-blue ring-offset-[3px] ring-offset-screen' : 'ring-2 ring-white/80'}`}
-                style={{ background: `linear-gradient(160deg, ${dockColor[t]}, ${dockColor[t]}cc)` }}>
-                <span aria-hidden className="absolute inset-x-1 top-0.5 h-1/2 rounded-full bg-gradient-to-b from-white/45 to-transparent" />
-                <Icon size={19} strokeWidth={2} className="relative text-white" />
-              </motion.button>
-            )
-          })}
-        </div>
-        <div className="mt-1.5 h-4 text-[12px] font-bold text-accent-blue">{tileFocus ? '' : DOCK[s.dock]}</div>
       </div>
     </div>
   )

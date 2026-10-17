@@ -5,18 +5,11 @@ import { profile, projects, skills } from '../../types'
 import { Thumb } from '../screen/Screens'
 import Logo from '../Logo'
 
-export const Header = ({ onZoom }: { onZoom: () => void }) => (
+export const Header = () => (
   <header className="relative z-20 flex items-center justify-between px-5 py-5 md:px-20">
     <span className="flex items-center gap-2 text-lg font-extrabold tracking-tight"><Logo drift={false} className="h-[18px] w-[18px] text-ink" /><span>seungwon<span className="text-accent-red">.</span></span></span>
     <span className="label hidden sm:block">An interactive portfolio</span>
-    <span className="flex items-center gap-4">
-      {/* 화면만 크게 보는 모드(키보드 P)를 누구나 찾을 수 있게 눈에 띄는 버튼으로 둔다 */}
-      <button type="button" onClick={onZoom} aria-label="게임기 화면 크게 보기"
-        className="flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-2 text-[13px] font-extrabold text-white shadow-[0_6px_14px_-6px_rgba(0,0,0,.5)] transition-transform hover:scale-105 active:scale-95">
-        <Maximize2 size={15} strokeWidth={2.4} />화면 크게
-      </button>
-      <span className="label hidden items-center gap-2 sm:flex"><i className="h-1.5 w-1.5 rounded-full bg-accent-blue" />Open to work</span>
-    </span>
+    <span className="label flex items-center gap-2"><i className="h-1.5 w-1.5 rounded-full bg-accent-blue" />Open to work</span>
   </header>
 )
 
@@ -74,6 +67,14 @@ export const HowToPlay = () => {
     </div>
   )
 }
+
+/** 칩(카트리지)과 콘솔 사이에 두는 "화면 크게" 버튼. 화면만 꽉 차게 보는 모드(키보드 P)를 누구나 찾을 수 있게 한다. */
+export const ZoomButton = ({ onZoom }: { onZoom: () => void }) => (
+  <button type="button" onClick={onZoom} aria-label="게임기 화면 크게 보기"
+    className="mx-auto mt-5 flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-[15px] font-extrabold text-white shadow-[0_8px_18px_-6px_rgba(0,0,0,.5)] transition-transform hover:scale-105 active:scale-95">
+    <Maximize2 size={18} strokeWidth={2.4} />화면 크게 보기
+  </button>
+)
 
 /** Game-cartridge shelf: one cartridge per project; clicking loads it on the device screen. */
 const CARD_CLIP = 'polygon(0 0, 80% 0, 100% 15%, 100% 100%, 0 100%)' // notched corner

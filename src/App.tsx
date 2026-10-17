@@ -7,7 +7,7 @@ import Console, { CANVAS } from './components/device/Console'
 import Logo from './components/Logo'
 import Screen, { AvatarContext, OpenContext, PressContext, RowContext } from './components/screen/Screens'
 import { projects } from './types'
-import { CardFace, Cartridges, CaseRack, chipScale, FallbackList, Footer, Header, HowToPlay } from './components/layout/Layout'
+import { CardFace, Cartridges, CaseRack, chipScale, FallbackList, Footer, Header, HowToPlay, ZoomButton } from './components/layout/Layout'
 import RotateNotice from './components/layout/RotateNotice'
 import MobilePad from './components/layout/MobilePad'
 import { useControls } from './hooks/useControls'
@@ -121,7 +121,7 @@ function Dock() {
  * left/right, (2) snaps them back, then (3) lowers it into a dock, (4) the view pulls back to a TV that fills the viewport
  * and shows the console's screen. `po` is the old tilt story's progress, `q` the dock + TV story's.
  */
-function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (sep: MotionValue<number>) => React.ReactNode; tv: React.ReactNode; onPick: (i: number, from: DOMRect) => void; onPickTv: (i: number) => void; onPress: (b: Btn) => void; away: number | null }) {
+function Hero({ children, tv, onPick, onPickTv, onPress, onZoom, away }: { children: (sep: MotionValue<number>) => React.ReactNode; tv: React.ReactNode; onPick: (i: number, from: DOMRect) => void; onPickTv: (i: number) => void; onPress: (b: Btn) => void; onZoom: () => void; away: number | null }) {
   const ref = useRef<HTMLDivElement>(null)
   const reduce = useReducedMotion()
   const [vh, setVh] = useState(innerHeight)
@@ -213,6 +213,7 @@ function Hero({ children, tv, onPick, onPickTv, onPress, away }: { children: (se
       <div className="hidden w-full justify-end md:flex xl:hidden"><HowToPlay /></div>
       <div className="absolute right-20 top-14 hidden xl:block"><HowToPlay /></div>
       <div className="mt-2 w-full xl:mt-0"><Cartridges onPick={onPick} width={rowW} away={away} /></div>
+      <ZoomButton onZoom={onZoom} />
     </section>
   )
   const guide = null // how-to-play now sits beside the title
@@ -379,9 +380,9 @@ export default function App() {
   }
   return (
     <OpenContext.Provider value={open}><AvatarContext.Provider value={setAvatar}><RowContext.Provider value={pickRow}><PressContext.Provider value={press}>
-      <Header onZoom={() => setBig(true)} />
+      <Header />
       {fly && <Flying {...fly} onDone={() => { const n = fly.next; setFly(null); n?.() }} />}
-      <Hero onPick={insert} onPress={press} onPickTv={i => { if (fly || i === inserted) return; setInserted(i); pick(i); setTimeout(() => setOnly(i), 1600) /* like the console: the title only shows once the loading splash is over */ }} away={fly ? fly.i : inserted} tv={<Screen s={state} bootMs={bootMs} dark={dark} instantLoad />}>
+      <Hero onPick={insert} onPress={press} onZoom={() => setBig(true)} onPickTv={i => { if (fly || i === inserted) return; setInserted(i); pick(i); setTimeout(() => setOnly(i), 1600) /* like the console: the title only shows once the loading splash is over */ }} away={fly ? fly.i : inserted} tv={<Screen s={state} bootMs={bootMs} dark={dark} instantLoad />}>
         {sep => (
           <Console pressed={pressed} press={press} sep={sep}>
             {!big && <Screen s={state} bootMs={bootMs} dark={dark} />}

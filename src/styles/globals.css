@@ -38,7 +38,8 @@
 /* device screen dark theme: same tokens, overridden below the .screen-dark node */
 .screen-dark { --color-screen: #2d2d30; --color-card: #3a3a3f; --color-ink: #f2f2f2; --color-ink-sub: #a0a1a6; }
 
-body { background: var(--color-bg); color: var(--color-ink); font-family: var(--font-sans); font-weight: 400; }
+/* Switch 2 (2025) 배경 느낌: 왼쪽 하늘색 → 가운데 은은한 회보라 → 오른쪽 코랄. 눈이 편하도록 채도를 낮춘 파스텔 */
+body { background: var(--color-bg) linear-gradient(to right, #a9dcec 0%, #cfe6ee 30%, #ebe6ec 50%, #f1cfcc 75%, #f3bdb7 100%); color: var(--color-ink); font-family: var(--font-sans); font-weight: 400; }
 
 .label { font-family: var(--font-court); font-size: 10px; font-weight: 300; letter-spacing: 0.15em; text-transform: uppercase; color: var(--color-ink-sub); }
 
