@@ -36,9 +36,9 @@ function Battery() {
   const low = level <= 20 && !charging
   return (
     <span role="img" aria-label={`배터리 ${level}%`} className="flex items-center">
-      <span className="relative h-[14px] w-[30px] overflow-hidden rounded-[4px] border-[1.5px] border-ink/25">
+      <span className="relative h-[14px] w-[30px] overflow-hidden rounded-[4px] border-[1.5px] border-ink/40">
         <span className={`absolute inset-y-0 left-0 ${low ? 'bg-[#ff453a]' : 'bg-[#4cd964]'}`} style={{ width: `${Math.max(level, 6)}%` }} />
-        <span className="absolute inset-0 grid place-items-center text-[8px] font-semibold leading-none text-ink/45">{level}</span>
+        <span className="absolute inset-0 grid place-items-center text-[9px] font-extrabold leading-none text-white [text-shadow:0_1px_1px_rgba(0,0,0,.6)]">{level}</span>
       </span>
       <span aria-hidden className="ml-[1px] h-[5px] w-[2px] rounded-r-full bg-ink/25" />
     </span>
@@ -280,6 +280,22 @@ function Photo({ src, i, k, className = '', plain = false, contain = false }: { 
 }
 
 /** The big hero photo as an auto-advancing slideshow: each slide sweeps in from the right with a horizontal motion-blur streak while the old one is pulled out to the left. Uses the project's own pictures, or box-art colour cards until they exist. */
+/** 사진을 64×16 캔버스에 꽉 채워(cover) 그려 두면, 화면에 늘려 보일 때 부드럽게 번져 흐린 배경처럼 보인다. */
+function GlowCanvas({ src }: { src: string }) {
+  const ref = useRef<HTMLCanvasElement>(null)
+  useEffect(() => {
+    const im = new Image()
+    im.onload = () => {
+      const c = ref.current, g = c?.getContext('2d')
+      if (!c || !g) return
+      const r = Math.max(c.width / im.width, c.height / im.height)
+      g.drawImage(im, (c.width - im.width * r) / 2, (c.height - im.height * r) / 2, im.width * r, im.height * r)
+    }
+    im.src = src
+  }, [src])
+  return <canvas ref={ref} width={64} height={16} className="h-full w-full" />
+}
+
 function HeroSlides({ imgs: all, i, className = '', contain = false, dark = false, glow = false }: { imgs: string[]; i: number; className?: string; contain?: boolean; dark?: boolean; glow?: boolean }) {
   const imgs = [...new Set(all)] // 같은 사진이 여러 칸에 쓰여도 슬라이드는 한 번만
   const n = imgs.length || 4
@@ -292,17 +308,20 @@ function HeroSlides({ imgs: all, i, className = '', contain = false, dark = fals
   useEffect(() => { imgs.forEach(src => { const im = new Image(); im.decoding = 'async'; im.src = src }) }, [imgs.join('|')]) // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className={`relative overflow-hidden ${dark ? 'bg-[#0d0d0f]' : contain ? 'bg-d-bg2' : 'bg-[#d9d9d9]'} ${className}`}>
-      {/* glow: 지금 슬라이드를 흐리게 키워 뒤에 깔아, 슬라이드 양옆 빈 곳이 같은 사진 색으로 번지게 한다 */}
+      {/* glow: 지금 슬라이드를 아주 작은 캔버스에 줄여 그린 뒤 늘려서(흐린 효과) 뒤에 깔아, 슬라이드 양옆 빈 곳이 같은 사진 색으로 번지게 한다.
+          blur 필터는 확대 화면에서 매 프레임 다시 그려져 끊겨서 쓰지 않는다. */}
       {glow && imgs.length > 0 && (
         <AnimatePresence initial={false}>
-          <motion.img key={`g${idx}`} aria-hidden src={imgs[idx]} alt="" draggable={false} decoding="async" className="pointer-events-none absolute inset-0 h-full w-full scale-125 object-cover blur-2xl"
-            initial={{ opacity: 0 }} animate={{ opacity: 0.55 }} exit={{ opacity: 0.55, transition: { duration: 0, delay: 0.45 } }} transition={{ duration: 0.45 }} />
+          <motion.div key={`g${idx}`} aria-hidden className="pointer-events-none absolute inset-0"
+            initial={{ opacity: 0 }} animate={{ opacity: 0.55 }} exit={{ opacity: 0.55, transition: { duration: 0, delay: 0.45 } }} transition={{ duration: 0.45 }}>
+            <GlowCanvas src={imgs[idx]} />
+          </motion.div>
         </AnimatePresence>
       )}
       <AnimatePresence initial={false}>
         <motion.div
           key={idx}
-          className="absolute inset-0"
+          className="absolute inset-0 [will-change:transform]"
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
           exit={{ x: '-30%' }}
