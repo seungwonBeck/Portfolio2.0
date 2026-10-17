@@ -78,10 +78,11 @@ function step(s: State, b: Action): State {
         const o = AVATAR_ORDER, i = o.indexOf(s.avatar)
         return { ...s, avatar: o[i < 0 ? 0 : clamp(i + d, o.length)] }
       }
+      if (s.screen === 'PROJECTS') return { ...s, proj: clamp(s.proj + d, projects.length) } // 2칸씩 배치라 좌우는 옆 카드
       if (s.screen !== 'HOME') return s
       return { ...s, home: clamp(s.home + d, TILES.length) }
     case 'up': case 'down':
-      if (s.screen === 'PROJECTS') return { ...s, proj: clamp(s.proj + d, projects.length) }
+      if (s.screen === 'PROJECTS') return { ...s, proj: clamp(s.proj + 2 * d, projects.length) } // 위아래는 한 줄(2칸) 이동
       if (s.screen === 'CONTACT') return { ...s, contact: clamp(s.contact + d, contactItems.length) }
       return s
     case 'A':

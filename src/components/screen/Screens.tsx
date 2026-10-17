@@ -202,34 +202,41 @@ function About({ s }: { s: State }) {
   )
 }
 
+/** 프로젝트 목록: 2칸씩 카드로 배치. 위에 대표 사진, 아래에 제목·한 줄 소개·분류. */
 function Projects({ s }: { s: State }) {
   const pickRow = useContext(RowContext)
+  const cover = (p: (typeof projects)[number]) => {
+    const f = ((p as { heroImages?: string[] }).heroImages?.[0] ?? (p as { images?: string[] }).images?.[0]) as string | undefined
+    return f ? (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`) : ''
+  }
   return (
     <div className="h-full overflow-y-auto px-7 pb-4 pt-0.5 [scrollbar-width:none]">
       <Title>PROJECTS</Title>
-      {projects.map((p, i) => (
-        <div key={p.id} ref={el => { if (i === s.proj) el?.scrollIntoView({ block: 'nearest' }) }}
-          role="button" tabIndex={-1} onClick={() => pickRow('PROJECTS', i)}
-          className={`mb-2 flex cursor-pointer items-center gap-3 rounded-xl bg-card py-1.5 pl-2 pr-4 transition-transform hover:scale-[1.01] ${i === s.proj ? FOCUS : REST}`}>
-          {/* cartridge-style thumbnail with its shelf number */}
-          <span className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-lg text-[13px] font-extrabold text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,.3)]" style={{ background: `linear-gradient(155deg, ${PROJ_ART[i % PROJ_ART.length][0]}, ${PROJ_ART[i % PROJ_ART.length][1]})` }}>
-            <span aria-hidden className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.4),transparent_55%)]" />
-            <span className="relative [text-shadow:0_1px_2px_rgba(0,0,0,.4)]">{String(i + 1).padStart(2, '0')}</span>
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-[13px] font-bold">{p.title}</div>
-            <div className="truncate text-[12px] text-ink-sub">{p.summary}</div>
-          </div>
-          {(p as { soon?: boolean }).soon ? (
-            <span className="rounded-full bg-accent-blue/10 px-2.5 py-0.5 text-[11px] font-bold text-accent-blue">COMING SOON</span>
-          ) : (
-            <>
-              <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-[11px] font-bold text-ink-sub">{p.role}</span>
-              <span className="label">{p.period.slice(0, 4)}</span>
-            </>
-          )}
-        </div>
-      ))}
+      <div className="grid grid-cols-2 gap-3 pb-1">
+        {projects.map((p, i) => {
+          const soon = (p as { soon?: boolean }).soon
+          const img = cover(p)
+          return (
+            <div key={p.id} ref={el => { if (i === s.proj) el?.scrollIntoView({ block: 'nearest' }) }}
+              role="button" tabIndex={-1} onClick={() => pickRow('PROJECTS', i)}
+              className={`cursor-pointer overflow-hidden rounded-xl bg-card transition-transform hover:scale-[1.01] ${i === s.proj ? FOCUS : REST}`}>
+              <div className="relative aspect-[2/1] w-full overflow-hidden bg-d-bg2">
+                {img ? <img src={img} alt="" draggable={false} decoding="async" className="absolute inset-0 h-full w-full object-cover object-top" />
+                  : <ChipBadge i={i} bare className="!absolute !inset-0 !aspect-auto !rounded-none !shadow-none !ring-0" />}
+                <span className="absolute left-2 top-2 rounded-md bg-black/55 px-1.5 py-0.5 text-[11px] font-extrabold text-white">{String(i + 1).padStart(2, '0')}</span>
+                {soon && <span className="absolute inset-0 grid place-items-center bg-black/45 text-[12px] font-extrabold tracking-[0.18em] text-white">COMING SOON</span>}
+              </div>
+              <div className="px-3 pb-2.5 pt-2">
+                <div className="truncate text-[14px] font-extrabold">{p.title}</div>
+                <div className="mt-0.5 line-clamp-2 min-h-[34px] text-[12px] leading-[1.4] text-ink-sub">{p.summary}</div>
+                <div className="mt-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-wide text-ink-sub/80">
+                  <span>{p.role}</span>{!soon && <span>{p.period}</span>}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
