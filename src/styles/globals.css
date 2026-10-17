@@ -79,8 +79,8 @@ body { background: var(--color-bg) linear-gradient(to right, #a9dcec 0%, #cfe6ee
   55%, 100% { transform: rotate(-90deg); }
 }
 
-/* focused home tile: a white frame and a cyan frame that pulse, with a soft cyan glow under it */
+/* focused home tile: a white frame and a cyan frame that pulse (아래로 번지는 하늘색 그림자는 없앴다) */
 @keyframes tileGlow {
-  0%, 100% { box-shadow: 0 0 0 3px var(--color-screen), 0 0 0 6px #1fb6e8, 0 10px 22px -4px rgba(31,182,232,.5); }
-  50% { box-shadow: 0 0 0 3px var(--color-screen), 0 0 0 6px #8fe3ff, 0 14px 30px -4px rgba(31,182,232,.8); }
+  0%, 100% { box-shadow: 0 0 0 3px var(--color-screen), 0 0 0 6px #1fb6e8; }
+  50% { box-shadow: 0 0 0 3px var(--color-screen), 0 0 0 6px #8fe3ff; }
 }
