@@ -128,7 +128,7 @@ function Home({ s }: { s: State }) {
       </div>
       </div>
       {/* the focused tile's name and blurb */}
-      <div className="h-12 w-full px-7 text-center">
+      <div className="mt-5 h-12 w-full px-7 text-center">
         <AnimatePresence mode="wait" initial={false}>
           {tileFocus && (
             <motion.div key={cur} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.16 }}>
