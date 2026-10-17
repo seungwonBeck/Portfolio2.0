@@ -23,7 +23,7 @@ export function useControls() {
   const [pressed, setPressed] = useState<Btn | null>(null)
   const [sound, setSound] = useState(false) // off by default; first input enables audio context
   const [big, setBig] = useState(false)
-  const [dark, setDark] = useState(false)
+  const [dark, setDark] = useState(true) // 기기 화면은 야간 모드로 시작한다 (Y 버튼으로 전환)
   const timer = useRef<number>()
   const ref = useRef({ state, sound })
   ref.current = { state, sound }

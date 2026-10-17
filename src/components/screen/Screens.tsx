@@ -89,9 +89,9 @@ function Home({ s }: { s: State }) {
   const open = useContext(OpenContext)
   const cur = TILES[s.home]
   return (
-    <div className="relative h-full">
-      <div className="absolute inset-x-0 top-0 overflow-hidden py-4 pl-6">
-      {/* 다섯 칸(112px + 간격 8px)이 한 줄에 다 보이고, 독이 없어진 만큼 위아래로 길게 늘린 상자 */}
+    <div className="relative flex h-full flex-col items-center justify-center">
+      <div className="overflow-hidden px-3 py-3">
+      {/* 다섯 칸(116px 정사각형 + 간격 8px)이 한 줄에 다 보이고, 타일 줄과 이름·설명은 화면 가운데에 놓는다 */}
       <div className="flex gap-2 py-1">
         {TILES.map((t, i) => {
           const sel = tileFocus && i === s.home
@@ -101,7 +101,7 @@ function Home({ s }: { s: State }) {
           return (
             <div key={t} className="shrink-0">
               <motion.button aria-label={label(t)} onClick={() => open('tile', i)} animate={{ scale: sel ? 1.07 : 1, y: sel ? -3 : 0 }} transition={{ type: 'spring', stiffness: 380, damping: 26 }}
-                className={`relative block h-[176px] w-[112px] overflow-hidden rounded-[14px] text-left ${sel ? 'animate-[tileGlow_1.6s_ease-in-out_infinite]' : 'shadow-[0_8px_16px_-6px_rgba(0,0,0,.35)]'}`}
+                className={`relative block h-[116px] w-[116px] overflow-hidden rounded-[14px] text-left ${sel ? 'animate-[tileGlow_1.6s_ease-in-out_infinite]' : 'shadow-[0_8px_16px_-6px_rgba(0,0,0,.35)]'}`}
                 style={{ background: `linear-gradient(155deg, ${hi} 0%, ${lo} 100%)` }}>
                 {chip ? (
                   <>
@@ -114,11 +114,11 @@ function Home({ s }: { s: State }) {
                 ) : (
                   <>
                     {/* big faint glyph as the box art, a sheen from the top-left, a rim light, then the title on a scrim */}
-                    <Icon aria-hidden size={104} strokeWidth={1.2} className="absolute -right-4 top-6 text-white/25" />
+                    <Icon aria-hidden size={84} strokeWidth={1.2} className="absolute -right-3 -top-1 text-white/25" />
                     <span aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.06) 38%, transparent 52%)' }} />
                     <span aria-hidden className="absolute inset-0 rounded-[14px]" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,.28), inset 0 -26px 34px -18px rgba(0,0,0,.5)' }} />
-                    <span className="absolute left-3 top-3 grid h-9 w-9 place-items-center rounded-xl bg-white/90 shadow-[0_2px_4px_rgba(0,0,0,.25)]"><Icon size={20} strokeWidth={2.2} style={{ color: lo }} /></span>
-                    <span className="absolute inset-x-0 bottom-0 p-3 text-[16px] font-extrabold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,.45)]">{label(t)}</span>
+                    <span className="absolute left-2.5 top-2.5 grid h-8 w-8 place-items-center rounded-xl bg-white/90 shadow-[0_2px_4px_rgba(0,0,0,.25)]"><Icon size={18} strokeWidth={2.2} style={{ color: lo }} /></span>
+                    <span className="absolute inset-x-0 bottom-0 p-2.5 text-[15px] font-extrabold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,.45)]">{label(t)}</span>
                   </>
                 )}
               </motion.button>
@@ -128,7 +128,7 @@ function Home({ s }: { s: State }) {
       </div>
       </div>
       {/* the focused tile's name and blurb */}
-      <div className="absolute inset-x-0 top-[212px] h-12 pl-7 pr-7">
+      <div className="h-12 w-full px-7 text-center">
         <AnimatePresence mode="wait" initial={false}>
           {tileFocus && (
             <motion.div key={cur} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.16 }}>
