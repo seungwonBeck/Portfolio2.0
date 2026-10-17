@@ -1,7 +1,7 @@
-/** Profile pictures for the ABOUT screen: 0 = the owner's cartoon, 1 = ID photo (public/avatars/*.webp; the ID photo is only reachable by flipping the coin), 2+ = original pixel characters. */
+/** Profile pictures for the ABOUT screen: 0 = the owner's cartoon, 1 = (예전 증명사진 자리, 쓰지 않음 · 번호를 유지하려고 비워 둔 칸), 2+ = original pixel characters. */
 const img = (f: string) => `${import.meta.env.BASE_URL}avatars/${f}`
-// decode both photos up front, so the coin never shows a half-decoded one while it flips
-if (typeof Image !== 'undefined') for (const f of ['me.webp', 'photo.webp']) { const i = new Image(); i.decoding = 'sync'; i.src = img(f) }
+// decode the photo up front, so the coin never shows a half-decoded one while it flips
+if (typeof Image !== 'undefined') for (const f of ['me.webp']) { const i = new Image(); i.decoding = 'sync'; i.src = img(f) }
 
 const BLOB = ['..............', '....bbbbbb....', '..bbbbbbbbbb..', '..bbbbbbbbbb..', '..bbwwbbwwbb..', '..bbwebbwebb..', '..bbbbbbbbbb..', '..bbbbrrbbbb..', '..bbbbbbbbbb..', '...bbbbbbbb...', '....bbbbbb....', '....bbbbbb....']
 const ROBOT = ['.....rr.....', '.....aa.....', '..aaaaaaaa..', '.aaaaaaaaaa.', '.aawwaawwaa.', '.aawkaawkaa.', '.aaaaaaaaaa.', '.aakkkkkkaa.', '.aaaaaaaaaa.', '..aaaaaaaa..', '.bb.aaaa.bb.', '.bb......bb.']
@@ -13,7 +13,7 @@ const K = '#16171a', W = '#ffffff'
 type Entry = { name: string; bg: string; src?: string; fit?: 'cover' | 'contain'; rows?: string[]; pal?: Record<string, string>; leg?: string }
 export const AVATARS: Entry[] = [
   { name: 'ME', bg: '#ffffff', src: img('me.webp') },
-  { name: 'PHOTO', bg: '#ffffff', src: img('photo.webp'), fit: 'contain' },
+  { name: 'ME', bg: '#ffffff', src: img('me.webp') },
   { name: 'BLOB', bg: '#ff9f43', rows: BLOB, pal: { b: '#1fb6e8', w: W, e: K, r: '#ff4b3e' }, leg: '#0e7fa8' },
   { name: 'ROBOT', bg: '#3b6cff', rows: ROBOT, pal: { a: '#c4ccd6', b: '#6b7683', r: '#ff4b3e', w: W, k: K }, leg: '#6b7683' },
   { name: 'CAT', bg: '#34c759', rows: CAT, pal: { o: '#ff9f43', p: '#ff6b8a', w: W, k: K }, leg: '#d97a1a' },
@@ -52,8 +52,8 @@ export function Avatar({ i, className = '' }: { i: number; className?: string })
 
 const SIZE = 120, DEPTH = 14 // px
 
-/** A coin with real thickness: two faces plus a stack of rim discs. `rot` is the total Y rotation in degrees (multiples of 180); `front` is the face at 0°, the back only shows the ID photo while `photo` is set (so it never flashes by during a character spin). */
-export function Coin({ rot, front, photo, onClick }: { rot: number; front: number; photo: boolean; onClick: () => void }) {
+/** A coin with real thickness: two faces plus a stack of rim discs. `rot` is the total Y rotation in degrees (multiples of 180); both faces show the same picture (`front`). */
+export function Coin({ rot, front, onClick }: { rot: number; front: number; onClick: () => void }) {
   const face = { backfaceVisibility: 'hidden' } as const
   return (
     <button type="button" aria-label="프로필 뒤집기" onClick={onClick} className="relative block cursor-pointer outline-none focus:outline-none focus-visible:outline-none" style={{ width: SIZE, height: SIZE, perspective: 600 }}>
@@ -64,7 +64,7 @@ export function Coin({ rot, front, photo, onClick }: { rot: number; front: numbe
         ))}
         {/* faces are drawn at 2x and scaled down: a 3D-rotating layer is rasterized once, at its size, and looked grainy until the flip ended */}
         <span className="absolute" style={{ ...face, left: '-50%', top: '-50%', width: '200%', height: '200%', transform: `translateZ(${DEPTH / 2}px) scale(.5)` }}><Avatar i={front} className="h-full w-full ring-[10px] ring-[#e4e8ee]" /></span>
-        <span className="absolute" style={{ ...face, left: '-50%', top: '-50%', width: '200%', height: '200%', transform: `rotateY(180deg) translateZ(${DEPTH / 2}px) scale(.5)` }}><Avatar i={photo ? 1 : front} className="h-full w-full ring-[10px] ring-[#e4e8ee]" /></span>
+        <span className="absolute" style={{ ...face, left: '-50%', top: '-50%', width: '200%', height: '200%', transform: `rotateY(180deg) translateZ(${DEPTH / 2}px) scale(.5)` }}><Avatar i={front} className="h-full w-full ring-[10px] ring-[#e4e8ee]" /></span>
       </span>
     </button>
   )
