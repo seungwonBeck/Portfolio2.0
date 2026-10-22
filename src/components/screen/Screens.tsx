@@ -1,7 +1,7 @@
 import { ReactNode, RefObject, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Code2, Dices, Download, Maximize2, X, Palette, Sparkles, Wrench, Github, Instagram, Wifi, Goal, ExternalLink, FolderOpen, Footprints, Gamepad2, Gauge, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
-import SkillIcon from './SkillIcons'
+import SkillIcon, { TileArt } from './SkillIcons'
 import { AVATAR_ORDER, Btn, contactItems, DOCK, State, TILES } from '../../store/nav'
 import { Avatar, AVATARS, Coin, runFrame } from './avatars'
 import Yacht from './Yacht'
@@ -113,11 +113,10 @@ function Home({ s }: { s: State }) {
                   </>
                 ) : (
                   <>
-                    {/* big faint glyph as the box art, a sheen from the top-left, a rim light, then the title on a scrim */}
-                    <Icon aria-hidden size={84} strokeWidth={1.2} className="absolute -right-3 -top-1 text-white/25" />
+                    {/* 말랑한 3D 느낌 그림(기울여서 카드 위로 살짝 튀어나오게), 왼쪽 위에서 오는 빛, 테두리 빛, 아래에 이름 */}
+                    <motion.span aria-hidden className="absolute right-0.5 top-1.5 block h-[84px] w-[84px] [filter:drop-shadow(0_6px_5px_rgba(0,0,0,.28))]" initial={false} animate={{ scale: sel ? 1.1 : 1, rotate: sel ? -2 : -6 }} transition={{ type: 'spring', stiffness: 300, damping: 18 }}><TileArt name={t} /></motion.span>
                     <span aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.06) 38%, transparent 52%)' }} />
                     <span aria-hidden className="absolute inset-0 rounded-[14px]" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,.28), inset 0 -26px 34px -18px rgba(0,0,0,.5)' }} />
-                    <span className="absolute left-2.5 top-2.5 grid h-8 w-8 place-items-center rounded-xl bg-white/90 shadow-[0_2px_4px_rgba(0,0,0,.25)]"><Icon size={18} strokeWidth={2.2} style={{ color: lo }} /></span>
                     <span className="absolute inset-x-0 bottom-0 p-2.5 text-[15px] font-extrabold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,.45)]">{label(t)}</span>
                   </>
                 )}
@@ -454,7 +453,7 @@ function Detail({ s }: { s: State }) {
       {/* 02: 배경·키워드 (왼쪽 제목, 오른쪽 설명) */}
       <section className={sectionBox}>
         <div className={label}>Context</div>
-        <div className="grid grid-cols-[1fr_1.1fr] items-start gap-6">
+        <div className="grid grid-cols-[1fr_1.1fr] items-center gap-6">
           {head('02', sec[1].title)}
           <p className={`${BODY} text-d-body`}>{sec[1].text}</p>
         </div>
@@ -466,13 +465,14 @@ function Detail({ s }: { s: State }) {
         {head('03', sec[2].title)}
         <div className="grid grid-cols-3 gap-5">
           {[
-            { t: '작업 기간', v: p.period },
-            { t: '작업 비중', v: '100%' },
-            ...(tools ? [{ t: '사용 도구', v: tools }] : []),
+            { t: '작업 기간', v: p.period, big: true },
+            { t: '작업 비중', v: '100%', big: true },
+            ...(tools ? [{ t: '사용 도구', v: tools, big: false }] : []),
           ].map((c, n) => (
             <div key={c.t} className="flex flex-col gap-3">
               <div className="flex items-baseline gap-2"><span className="text-[11px] font-bold text-accent-blue">{String(n + 1).padStart(2, '0')}</span><span className="text-[13px] font-extrabold text-ink">{c.t}</span></div>
-              <div className={`${BODY} text-d-body`}>{c.v}</div>
+              {/* 기간·비중은 큰 숫자로, 도구 이름은 본문보다 한 단계 크게 */}
+              <div className={c.big ? 'text-[24px] font-extrabold leading-[1.2] tracking-tight text-ink' : 'text-[13px] font-semibold leading-[1.6] text-ink'}>{c.v}</div>
             </div>
           ))}
         </div>
