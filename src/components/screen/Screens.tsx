@@ -431,10 +431,7 @@ function Detail({ s }: { s: State }) {
         <div className="flex w-[44%] shrink-0 flex-col justify-center px-5 py-4 text-white" style={{ background: `linear-gradient(155deg, color-mix(in srgb, ${tone} 60%, #101827), #101827)` }}>
           <div className="mb-3 self-start rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/90 ring-1 ring-white/50">{p.role}</div>
           <h2 className="mb-2 text-[26px] font-extrabold leading-[1.1] tracking-tight">{p.title}</h2>
-          <p className="mb-3 line-clamp-2 text-[12px] leading-[1.5] text-white/75">{p.summary}</p>
-          <div className="mb-3 flex flex-wrap gap-1.5">
-            {[p.period].map(t => <span key={t} className="rounded-full px-2.5 py-0.5 text-[10px] font-bold text-white/85 ring-1 ring-white/35">{t}</span>)}
-          </div>
+          <p className="mb-4 line-clamp-2 text-[12px] leading-[1.5] text-white/75">{p.summary}</p>
           {showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-4 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
         </div>
         <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} glow={fit === 'slide' || fit === 'a4'} className="relative min-w-0 flex-1" />
