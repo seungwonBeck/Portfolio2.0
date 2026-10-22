@@ -535,9 +535,11 @@ function Detail({ s }: { s: State }) {
                 </button>
               </div>
               <div className="min-w-0 flex-1 text-left">
-                <div className="mb-3 flex h-8 items-center">
-                  {b.logo ? <img src={resolve(b.logo)} alt="" draggable={false} decoding="async" className="max-h-8 max-w-[70%] object-contain" /> : <span className="text-[11px] font-extrabold tracking-[0.2em] text-d-faint">BRAND LOGO</span>}
-                </div>
+                {(b.logo || !b.name) && (
+                  <div className="mb-3 flex h-8 items-center">
+                    {b.logo ? <img src={resolve(b.logo)} alt="" draggable={false} decoding="async" className="max-h-8 max-w-[70%] object-contain" /> : <span className="text-[11px] font-extrabold tracking-[0.2em] text-d-faint">BRAND LOGO</span>}
+                  </div>
+                )}
                 <div className="mb-1.5 text-[14px] font-extrabold leading-[1.3] text-ink">{b.name || '상품명'}</div>
                 <p className={`${BODY} text-d-body`}>{b.text || '브랜드와 상품에 대한 설명이 들어가는 자리입니다.'}</p>
               </div>
