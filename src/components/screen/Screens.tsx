@@ -295,12 +295,19 @@ function HeroSlides({ imgs: all, i, className = '', contain = false, dark = fals
   const imgs = [...new Set(all)] // 같은 사진이 여러 칸에 쓰여도 슬라이드는 한 번만
   const n = imgs.length || 4
   const [idx, setIdx] = useState(0)
+  const single = imgs.length === 1 // 한 장이면 움직이지 않고 칸을 꽉 채워 고정
   useEffect(() => {
+    if (single) return
     const t = setInterval(() => setIdx(v => (v + 1) % n), 1500)
     return () => clearInterval(t)
-  }, [n])
+  }, [n, single])
   // 다음 사진이 넘어오는 순간 비어 보이지 않도록 모든 사진을 미리 받아 둔다
   useEffect(() => { imgs.forEach(src => { const im = new Image(); im.decoding = 'async'; im.src = src }) }, [imgs.join('|')]) // eslint-disable-line react-hooks/exhaustive-deps
+  if (single) return (
+    <div className={`relative overflow-hidden bg-d-bg2 ${className}`}>
+      <img src={imgs[0]} alt="" draggable={false} decoding="async" className="absolute inset-0 h-full w-full object-cover object-top" />
+    </div>
+  )
   return (
     <div className={`relative overflow-hidden ${dark ? 'bg-[#0d0d0f]' : contain ? 'bg-d-bg2' : 'bg-[#d9d9d9]'} ${className}`}>
       {/* glow: 지금 슬라이드를 아주 작은 캔버스에 줄여 그린 뒤 늘려서(흐린 효과) 뒤에 깔아, 슬라이드 양옆 빈 곳이 같은 사진 색으로 번지게 한다.
@@ -365,7 +372,7 @@ function Detail({ s }: { s: State }) {
   const resolve = (f?: string) => (f ? (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`) : '')
   const banners = (p as { banners?: Banner[] }).banners
   const bannerImgs = (banners ?? []).map(b => resolve(b.image)).filter(Boolean)
-  const slideImgs = heroImgs.length ? heroImgs : imgs.length ? imgs : bannerImgs
+  const slideImgs = heroImgs.length ? heroImgs : imgs.length ? imgs : bannerImgs.slice(0, 1) // 배너 작품은 첫 사진 한 장만 꽉 차게 보여 준다
   const fit = (p as { imageFit?: string }).imageFit
   const contain = fit === 'contain' || fit === 'slide' || fit === 'a4' // slide: 16:9 슬라이드/PDF 캡처, a4: 세로로 긴 상세 페이지를 A4 비율로 잘라 둔 것, 잘리지 않게 칸도 같은 비율
   // 슬라이드 사진은 16:9 칸에 꽉 채운다(원본 비율이 소수점 단위로 달라 contain이면 가장자리에 1px 틈이 생김)
