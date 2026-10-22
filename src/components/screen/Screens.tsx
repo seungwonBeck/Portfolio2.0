@@ -193,7 +193,7 @@ function About({ s }: { s: State }) {
 function Projects({ s }: { s: State }) {
   const pickRow = useContext(RowContext)
   const cover = (p: (typeof projects)[number]) => {
-    const f = ((p as { heroImages?: string[] }).heroImages?.[0] ?? (p as { images?: string[] }).images?.[0]) as string | undefined
+    const f = ((p as { heroImages?: string[] }).heroImages?.[0] ?? (p as { images?: string[] }).images?.[0] ?? (p as { banners?: { image?: string }[] }).banners?.[0]?.image) as string | undefined
     return f ? (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`) : ''
   }
   return (
@@ -275,7 +275,7 @@ function Photo({ src, i, k, className = '', plain = false, contain = false }: { 
 }
 
 /** The big hero photo as an auto-advancing slideshow: each slide sweeps in from the right with a horizontal motion-blur streak while the old one is pulled out to the left. Uses the project's own pictures, or box-art colour cards until they exist. */
-/** 사진을 64×16 캔버스에 꽉 채워(cover) 그려 두면, 화면에 늘려 보일 때 부드럽게 번져 흐린 배경처럼 보인다. */
+/** 사진을 40×32 캔버스에 꽉 채워(cover) 그려 두면, 화면에 늘려 보일 때 부드럽게 번져 흐린 배경처럼 보인다. */
 function GlowCanvas({ src }: { src: string }) {
   const ref = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
@@ -288,19 +288,26 @@ function GlowCanvas({ src }: { src: string }) {
     }
     im.src = src
   }, [src])
-  return <canvas ref={ref} width={64} height={16} className="h-full w-full" />
+  return <canvas ref={ref} width={40} height={32} className="h-full w-full" />
 }
 
 function HeroSlides({ imgs: all, i, className = '', contain = false, dark = false, glow = false }: { imgs: string[]; i: number; className?: string; contain?: boolean; dark?: boolean; glow?: boolean }) {
   const imgs = [...new Set(all)] // 같은 사진이 여러 칸에 쓰여도 슬라이드는 한 번만
   const n = imgs.length || 4
   const [idx, setIdx] = useState(0)
+  const single = imgs.length === 1 // 한 장이면 움직이지 않고 칸을 꽉 채워 고정
   useEffect(() => {
+    if (single) return
     const t = setInterval(() => setIdx(v => (v + 1) % n), 1500)
     return () => clearInterval(t)
-  }, [n])
+  }, [n, single])
   // 다음 사진이 넘어오는 순간 비어 보이지 않도록 모든 사진을 미리 받아 둔다
   useEffect(() => { imgs.forEach(src => { const im = new Image(); im.decoding = 'async'; im.src = src }) }, [imgs.join('|')]) // eslint-disable-line react-hooks/exhaustive-deps
+  if (single) return (
+    <div className={`relative overflow-hidden bg-d-bg2 ${className}`}>
+      <img src={imgs[0]} alt="" draggable={false} decoding="async" className="absolute inset-0 h-full w-full object-cover object-top" />
+    </div>
+  )
   return (
     <div className={`relative overflow-hidden ${dark ? 'bg-[#0d0d0f]' : contain ? 'bg-d-bg2' : 'bg-[#d9d9d9]'} ${className}`}>
       {/* glow: 지금 슬라이드를 아주 작은 캔버스에 줄여 그린 뒤 늘려서(흐린 효과) 뒤에 깔아, 슬라이드 양옆 빈 곳이 같은 사진 색으로 번지게 한다.
@@ -308,7 +315,7 @@ function HeroSlides({ imgs: all, i, className = '', contain = false, dark = fals
       {glow && imgs.length > 0 && (
         <AnimatePresence initial={false}>
           <motion.div key={`g${idx}`} aria-hidden className="pointer-events-none absolute inset-0"
-            initial={{ opacity: 0 }} animate={{ opacity: 0.55 }} exit={{ opacity: 0.55, transition: { duration: 0, delay: 0.45 } }} transition={{ duration: 0.45 }}>
+            initial={{ opacity: 0 }} animate={{ opacity: 0.8 }} exit={{ opacity: 0.8, transition: { duration: 0, delay: 0.45 } }} transition={{ duration: 0.45 }}>
             <GlowCanvas src={imgs[idx]} />
           </motion.div>
         </AnimatePresence>
@@ -365,7 +372,7 @@ function Detail({ s }: { s: State }) {
   const resolve = (f?: string) => (f ? (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`) : '')
   const banners = (p as { banners?: Banner[] }).banners
   const bannerImgs = (banners ?? []).map(b => resolve(b.image)).filter(Boolean)
-  const slideImgs = heroImgs.length ? heroImgs : imgs.length ? imgs : bannerImgs
+  const slideImgs = heroImgs.length ? heroImgs : imgs.length ? imgs : bannerImgs.slice(0, 1) // 배너 작품은 첫 사진 한 장만 꽉 차게 보여 준다
   const fit = (p as { imageFit?: string }).imageFit
   const contain = fit === 'contain' || fit === 'slide' || fit === 'a4' // slide: 16:9 슬라이드/PDF 캡처, a4: 세로로 긴 상세 페이지를 A4 비율로 잘라 둔 것, 잘리지 않게 칸도 같은 비율
   // 슬라이드 사진은 16:9 칸에 꽉 채운다(원본 비율이 소수점 단위로 달라 contain이면 가장자리에 1px 틈이 생김)
@@ -435,7 +442,7 @@ function Detail({ s }: { s: State }) {
           <p className="mb-4 line-clamp-2 text-[12px] leading-[1.5] text-white/75">{p.summary}</p>
           {showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-4 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
         </div>
-        <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} glow={fit === 'slide' || fit === 'a4'} className="relative min-w-0 flex-1" />
+        <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} glow className="relative min-w-0 flex-1" />
       </section>
 
       {/* 01: 프로젝트 개요 */}
@@ -486,7 +493,7 @@ function Detail({ s }: { s: State }) {
           {banners.map((b, k) => (
             <div key={k} className="mx-auto flex max-w-[560px] items-center gap-8 border-b border-d-line py-5 last:border-b-0">
               <div className="w-[34%] shrink-0">
-                <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-d-line">
+                <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl bg-d-line">
                   {b.image ? <img src={resolve(b.image)} alt="" draggable={false} decoding="async" className="absolute inset-0 h-full w-full object-contain" /> : (
                     <span aria-hidden className="absolute inset-0 grid place-items-center text-[11px] font-extrabold tracking-[0.2em] text-d-mute">BANNER {String(k + 1).padStart(2, '0')}</span>
                   )}
