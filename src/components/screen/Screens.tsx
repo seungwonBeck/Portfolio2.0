@@ -113,7 +113,7 @@ function Home({ s }: { s: State }) {
                     </>
                   ) : (
                     <>
-                      <span aria-hidden className="absolute left-1/2 top-[40%] block h-[50px] w-[50px] -translate-x-1/2 -translate-y-1/2 [filter:drop-shadow(0_2px_8px_rgba(255,255,255,.35))]"><TileArt name={t} color="#ffffff" /></span>
+                      <span aria-hidden className="absolute left-1/2 top-[41%] block h-[70px] w-[70px] -translate-x-1/2 -translate-y-1/2 [filter:drop-shadow(0_2px_8px_rgba(255,255,255,.35))]"><TileArt name={t} color="#ffffff" /></span>
                       <span aria-hidden className="absolute -left-4 -top-6 h-16 w-24 rotate-[-18deg] bg-white/30 blur-xl" />
                       <span className="absolute inset-x-0 bottom-3 text-center text-[11px] font-semibold tracking-[0.26em] text-white [text-shadow:0_1px_6px_rgba(0,0,0,.35)]">{label(t)}</span>
                     </>
