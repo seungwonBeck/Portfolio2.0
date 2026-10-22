@@ -5,6 +5,14 @@ import type { Btn } from '../../store/nav'
 /** 세로 폰 전용 화면 속 컨트롤러: 확대샷에서는 기기의 십자키/A·B 버튼이 화면 밖으로 잘리므로, 콘솔이 보이는 동안 기기 아래에 눌러서 쓸 수 있는 버튼을 둔다. */
 export default function MobilePad({ press }: { press: (b: Btn) => void }) {
   const [show, setShow] = useState(true)
+  // 가로로 든 폰: 기기의 십자키·A/B 버튼이 화면 밖으로 잘리므로, 화면 모서리에 작은 조작 버튼을 띄운다
+  const [land, setLand] = useState(() => matchMedia('(orientation: landscape) and (max-height: 520px)').matches)
+  useEffect(() => {
+    const mq = matchMedia('(orientation: landscape) and (max-height: 520px)')
+    const f = () => setLand(mq.matches)
+    mq.addEventListener('change', f)
+    return () => mq.removeEventListener('change', f)
+  }, [])
   const [top, setTop] = useState(0) // 40px under the console (clamped so the pad stays on screen)
   useEffect(() => {
     const el = document.getElementById('console'); if (!el) return
@@ -25,6 +33,22 @@ export default function MobilePad({ press }: { press: (b: Btn) => void }) {
       {node}
     </button>
   )
+  if (land) {
+    const sm = '!h-9 !w-9 opacity-60 active:opacity-100'
+    return (
+      <div aria-label="controller" className={`pointer-events-none fixed inset-x-0 bottom-3 z-30 flex items-end justify-between px-3 transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0'}`}>
+        <div className="pointer-events-auto grid grid-cols-3 grid-rows-3 gap-0.5">
+          <span />{b('up', <ChevronUp size={20} />, sm)}<span />
+          {b('left', <ChevronLeft size={20} />, sm)}<span />{b('right', <ChevronRight size={20} />, sm)}
+          <span />{b('down', <ChevronDown size={20} />, sm)}<span />
+        </div>
+        <div className="pointer-events-auto mr-14 flex flex-col items-center gap-2">
+          {b('HOME', <Home size={16} />, '!h-8 !w-8 opacity-60 active:opacity-100')}
+          <div className="flex items-end gap-2">{b('B', 'B', `mb-4 ${sm}`)}{b('A', 'A', `${sm} !bg-[#e0402f]`)}</div>
+        </div>
+      </div>
+    )
+  }
   return (
     <div aria-label="controller" className={`fixed inset-x-0 z-30 flex items-end justify-between px-5 transition-opacity duration-300 md:hidden landscape:hidden ${show ? 'opacity-100' : 'pointer-events-none opacity-0'}`} style={{ top }}>
       <div className="grid grid-cols-3 grid-rows-3 gap-0.5">

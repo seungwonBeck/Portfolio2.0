@@ -1,7 +1,7 @@
 import { ReactNode, RefObject, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Code2, Dices, Download, Maximize2, X, Palette, Sparkles, Wrench, Github, Instagram, Wifi, Goal, ExternalLink, FolderOpen, Footprints, Gamepad2, Gauge, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
-import SkillIcon from './SkillIcons'
+import SkillIcon, { TileArt } from './SkillIcons'
 import { AVATAR_ORDER, Btn, contactItems, DOCK, State, TILES } from '../../store/nav'
 import { Avatar, AVATARS, Coin, runFrame } from './avatars'
 import Yacht from './Yacht'
@@ -73,9 +73,9 @@ export const OpenContext = createContext<(row: 'tile' | 'dock', i: number) => vo
 export const RowContext = createContext<(screen: 'PROJECTS' | 'CONTACT' | 'GAME', i: number) => void>(() => {})
 export const PressContext = createContext<(b: Btn) => void>(() => {})
 
-const dockColor = { ABOUT: '#ff4b3e', PROJECTS: '#ff9f43', SKILLS: '#34c759', CONTACT: '#1fb6e8', GAME: '#8a8b90' }
 /** Box-art colours per tile (light, dark) and the one-line blurb shown under the focused tile, like a game's title on the Switch home. */
-const TILE_ART = { ABOUT: ['#ff7a6b', '#b3261a'], PROJECTS: ['#ffb54d', '#c4630a'], SKILLS: ['#4fd98a', '#12803f'], CONTACT: ['#3cc6f2', '#0b6f98'], GAME: ['#b07bff', '#4a21a8'] } as const
+// 홈 타일 색: 조이콘처럼 왼쪽 파랑에서 가운데 보라를 지나 오른쪽 빨강으로 이어지게 통일 (밝은 색, 어두운 색)
+const TILE_ART = { ABOUT: ['#52a8ff', '#1f5fd0'], SKILLS: ['#6e8cff', '#3a4fcf'], PROJECTS: ['#a07cf0', '#6a45c2'], CONTACT: ['#f27a9a', '#c23a62'], GAME: ['#ff6b5e', '#c92a2a'] } as const
 const TILE_SUB = { ABOUT: '프로필과 타임라인', PROJECTS: `${projects.length}개의 작품`, SKILLS: '쓸 수 있는 도구들', CONTACT: '연락하는 방법', GAME: '쉬어가는 미니게임' } as const
 
 /**
@@ -90,42 +90,39 @@ function Home({ s }: { s: State }) {
   const cur = TILES[s.home]
   return (
     <div className="relative flex h-full flex-col items-center justify-center">
-      <div className="overflow-hidden px-2 py-3">
-      {/* 다섯 칸(116px 정사각형 + 간격 8px)이 한 줄에 다 보이고, 타일 줄과 이름·설명은 화면 가운데에 놓는다 */}
-      <div className="flex gap-2.5 py-1">
-        {TILES.map((t, i) => {
-          const sel = tileFocus && i === s.home
-          const [hi, lo] = TILE_ART[t]
-          const Icon = tileIcon[t]
-          const chip = t === 'PROJECTS' && s.only !== null // 칩이 꽂히면 이 칸은 그 프로젝트의 로고 + 제목으로 바뀐다
-          return (
-            <div key={t} className="shrink-0">
-              <motion.button aria-label={label(t)} onClick={() => open('tile', i)} animate={{ scale: sel ? 1.04 : 1, y: sel ? -3 : 0 }} transition={{ type: 'spring', stiffness: 380, damping: 26 }}
-                className={`relative block h-[116px] w-[116px] overflow-hidden rounded-[14px] text-left ${sel ? 'animate-[tileGlow_1.6s_ease-in-out_infinite]' : 'shadow-[0_8px_16px_-6px_rgba(0,0,0,.35)]'}`}
-                style={{ background: `linear-gradient(155deg, ${hi} 0%, ${lo} 100%)` }}>
-                {chip ? (
-                  <>
-                    {/* inserted cartridge: the project's logo fills the box, its title sits on a dark bar, a PLAYING tag marks it as different from the plain menu tiles */}
-                    <ChipBadge i={s.only!} bare className="absolute inset-0 !rounded-none !shadow-none !ring-0" />
-                    <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/75 to-black/0 px-2.5 pb-2 pt-6 text-[12px] font-extrabold leading-tight tracking-tight text-white">{label(t)}</span>
-                    <span className="absolute left-2 top-2 rounded-full bg-[#ff4b3e] px-2 py-0.5 text-[8px] font-extrabold tracking-[0.14em] text-white shadow-[0_2px_4px_rgba(0,0,0,.3)]">PLAYING</span>
-                    <span aria-hidden className="absolute inset-0 rounded-[14px]" style={{ boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,.55)' }} />
-                  </>
-                ) : (
-                  <>
-                    {/* big faint glyph as the box art, a sheen from the top-left, a rim light, then the title on a scrim */}
-                    <Icon aria-hidden size={84} strokeWidth={1.2} className="absolute -right-3 -top-1 text-white/25" />
-                    <span aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.06) 38%, transparent 52%)' }} />
-                    <span aria-hidden className="absolute inset-0 rounded-[14px]" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,.28), inset 0 -26px 34px -18px rgba(0,0,0,.5)' }} />
-                    <span className="absolute left-2.5 top-2.5 grid h-8 w-8 place-items-center rounded-xl bg-white/90 shadow-[0_2px_4px_rgba(0,0,0,.25)]"><Icon size={18} strokeWidth={2.2} style={{ color: lo }} /></span>
-                    <span className="absolute inset-x-0 bottom-0 p-2.5 text-[15px] font-extrabold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,.45)]">{label(t)}</span>
-                  </>
-                )}
-              </motion.button>
-            </div>
-          )
-        })}
-      </div>
+      {/* 다섯 칸(116px 정사각형 + 간격 10px)이 한 줄에 다 보이고, 타일 줄과 이름·설명은 화면 가운데에 놓는다 */}
+      <div className="px-2 py-3">
+        <div className="flex gap-2.5 py-1">
+          {TILES.map((t, i) => {
+            const sel = tileFocus && i === s.home
+            const [hi, lo] = TILE_ART[t]
+            const chip = t === 'PROJECTS' && s.only !== null // 칩이 꽂히면 이 칸은 그 프로젝트의 로고 + 제목으로 바뀐다
+            return (
+              <div key={t} className="relative shrink-0">
+                {/* 유리 카드: 뒤에 타일 색의 흐린 빛 덩어리를 깔고, 그 위에 반투명 간유리 면을 얹는다. 선택하면 빛이 진해지고 테두리가 밝아진다 */}
+                <span aria-hidden className="pointer-events-none absolute -inset-3 rounded-full blur-2xl transition-opacity duration-300" style={{ background: `radial-gradient(circle, ${hi} 0%, ${lo} 70%, transparent 100%)`, opacity: sel ? 0.95 : 0.5 }} />
+                <motion.button aria-label={label(t)} onClick={() => open('tile', i)} animate={{ scale: sel ? 1.04 : 1, y: sel ? -3 : 0 }} transition={{ type: 'spring', stiffness: 380, damping: 26 }}
+                  className={`relative block h-[116px] w-[116px] overflow-hidden rounded-[22px] text-left backdrop-blur-xl ${sel ? 'ring-[1.5px] ring-white/90' : 'ring-1 ring-white/35'}`}
+                  style={{ background: 'linear-gradient(150deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.10) 55%, rgba(255,255,255,.18) 100%)', boxShadow: `inset 0 1px 1px rgba(255,255,255,.7), inset 0 -10px 18px -8px ${lo}88, 0 14px 26px -12px rgba(0,0,0,.55)` }}>
+                  {chip ? (
+                    <>
+                      {/* inserted cartridge: the project's logo fills the box, its title sits on a dark bar, a PLAYING tag marks it as different from the plain menu tiles */}
+                      <ChipBadge i={s.only!} bare className="absolute inset-0 !rounded-none !shadow-none !ring-0" />
+                      <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/75 to-black/0 px-2.5 pb-2 pt-6 text-[12px] font-extrabold leading-tight tracking-tight text-white">{label(t)}</span>
+                      <span className="absolute left-2 top-2 rounded-full bg-[#ff4b3e] px-2 py-0.5 text-[8px] font-extrabold tracking-[0.14em] text-white shadow-[0_2px_4px_rgba(0,0,0,.3)]">PLAYING</span>
+                    </>
+                  ) : (
+                    <>
+                      <span aria-hidden className="absolute left-1/2 top-[41%] block h-[70px] w-[70px] -translate-x-1/2 -translate-y-1/2 [filter:drop-shadow(0_2px_8px_rgba(255,255,255,.35))]"><TileArt name={t} color="#ffffff" /></span>
+                      <span aria-hidden className="absolute -left-4 -top-6 h-16 w-24 rotate-[-18deg] bg-white/30 blur-xl" />
+                      <span className="absolute inset-x-0 bottom-3 text-center text-[11px] font-semibold tracking-[0.26em] text-white [text-shadow:0_1px_6px_rgba(0,0,0,.35)]">{label(t)}</span>
+                    </>
+                  )}
+                </motion.button>
+              </div>
+            )
+          })}
+        </div>
       </div>
       {/* the focused tile's name and blurb */}
       <div className="mt-5 h-12 w-full px-7 text-center">
@@ -158,8 +155,6 @@ function About({ s }: { s: State }) {
       <div className="mb-5 flex items-center gap-7">
         <div className="shrink-0 text-center">
           <div className="pb-3"><Coin rot={rot} front={s.avatar} onClick={() => setRot(r => r + 360)} /></div>
-          {/* only while my own character is picked */}
-          <div className="h-4 text-[10px] font-bold text-accent-blue">{s.avatar === 0 && '↻ 동전을 돌려보세요'}</div>
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-[18px] font-extrabold leading-tight">{profile.name}</div>
@@ -323,7 +318,7 @@ function HeroSlides({ imgs: all, i, className = '', contain = false, dark = fals
           className="absolute inset-0 [will-change:transform]"
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
-          exit={{ x: '-30%' }}
+          exit={{ x: '-100%' }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         >
           {imgs.length ? <img src={imgs[idx]} alt="" draggable={false} decoding="async" className={`h-full w-full ${contain ? 'object-contain' : 'object-cover'}`} /> : (
@@ -416,43 +411,79 @@ function Detail({ s }: { s: State }) {
       </div>
     </div>
   )
+  // 상세 화면 배치: 왼쪽 색 패널 + 오른쪽 큰 사진의 첫 화면, 그 아래 번호 붙은 섹션(01 개요 · 02 배경 · 03 역할 · 04 작업물 · 05 링크)
+  const tone = PROJ_ART[s.proj % PROJ_ART.length][1]
+  // 작업물: 대표 사진·본문 사진을 합쳐 같은 사진은 한 번만 (데이터에 칸을 채우려고 같은 사진이 여러 번 적혀 있다)
+  const gallery = banners ? [] : [...new Set([...heroImgs, ...imgs])]
+  // 섹션 간격 규칙: 안쪽 요소 사이는 모두 12px(gap-3), 섹션 위아래는 24px. 번호는 제목 바로 옆에 둔다
+  const label = 'text-[10px] font-bold uppercase tracking-[0.18em] text-d-mute'
+  const sectionBox = 'flex flex-col gap-3 border-t border-d-line px-5 py-6'
+  const h3 = 'text-[22px] font-extrabold leading-[1.25] tracking-tight text-ink'
+  const head = (n: string, title: string) => (
+    <h3 className={`${h3} flex items-baseline gap-3`}><span className="text-[16px] text-accent-blue">{n}</span><span>{title}</span></h3>
+  )
+  const galleryRatio = fit === 'a4' ? 'aspect-[210/297]' : 'aspect-[16/9]'
   return (
     <div className="relative h-full">
     <div data-scroll className="h-full overflow-y-auto bg-d-band [scrollbar-width:none]">
-      {/* hero: left-aligned text with the button set apart from the title, then the photo edge to edge */}
-      <section className="relative flex h-full flex-col overflow-hidden bg-d-bg1">
-        {/* 슬라이드형 작업: 메인 사진을 첫 화면 전체 배경에 흐리고 옅게 깐다 */}
-        {(fit === 'slide' || fit === 'a4') && slideImgs[0] && <img aria-hidden src={slideImgs[0]} alt="" draggable={false} decoding="async" className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-2xl" />}
-        <div className="relative flex shrink-0 items-start justify-between gap-3 px-4 pb-4 pt-4">
-          <div className="min-w-0">
-            <Eyebrow>{p.role}</Eyebrow>
-            <h2 className="mb-1.5 text-[24px] font-extrabold leading-[1.2] tracking-tight text-ink">{p.title}</h2>
-            <p className="line-clamp-1 text-[12px] leading-[1.4] text-d-sub">{p.summary}</p>
-            {showBtns && <div className="mt-3 flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-4 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
-          </div>
-          <ChipBadge i={s.proj} className="mt-1 w-[76px]" />
+      {/* 첫 화면: 왼쪽은 작업 색을 깐 소개 패널, 오른쪽은 대표 사진 슬라이드 */}
+      <section className="flex h-full overflow-hidden">
+        <div className="flex w-[44%] shrink-0 flex-col justify-center px-5 py-4 text-white" style={{ background: `linear-gradient(155deg, color-mix(in srgb, ${tone} 60%, #101827), #101827)` }}>
+          <div className="mb-3 self-start rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/90 ring-1 ring-white/50">{p.role}</div>
+          <h2 className="mb-2 text-[26px] font-extrabold leading-[1.1] tracking-tight">{p.title}</h2>
+          <p className="mb-4 line-clamp-2 text-[12px] leading-[1.5] text-white/75">{p.summary}</p>
+          {showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-4 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
         </div>
-        <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} glow={fit === 'slide' || fit === 'a4'} className="relative min-h-0 w-full flex-1" />
+        <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} glow={fit === 'slide' || fit === 'a4'} className="relative min-w-0 flex-1" />
       </section>
 
-      {/* 띠마다 글자는 가운데 정렬, 사진은 그 아래 가운데에 놓는다 */}
-      {/* band 1: white, text, then the photo on a grey panel */}
-      <section className="bg-d-band px-4 py-6 text-center">
-        <Eyebrow>{banners ? 'Concept' : 'Overview'}</Eyebrow>
-        <h3 className={`${H3} text-ink`}>{sec[0].title}</h3>
-        <p className={`mx-auto max-w-[460px] ${BODY} text-d-body`}>{sec[0].text}</p>
-        {!banners && (
-          <div className={`mx-auto mt-4 ${panelW} rounded-xl bg-d-bg2 p-2.5`}>
-            <Photo src={imgs[1]} i={s.proj} k={1} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
-          </div>
-        )}
+      {/* 01: 프로젝트 개요 */}
+      <section className={sectionBox}>
+        <div className={label}>{banners ? 'Concept' : 'Project Overview'}</div>
+        {head('01', sec[0].title)}
+        <p className={`${BODY} text-justify text-d-body`}>{sec[0].text}</p>
+      </section>
+
+      {/* 02: 배경·키워드 (왼쪽 제목, 오른쪽 설명) */}
+      <section className={sectionBox}>
+        <div className={label}>Context</div>
+        {head('02', sec[1].title)}
+        <p className={`${BODY} text-justify text-d-body`}>{sec[1].text}</p>
+      </section>
+
+      {/* 03: 역할 — 기간 · 작업 비중 · 사용 도구를 세 칸으로 */}
+      <section className={sectionBox}>
+        <div className={label}>Role</div>
+        {head('03', sec[2].title)}
+        <div className="grid grid-cols-3 gap-5">
+          {/* 칸마다 제목과 값을 한 묶음으로 두고 둘 다 가운데 정렬. 사용 도구는 도구가 많아도 줄바꿈 없이 한 줄로 작게 나열한다 */}
+          {[
+            { t: '작업 기간', v: p.period, big: true },
+            { t: '작업 비중', v: '100%', big: true },
+            ...(tools ? [{ t: '사용 도구', v: tools, big: false }] : []),
+          ].map(c => (
+            <div key={c.t} className="flex flex-col items-center gap-3 text-center">
+              <div className="text-[13px] font-extrabold text-ink">{c.t}</div>
+              {c.big ? <div className="text-[24px] font-extrabold leading-[1.2] tracking-tight text-ink">{c.v}</div> : (
+                <ul className="flex flex-nowrap items-center justify-center gap-x-2 whitespace-nowrap">
+                  {c.v.split(' · ').map(t => (
+                    <li key={t} className="flex items-center gap-[3px] text-[6px] font-semibold text-ink">
+                      <span className="relative block h-[10px] w-[10px] shrink-0"><span className="absolute left-0 top-0 block origin-top-left scale-50"><SkillIcon name={t} /></span></span>
+                      <span>{t}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* 배너 목록: 사진은 왼쪽, 브랜드 로고·상품명·설명은 오른쪽. 내용이 비어 있으면 자리표시로 틀만 보여 준다 */}
       {banners && (
-        <section className="bg-d-bg3 px-4 py-2">
+        <section className="border-t border-d-line bg-d-bg3 px-5 py-2">
           {banners.map((b, k) => (
-            <div key={k} className="mx-auto flex max-w-[560px] items-center gap-8 border-b border-black/[.06] py-5 last:border-b-0">
+            <div key={k} className="mx-auto flex max-w-[560px] items-center gap-8 border-b border-d-line py-5 last:border-b-0">
               <div className="w-[34%] shrink-0">
                 <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-d-line">
                   {b.image ? <img src={resolve(b.image)} alt="" draggable={false} decoding="async" className="absolute inset-0 h-full w-full object-contain" /> : (
@@ -477,30 +508,35 @@ function Detail({ s }: { s: State }) {
         </section>
       )}
 
-      {/* band 2: white, text, the big number 24px under it, then the photo panel */}
-      <section className="bg-d-band px-4 py-6 text-center">
-        <Eyebrow>Role</Eyebrow>
-        <h3 className={`${H3} text-ink`}>{sec[2].title}</h3>
-        <p className={`mx-auto max-w-[460px] ${BODY} text-d-body`}>{sec[2].text}</p>
-        <div className="mx-auto mt-6 flex max-w-[460px] justify-center">
-          <div className="w-[35%]"><div className="text-[22px] font-extrabold leading-none text-ink">{p.period}</div><div className="mt-1.5 text-[9px] text-d-sub">작업 기간</div></div>
-          <div className="w-[35%]"><div className="text-[22px] font-extrabold leading-none text-ink">100%</div><div className="mt-1.5 text-[9px] text-d-sub">작업 비중</div></div>
-          {tools && <div className="w-[30%]"><div className="text-[11px] font-extrabold leading-[22px] text-ink">{tools.split(' · ').map(t => <span key={t} className="mx-[2px] inline-block whitespace-nowrap">{t}</span>)}</div><div className="mt-1.5 text-[9px] text-d-sub">사용 도구</div></div>}
-        </div>
-        {!banners && (
-          <div className={`mx-auto mt-4 ${panelW} rounded-xl bg-d-bg2 p-2.5`}>
-            <Photo src={imgs[4]} i={s.proj} k={4} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
+      {/* 04: 작업물 — 사진을 두 칸씩, 아래에 번호 */}
+      {gallery.length > 0 && (
+        <section className={sectionBox}>
+          <div className="flex items-end justify-between gap-3">
+            <div className="flex flex-col gap-3"><div className={label}>Works</div>{head('04', sec[3].title)}</div>
+            <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.14em] text-d-mute">{gallery.length} works</span>
           </div>
-        )}
-      </section>
+          <div className="grid grid-cols-2 items-start gap-5">
+            {gallery.map((g, k) => (
+              <figure key={g}>
+                {/* 비율이 제각각인 캡처(contain)는 칸을 사진 비율대로 늘리고, 슬라이드·A4 페이지는 정해진 비율 칸에 꽉 채운다 */}
+                {fit === 'contain' ? <img src={g} alt="" draggable={false} loading="lazy" decoding="async" className="block h-auto w-full rounded-lg bg-d-bg2" /> : (
+                  <div className={`relative w-full overflow-hidden rounded-lg bg-d-bg2 ${galleryRatio}`}>
+                    <img src={g} alt="" draggable={false} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover object-top" />
+                  </div>
+                )}
+                <figcaption className="mt-3 text-[11px] font-bold text-d-sub">{String(k + 1).padStart(2, '0')} / {String(gallery.length).padStart(2, '0')}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+      )}
 
-      {/* band 3: dark closing band */}
-      <section className="bg-[#0b0b0d] px-4 py-6 text-center text-white">
-        <Eyebrow dark>Next</Eyebrow>
-        <h3 className={`${H3}`}>{sec[3].title}</h3>
-        <p className={`mx-auto max-w-[460px] ${BODY} text-white/65`}>{sec[3].text}</p>
-        {showBtns && <div className="mt-3 flex flex-wrap items-center justify-center gap-2">{site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}{downloadBtn('bg-transparent px-3.5 py-1 text-white ring-1 ring-white/50')}</div>}
-        {!banners && <Photo src={imgs[5]} i={s.proj} k={5} plain contain={fit === 'contain'} className={`mx-auto mt-4 ${ratio} ${panelW} rounded-lg`} />}
+      {/* 05: 링크 */}
+      <section className={sectionBox}>
+        <div className={label}>Links</div>
+        {head('05', p.title)}
+        <p className={`${BODY} text-justify text-d-body`}>{sec[3].text}</p>
+        {showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-transparent px-4 py-1 text-ink ring-1 ring-ink/40')}</div>}
       </section>
     </div>
     {/* 확대해서 보기: 화면 위에 사진을 크게 띄운다. 바깥을 누르거나 닫기 버튼으로 닫는다 */}

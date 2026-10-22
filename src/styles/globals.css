@@ -39,9 +39,10 @@
 .screen-font, .screen-font * { font-family: 'Paperlogy', 'Pretendard', 'Malgun Gothic', system-ui, sans-serif !important; }
 
 /* device screen dark theme: same tokens, overridden below the .screen-dark node */
-.screen-dark { --color-screen: #2d2d30; --color-card: #3a3a3f; --color-ink: #f2f2f2; --color-ink-sub: #a0a1a6;
-  --color-d-sub: #a6a9b2; --color-d-body: #cfd1d8; --color-d-mute: #7d8190; --color-d-faint: #5d6170;
-  --color-d-bg1: #202126; --color-d-bg2: #292a30; --color-d-bg3: #1b1c1f; --color-d-line: #34353b; --color-d-band: #17181b; }
+/* 야간 모드: 검은색 대신 차분한 짙은 네이비 슬레이트. 튀지 않게 채도를 낮췄다 */
+.screen-dark { --color-screen: #1f2a3c; --color-card: #2b384e; --color-ink: #eef2f8; --color-ink-sub: #9fabc0;
+  --color-d-sub: #a9b4c8; --color-d-body: #d3dae8; --color-d-mute: #7f8ca6; --color-d-faint: #5f6d88;
+  --color-d-bg1: #243047; --color-d-bg2: #2c3a54; --color-d-bg3: #1c2638; --color-d-line: #33425e; --color-d-band: #19233a; }
 
 /* Switch 2 (2025) 배경 느낌: 왼쪽 하늘색 → 가운데 은은한 회보라 → 오른쪽 코랄. 눈이 편하도록 채도를 낮춘 파스텔 */
 body { background: var(--color-bg) linear-gradient(to right, #a9dcec 0%, #cfe6ee 30%, #ebe6ec 50%, #f1cfcc 75%, #f3bdb7 100%); color: var(--color-ink); font-family: var(--font-sans); font-weight: 400; }

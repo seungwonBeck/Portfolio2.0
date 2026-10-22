@@ -94,8 +94,39 @@ export default function SkillIcon({ name }: { name: string }) {
   )
   if (key === 'motion') return <Tile className="bg-[#7c3aed]"><Clapperboard size={12} strokeWidth={2.4} className="text-white" /></Tile>
   if (key === 'branding') return <Tile className="bg-[#f43f5e]"><Stamp size={12} strokeWidth={2.4} className="text-white" /></Tile>
+  if (key === 'js') return <Tile className="bg-[#f7df1e]"><span className="text-[9px] font-extrabold leading-none text-black">JS</span></Tile>
+  if (key === 'vscode') return (
+    <Tile className="bg-[#1f6feb]">
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 7L4 12L9 17M15 7L20 12L15 17" /></svg>
+    </Tile>
+  )
+  if (key === 'html') return <Tile className="bg-[#e44d26]"><span className="text-[7px] font-extrabold leading-none tracking-[-0.04em] text-white">HTML</span></Tile>
+  if (key === 'css') return <Tile className="bg-[#2965f1]"><span className="text-[7.5px] font-extrabold leading-none tracking-[-0.04em] text-white">CSS</span></Tile>
   if (key === 'photoshop') return <Adobe bg="bg-[#001e36]" fg="text-[#31a8ff]" label="Ps" />
   if (key === 'illustrator') return <Adobe bg="bg-[#330000]" fg="text-[#ff9a00]" label="Ai" />
   if (key === 'premiere') return <Adobe bg="bg-[#00005b]" fg="text-[#9999ff]" label="Pr" />
   return null
+}
+
+/** 홈 타일용 아이콘: 가는 선 + 은은한 색 면 + 빛 번짐만 쓴 절제된 모양. `color`는 그 타일의 포인트 색. */
+export function TileArt({ name, color }: { name: 'ABOUT' | 'SKILLS' | 'PROJECTS' | 'CONTACT' | 'GAME'; color: string }) {
+  const id = useId()
+  const stroke = `url(#${id}s)`, fill = `url(#${id}f)`
+  const p = { fill, stroke, strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
+  const glyph: Record<typeof name, React.ReactNode> = {
+    ABOUT: (<><circle cx="24" cy="17" r="8" {...p} /><path d="M9 41C9 31 16 26 24 26C32 26 39 31 39 41" {...p} /></>),
+    SKILLS: (<><path d="M22 5L26.5 19.5L41 24L26.5 28.5L22 43L17.5 28.5L3 24L17.5 19.5Z" {...p} /><path d="M38 6L39.4 10.6L44 12L39.4 13.4L38 18L36.6 13.4L32 12L36.6 10.6Z" {...p} /></>),
+    PROJECTS: (<><rect x="12" y="6" width="26" height="9" rx="3" {...p} opacity=".55" /><rect x="8" y="12" width="32" height="10" rx="3" {...p} opacity=".8" /><rect x="5" y="19" width="38" height="22" rx="5" {...p} /></>),
+    CONTACT: (<><rect x="5" y="11" width="38" height="26" rx="6" {...p} /><path d="M7 15L24 28L41 15" {...p} fill="none" /></>),
+    GAME: (<><path d="M13 14H35C41 14 45 19 44 27C43 35 39 38 34 34L31 31H17L14 34C9 38 5 35 4 27C3 19 7 14 13 14Z" {...p} /><path d="M15 20V28M11 24H19" {...p} fill="none" /><circle cx="32" cy="22" r="2.2" {...p} /><circle cx="37" cy="26.5" r="2.2" {...p} /></>),
+  }
+  return (
+    <svg aria-hidden viewBox="0 0 48 48" className="h-full w-full">
+      <defs>
+        <linearGradient id={`${id}s`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffffff" /><stop offset="1" stopColor={color} /></linearGradient>
+        <linearGradient id={`${id}f`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffffff" stopOpacity=".35" /><stop offset="1" stopColor={color} stopOpacity=".12" /></linearGradient>
+      </defs>
+      {glyph[name]}
+    </svg>
+  )
 }
