@@ -459,18 +459,21 @@ function Detail({ s }: { s: State }) {
         <div className={label}>Role</div>
         {head('03', sec[2].title)}
         <div className="grid grid-cols-3 gap-5">
-          {/* 칸마다 번호+제목과 값을 한 묶음으로 두고, 둘 다 가운데 정렬 */}
+          {/* 칸마다 제목과 값을 한 묶음으로 두고 둘 다 가운데 정렬. 사용 도구는 도구가 많아도 줄바꿈 없이 한 줄로 작게 나열한다 */}
           {[
             { t: '작업 기간', v: p.period, big: true },
             { t: '작업 비중', v: '100%', big: true },
             ...(tools ? [{ t: '사용 도구', v: tools, big: false }] : []),
-          ].map((c, n) => (
+          ].map(c => (
             <div key={c.t} className="flex flex-col items-center gap-3 text-center">
-              <div className="flex items-baseline gap-2"><span className="text-[11px] font-bold text-accent-blue">{String(n + 1).padStart(2, '0')}</span><span className="text-[13px] font-extrabold text-ink">{c.t}</span></div>
+              <div className="text-[13px] font-extrabold text-ink">{c.t}</div>
               {c.big ? <div className="text-[24px] font-extrabold leading-[1.2] tracking-tight text-ink">{c.v}</div> : (
-                <ul className="flex flex-wrap justify-center gap-x-3 gap-y-2">
+                <ul className="flex flex-nowrap items-center justify-center gap-x-2 whitespace-nowrap">
                   {c.v.split(' · ').map(t => (
-                    <li key={t} className="flex items-center gap-1.5 text-[11px] font-semibold text-ink"><SkillIcon name={t} /><span>{t}</span></li>
+                    <li key={t} className="flex items-center gap-[3px] text-[6px] font-semibold text-ink">
+                      <span className="relative block h-[10px] w-[10px] shrink-0"><span className="absolute left-0 top-0 block origin-top-left scale-50"><SkillIcon name={t} /></span></span>
+                      <span>{t}</span>
+                    </li>
                   ))}
                 </ul>
               )}
