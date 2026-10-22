@@ -98,11 +98,12 @@ function Home({ s }: { s: State }) {
             const [hi, lo] = TILE_ART[t]
             const chip = t === 'PROJECTS' && s.only !== null // 칩이 꽂히면 이 칸은 그 프로젝트의 로고 + 제목으로 바뀐다
             return (
-              <div key={t} className="shrink-0">
-                {/* 어두운 유리 같은 면 + 그 타일의 포인트 색이 위쪽에서 은은하게 번지는 빛. 선택하면 테두리가 밝아지고 같은 색 빛이 살짝 퍼진다 */}
+              <div key={t} className="relative shrink-0">
+                {/* 유리 카드: 뒤에 타일 색의 흐린 빛 덩어리를 깔고, 그 위에 반투명 간유리 면을 얹는다. 선택하면 빛이 진해지고 테두리가 밝아진다 */}
+                <span aria-hidden className="pointer-events-none absolute -inset-3 rounded-full blur-2xl transition-opacity duration-300" style={{ background: `radial-gradient(circle, ${hi} 0%, ${lo} 70%, transparent 100%)`, opacity: sel ? 0.95 : 0.5 }} />
                 <motion.button aria-label={label(t)} onClick={() => open('tile', i)} animate={{ scale: sel ? 1.04 : 1, y: sel ? -3 : 0 }} transition={{ type: 'spring', stiffness: 380, damping: 26 }}
-                  className={`relative block h-[116px] w-[116px] overflow-hidden rounded-[18px] text-left ${sel ? 'ring-[1.5px] ring-white/80' : 'ring-1 ring-white/15'}`}
-                  style={{ background: `radial-gradient(120% 85% at 25% 0%, ${hi}66 0%, transparent 62%), linear-gradient(165deg, ${lo}55 0%, #121a2c 70%)`, boxShadow: sel ? `0 14px 30px -10px ${hi}99` : '0 8px 18px -8px rgba(0,0,0,.55)' }}>
+                  className={`relative block h-[116px] w-[116px] overflow-hidden rounded-[22px] text-left backdrop-blur-xl ${sel ? 'ring-[1.5px] ring-white/90' : 'ring-1 ring-white/35'}`}
+                  style={{ background: 'linear-gradient(150deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.10) 55%, rgba(255,255,255,.18) 100%)', boxShadow: `inset 0 1px 1px rgba(255,255,255,.7), inset 0 -10px 18px -8px ${lo}88, 0 14px 26px -12px rgba(0,0,0,.55)` }}>
                   {chip ? (
                     <>
                       {/* inserted cartridge: the project's logo fills the box, its title sits on a dark bar, a PLAYING tag marks it as different from the plain menu tiles */}
@@ -112,10 +113,9 @@ function Home({ s }: { s: State }) {
                     </>
                   ) : (
                     <>
-                      <span aria-hidden className="absolute left-1/2 top-[40%] h-[64px] w-[64px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-50 blur-2xl" style={{ background: hi }} />
-                      <span aria-hidden className="absolute left-1/2 top-[40%] block h-[50px] w-[50px] -translate-x-1/2 -translate-y-1/2 [filter:drop-shadow(0_0_6px_rgba(255,255,255,.18))]"><TileArt name={t} color={hi} /></span>
-                      <span aria-hidden className="absolute inset-0 bg-[linear-gradient(165deg,rgba(255,255,255,.14)_0%,rgba(255,255,255,0)_38%)]" />
-                      <span className="absolute inset-x-0 bottom-3 text-center text-[11px] font-semibold tracking-[0.26em] text-white/90">{label(t)}</span>
+                      <span aria-hidden className="absolute left-1/2 top-[40%] block h-[50px] w-[50px] -translate-x-1/2 -translate-y-1/2 [filter:drop-shadow(0_2px_8px_rgba(255,255,255,.35))]"><TileArt name={t} color="#ffffff" /></span>
+                      <span aria-hidden className="absolute -left-4 -top-6 h-16 w-24 rotate-[-18deg] bg-white/30 blur-xl" />
+                      <span className="absolute inset-x-0 bottom-3 text-center text-[11px] font-semibold tracking-[0.26em] text-white [text-shadow:0_1px_6px_rgba(0,0,0,.35)]">{label(t)}</span>
                     </>
                   )}
                 </motion.button>

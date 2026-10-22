@@ -112,7 +112,7 @@ export default function SkillIcon({ name }: { name: string }) {
 export function TileArt({ name, color }: { name: 'ABOUT' | 'SKILLS' | 'PROJECTS' | 'CONTACT' | 'GAME'; color: string }) {
   const id = useId()
   const stroke = `url(#${id}s)`, fill = `url(#${id}f)`
-  const p = { fill, stroke, strokeWidth: 1.5, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
+  const p = { fill, stroke, strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
   const glyph: Record<typeof name, React.ReactNode> = {
     ABOUT: (<><circle cx="24" cy="17" r="8" {...p} /><path d="M9 41C9 31 16 26 24 26C32 26 39 31 39 41" {...p} /></>),
     SKILLS: (<><path d="M22 5L26.5 19.5L41 24L26.5 28.5L22 43L17.5 28.5L3 24L17.5 19.5Z" {...p} /><path d="M38 6L39.4 10.6L44 12L39.4 13.4L38 18L36.6 13.4L32 12L36.6 10.6Z" {...p} /></>),
@@ -124,7 +124,7 @@ export function TileArt({ name, color }: { name: 'ABOUT' | 'SKILLS' | 'PROJECTS'
     <svg aria-hidden viewBox="0 0 48 48" className="h-full w-full">
       <defs>
         <linearGradient id={`${id}s`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffffff" /><stop offset="1" stopColor={color} /></linearGradient>
-        <linearGradient id={`${id}f`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffffff" stopOpacity=".16" /><stop offset="1" stopColor={color} stopOpacity=".18" /></linearGradient>
+        <linearGradient id={`${id}f`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffffff" stopOpacity=".35" /><stop offset="1" stopColor={color} stopOpacity=".12" /></linearGradient>
       </defs>
       {glyph[name]}
     </svg>
