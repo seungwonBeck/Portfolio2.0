@@ -382,8 +382,9 @@ function Detail({ s }: { s: State }) {
   const resolve = (f?: string) => (f ? (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`) : '')
   const banners = (p as { banners?: Banner[] }).banners
   const bannerImgs = (banners ?? []).map(b => resolve(b.image)).filter(Boolean)
-  const slideImgs = heroImgs.length ? heroImgs : imgs.length ? imgs : bannerImgs.slice(0, 1) // 배너 작품은 첫 사진 한 장만 꽉 차게 보여 준다
   const fit = (p as { imageFit?: string }).imageFit
+  const slideAll = heroImgs.length ? heroImgs : imgs.length ? imgs : bannerImgs
+  const slideImgs = fit === 'a4' || banners ? slideAll.slice(0, 1) : slideAll // 상세페이지·배너 작품은 대표 사진 한 장만 고정(넘어가지 않음)
   const contain = fit === 'contain' || fit === 'slide' || fit === 'a4' // slide: 16:9 슬라이드/PDF 캡처, a4: 세로로 긴 상세 페이지를 A4 비율로 잘라 둔 것, 잘리지 않게 칸도 같은 비율
   // 슬라이드 사진은 16:9 칸에 꽉 채운다(원본 비율이 소수점 단위로 달라 contain이면 가장자리에 1px 틈이 생김)
   const ratio = fit === 'slide' ? 'aspect-[16/9]' : fit === 'a4' ? 'aspect-[210/297]' : 'aspect-[4/3]'
