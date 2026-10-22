@@ -74,8 +74,8 @@ export const RowContext = createContext<(screen: 'PROJECTS' | 'CONTACT' | 'GAME'
 export const PressContext = createContext<(b: Btn) => void>(() => {})
 
 /** Box-art colours per tile (light, dark) and the one-line blurb shown under the focused tile, like a game's title on the Switch home. */
-// 홈 타일 색: 빨주노초 대신 파랑~남색~청록~보라의 차가운 색 한 계열로 통일 (밝은 색, 어두운 색)
-const TILE_ART = { ABOUT: ['#7b97ff', '#3d56c9'], SKILLS: ['#58b8f4', '#2a7bc4'], PROJECTS: ['#8a8fff', '#4a4fc4'], CONTACT: ['#4fcad4', '#23909f'], GAME: ['#a590f7', '#6048c4'] } as const
+// 홈 타일 색: 조이콘처럼 왼쪽 파랑에서 가운데 보라를 지나 오른쪽 빨강으로 이어지게 통일 (밝은 색, 어두운 색)
+const TILE_ART = { ABOUT: ['#52a8ff', '#1f5fd0'], SKILLS: ['#6e8cff', '#3a4fcf'], PROJECTS: ['#a07cf0', '#6a45c2'], CONTACT: ['#f27a9a', '#c23a62'], GAME: ['#ff6b5e', '#c92a2a'] } as const
 const TILE_SUB = { ABOUT: '프로필과 타임라인', PROJECTS: `${projects.length}개의 작품`, SKILLS: '쓸 수 있는 도구들', CONTACT: '연락하는 방법', GAME: '쉬어가는 미니게임' } as const
 
 /**
@@ -419,9 +419,13 @@ function Detail({ s }: { s: State }) {
   // 상세 화면 배치: 왼쪽 색 패널 + 오른쪽 큰 사진의 첫 화면, 그 아래 번호 붙은 섹션(01 개요 · 02 배경 · 03 역할 · 04 작업물 · 05 링크)
   const tone = PROJ_ART[s.proj % PROJ_ART.length][1]
   const gallery = banners ? [] : imgs
-  const label = 'mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-accent-blue'
-  const sectionBox = 'border-t border-d-line px-5 py-6'
+  // 섹션 간격 규칙: 안쪽 요소 사이는 모두 12px(gap-3), 섹션 위아래는 24px. 번호는 제목 바로 옆에 둔다
+  const label = 'text-[10px] font-bold uppercase tracking-[0.18em] text-d-mute'
+  const sectionBox = 'flex flex-col gap-3 border-t border-d-line px-5 py-6'
   const h3 = 'text-[22px] font-extrabold leading-[1.25] tracking-tight text-ink'
+  const head = (n: string, title: string) => (
+    <h3 className={`${h3} flex items-baseline gap-3`}><span className="text-[16px] text-accent-blue">{n}</span><span>{title}</span></h3>
+  )
   const galleryRatio = fit === 'a4' ? 'aspect-[210/297]' : 'aspect-[16/9]'
   return (
     <div className="relative h-full">
@@ -442,33 +446,32 @@ function Detail({ s }: { s: State }) {
 
       {/* 01: 프로젝트 개요 */}
       <section className={sectionBox}>
-        <div className={label}>01 / {banners ? 'Concept' : 'Project Overview'}</div>
-        <h3 className={`${h3} mb-2`}>{sec[0].title}</h3>
+        <div className={label}>{banners ? 'Concept' : 'Project Overview'}</div>
+        {head('01', sec[0].title)}
         <p className={`max-w-[480px] ${BODY} text-d-body`}>{sec[0].text}</p>
       </section>
 
       {/* 02: 배경·키워드 (왼쪽 제목, 오른쪽 설명) */}
       <section className={sectionBox}>
-        <div className={label}>02 / Context</div>
+        <div className={label}>Context</div>
         <div className="grid grid-cols-[1fr_1.1fr] items-start gap-6">
-          <h3 className={h3}>{sec[1].title}</h3>
+          {head('02', sec[1].title)}
           <p className={`${BODY} text-d-body`}>{sec[1].text}</p>
         </div>
       </section>
 
       {/* 03: 역할 — 기간 · 작업 비중 · 사용 도구를 세 칸으로 */}
       <section className={sectionBox}>
-        <div className={label}>03 / Role</div>
-        <h3 className={`${h3} mb-4`}>{sec[2].title}</h3>
+        <div className={label}>Role</div>
+        {head('03', sec[2].title)}
         <div className="grid grid-cols-3 gap-5">
           {[
             { t: '작업 기간', v: p.period },
             { t: '작업 비중', v: '100%' },
             ...(tools ? [{ t: '사용 도구', v: tools }] : []),
           ].map((c, n) => (
-            <div key={c.t}>
-              <div className="mb-1 text-[11px] font-bold text-accent-blue">{String(n + 1).padStart(2, '0')}</div>
-              <div className="mb-1 text-[13px] font-extrabold text-ink">{c.t}</div>
+            <div key={c.t} className="flex flex-col gap-3">
+              <div className="flex items-baseline gap-2"><span className="text-[11px] font-bold text-accent-blue">{String(n + 1).padStart(2, '0')}</span><span className="text-[13px] font-extrabold text-ink">{c.t}</span></div>
               <div className={`${BODY} text-d-body`}>{c.v}</div>
             </div>
           ))}
@@ -507,8 +510,8 @@ function Detail({ s }: { s: State }) {
       {/* 04: 작업물 — 사진을 두 칸씩, 아래에 번호 */}
       {gallery.length > 0 && (
         <section className={sectionBox}>
-          <div className="mb-4 flex items-end justify-between gap-3">
-            <div><div className={label}>04 / Works</div><h3 className={h3}>{sec[3].title}</h3></div>
+          <div className="flex items-end justify-between gap-3">
+            <div className="flex flex-col gap-3"><div className={label}>Works</div>{head('04', sec[3].title)}</div>
             <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.14em] text-d-mute">{gallery.length} works</span>
           </div>
           <div className="grid grid-cols-2 items-start gap-5">
@@ -520,7 +523,7 @@ function Detail({ s }: { s: State }) {
                     <img src={g} alt="" draggable={false} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover object-top" />
                   </div>
                 )}
-                <figcaption className="mt-2 text-[11px] font-bold text-d-sub">{String(k + 1).padStart(2, '0')} / {String(gallery.length).padStart(2, '0')}</figcaption>
+                <figcaption className="mt-3 text-[11px] font-bold text-d-sub">{String(k + 1).padStart(2, '0')} / {String(gallery.length).padStart(2, '0')}</figcaption>
               </figure>
             ))}
           </div>
@@ -529,9 +532,9 @@ function Detail({ s }: { s: State }) {
 
       {/* 05: 링크 */}
       <section className={sectionBox}>
-        <div className={label}>05 / Links</div>
-        <h3 className={`${h3} mb-1`}>{p.title}</h3>
-        <p className={`${BODY} mb-3 max-w-[480px] text-d-body`}>{sec[3].text}</p>
+        <div className={label}>Links</div>
+        {head('05', p.title)}
+        <p className={`${BODY} max-w-[480px] text-d-body`}>{sec[3].text}</p>
         {showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-transparent px-4 py-1 text-ink ring-1 ring-ink/40')}</div>}
       </section>
     </div>
