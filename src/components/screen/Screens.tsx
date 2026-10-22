@@ -427,6 +427,10 @@ function Detail({ s }: { s: State }) {
   const label = 'text-[10px] font-bold uppercase tracking-[0.18em] text-d-mute'
   const sectionBox = 'flex flex-col gap-3 border-t border-d-line px-5 py-6'
   const h3 = 'text-[22px] font-extrabold leading-[1.25] tracking-tight text-ink'
+  // 섹션 번호는 실제로 보이는 섹션만 차례로 센다. 키워드 섹션(02)은 작품이 직접 쓴 글이 있을 때만 보여 준다(상세페이지·배너 작품은 빼는 중)
+  const hasContext = !!own[1]?.text
+  let secNo = 0
+  const num = () => String(++secNo).padStart(2, '0')
   const head = (n: string, title: string) => (
     <h3 className={`${h3} flex items-baseline gap-3`}><span className="text-[16px] text-accent-blue">{n}</span><span>{title}</span></h3>
   )
@@ -448,21 +452,21 @@ function Detail({ s }: { s: State }) {
       {/* 01: 프로젝트 개요 */}
       <section className={sectionBox}>
         <div className={label}>{banners ? 'Concept' : 'Project Overview'}</div>
-        {head('01', sec[0].title)}
+        {head(num(), sec[0].title)}
         <p className={`${BODY} text-justify text-d-body`}>{sec[0].text}</p>
       </section>
 
       {/* 02: 배경·키워드 (왼쪽 제목, 오른쪽 설명) */}
-      <section className={sectionBox}>
+      {hasContext && <section className={sectionBox}>
         <div className={label}>Context</div>
-        {head('02', sec[1].title)}
+        {head(num(), sec[1].title)}
         <p className={`${BODY} text-justify text-d-body`}>{sec[1].text}</p>
-      </section>
+      </section>}
 
       {/* 03: 역할 — 기간 · 작업 비중 · 사용 도구를 세 칸으로 */}
       <section className={sectionBox}>
         <div className={label}>Role</div>
-        {head('03', sec[2].title)}
+        {head(num(), sec[2].title)}
         <div className={`grid gap-5 ${tools ? 'grid-cols-[1fr_1fr_1.9fr]' : 'grid-cols-2'}`}>
           {/* 칸마다 제목과 값을 한 묶음으로 두고 둘 다 가운데 정렬. 사용 도구는 도구가 많아도 줄바꿈 없이 한 줄로 작게 나열한다 */}
           {[
@@ -520,7 +524,7 @@ function Detail({ s }: { s: State }) {
       {gallery.length > 0 && (
         <section className={sectionBox}>
           <div className="flex items-end justify-between gap-3">
-            <div className="flex flex-col gap-3"><div className={label}>Works</div>{head('04', sec[3].title)}</div>
+            <div className="flex flex-col gap-3"><div className={label}>Works</div>{head(num(), sec[3].title)}</div>
             <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.14em] text-d-mute">{gallery.length} works</span>
           </div>
           <div className="grid grid-cols-2 items-start gap-5">
@@ -542,7 +546,7 @@ function Detail({ s }: { s: State }) {
       {/* 05: 링크 */}
       <section className={sectionBox}>
         <div className={label}>Links</div>
-        {head('05', p.title)}
+        {head(num(), p.title)}
         <p className={`${BODY} text-justify text-d-body`}>{sec[3].text}</p>
         {showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-transparent px-4 py-1 text-ink ring-1 ring-ink/40')}</div>}
       </section>
