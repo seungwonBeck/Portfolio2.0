@@ -463,7 +463,7 @@ function Detail({ s }: { s: State }) {
       <section className={sectionBox}>
         <div className={label}>Role</div>
         {head('03', sec[2].title)}
-        <div className="grid grid-cols-3 gap-5">
+        <div className={`grid gap-5 ${tools ? 'grid-cols-[1fr_1fr_1.9fr]' : 'grid-cols-2'}`}>
           {/* 칸마다 제목과 값을 한 묶음으로 두고 둘 다 가운데 정렬. 사용 도구는 도구가 많아도 줄바꿈 없이 한 줄로 작게 나열한다 */}
           {[
             { t: '작업 기간', v: p.period, big: true },
@@ -475,8 +475,8 @@ function Detail({ s }: { s: State }) {
               {c.big ? <div className="text-[24px] font-extrabold leading-[1.2] tracking-tight text-ink">{c.v}</div> : (
                 <ul className="flex flex-nowrap items-center justify-center gap-x-2 whitespace-nowrap">
                   {c.v.split(' · ').map(t => (
-                    <li key={t} className="flex items-center gap-[3px] text-[6px] font-semibold text-ink">
-                      <span className="relative block h-[10px] w-[10px] shrink-0"><span className="absolute left-0 top-0 block origin-top-left scale-50"><SkillIcon name={t} /></span></span>
+                    <li key={t} className="flex items-center gap-[3px] text-[8px] font-semibold text-ink">
+                      <span className="relative block h-[13px] w-[13px] shrink-0"><span className="absolute left-0 top-0 block origin-top-left scale-[.65]"><SkillIcon name={t} /></span></span>
                       <span>{t}</span>
                     </li>
                   ))}
