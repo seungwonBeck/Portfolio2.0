@@ -417,7 +417,8 @@ function Detail({ s }: { s: State }) {
   )
   // 상세 화면 배치: 왼쪽 색 패널 + 오른쪽 큰 사진의 첫 화면, 그 아래 번호 붙은 섹션(01 개요 · 02 배경 · 03 역할 · 04 작업물 · 05 링크)
   const tone = PROJ_ART[s.proj % PROJ_ART.length][1]
-  const gallery = banners ? [] : imgs
+  // 작업물: 대표 사진·본문 사진을 합쳐 같은 사진은 한 번만 (데이터에 칸을 채우려고 같은 사진이 여러 번 적혀 있다)
+  const gallery = banners ? [] : [...new Set([...heroImgs, ...imgs])]
   // 섹션 간격 규칙: 안쪽 요소 사이는 모두 12px(gap-3), 섹션 위아래는 24px. 번호는 제목 바로 옆에 둔다
   const label = 'text-[10px] font-bold uppercase tracking-[0.18em] text-d-mute'
   const sectionBox = 'flex flex-col gap-3 border-t border-d-line px-5 py-6'
@@ -432,11 +433,11 @@ function Detail({ s }: { s: State }) {
       {/* 첫 화면: 왼쪽은 작업 색을 깐 소개 패널, 오른쪽은 대표 사진 슬라이드 */}
       <section className="flex h-full overflow-hidden">
         <div className="flex w-[44%] shrink-0 flex-col justify-center px-5 py-4 text-white" style={{ background: `linear-gradient(155deg, color-mix(in srgb, ${tone} 60%, #101827), #101827)` }}>
-          <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">{p.role}</div>
+          <div className="mb-3 self-start rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/90 ring-1 ring-white/50">{p.role}</div>
           <h2 className="mb-2 text-[26px] font-extrabold leading-[1.1] tracking-tight">{p.title}</h2>
           <p className="mb-3 line-clamp-2 text-[12px] leading-[1.5] text-white/75">{p.summary}</p>
           <div className="mb-3 flex flex-wrap gap-1.5">
-            {[p.role, p.period].map(t => <span key={t} className="rounded-full px-2.5 py-0.5 text-[10px] font-bold text-white/85 ring-1 ring-white/35">{t}</span>)}
+            {[p.period].map(t => <span key={t} className="rounded-full px-2.5 py-0.5 text-[10px] font-bold text-white/85 ring-1 ring-white/35">{t}</span>)}
           </div>
           {showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-4 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
         </div>
