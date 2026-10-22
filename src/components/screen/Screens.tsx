@@ -155,8 +155,6 @@ function About({ s }: { s: State }) {
       <div className="mb-5 flex items-center gap-7">
         <div className="shrink-0 text-center">
           <div className="pb-3"><Coin rot={rot} front={s.avatar} onClick={() => setRot(r => r + 360)} /></div>
-          {/* only while my own character is picked */}
-          <div className="h-4 text-[10px] font-bold text-accent-blue">{s.avatar === 0 && '↻ 동전을 돌려보세요'}</div>
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-[18px] font-extrabold leading-tight">{profile.name}</div>
@@ -461,15 +459,21 @@ function Detail({ s }: { s: State }) {
         <div className={label}>Role</div>
         {head('03', sec[2].title)}
         <div className="grid grid-cols-3 gap-5">
+          {/* 칸마다 번호+제목과 값을 한 묶음으로 두고, 둘 다 가운데 정렬 */}
           {[
             { t: '작업 기간', v: p.period, big: true },
             { t: '작업 비중', v: '100%', big: true },
             ...(tools ? [{ t: '사용 도구', v: tools, big: false }] : []),
           ].map((c, n) => (
-            <div key={c.t} className="flex flex-col gap-3">
+            <div key={c.t} className="flex flex-col items-center gap-3 text-center">
               <div className="flex items-baseline gap-2"><span className="text-[11px] font-bold text-accent-blue">{String(n + 1).padStart(2, '0')}</span><span className="text-[13px] font-extrabold text-ink">{c.t}</span></div>
-              {/* 기간·비중은 큰 숫자로, 도구 이름은 본문보다 한 단계 크게 */}
-              <div className={c.big ? 'text-[24px] font-extrabold leading-[1.2] tracking-tight text-ink' : 'text-[13px] font-semibold leading-[1.6] text-ink'}>{c.v}</div>
+              {c.big ? <div className="text-[24px] font-extrabold leading-[1.2] tracking-tight text-ink">{c.v}</div> : (
+                <ul className="flex flex-wrap justify-center gap-x-3 gap-y-2">
+                  {c.v.split(' · ').map(t => (
+                    <li key={t} className="flex items-center gap-1.5 text-[11px] font-semibold text-ink"><SkillIcon name={t} /><span>{t}</span></li>
+                  ))}
+                </ul>
+              )}
             </div>
           ))}
         </div>

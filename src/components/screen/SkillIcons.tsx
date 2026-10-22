@@ -94,6 +94,14 @@ export default function SkillIcon({ name }: { name: string }) {
   )
   if (key === 'motion') return <Tile className="bg-[#7c3aed]"><Clapperboard size={12} strokeWidth={2.4} className="text-white" /></Tile>
   if (key === 'branding') return <Tile className="bg-[#f43f5e]"><Stamp size={12} strokeWidth={2.4} className="text-white" /></Tile>
+  if (key === 'js') return <Tile className="bg-[#f7df1e]"><span className="text-[9px] font-extrabold leading-none text-black">JS</span></Tile>
+  if (key === 'vscode') return (
+    <Tile className="bg-[#1f6feb]">
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 7L4 12L9 17M15 7L20 12L15 17" /></svg>
+    </Tile>
+  )
+  if (key === 'html') return <Tile className="bg-[#e44d26]"><span className="text-[7px] font-extrabold leading-none tracking-[-0.04em] text-white">HTML</span></Tile>
+  if (key === 'css') return <Tile className="bg-[#2965f1]"><span className="text-[7.5px] font-extrabold leading-none tracking-[-0.04em] text-white">CSS</span></Tile>
   if (key === 'photoshop') return <Adobe bg="bg-[#001e36]" fg="text-[#31a8ff]" label="Ps" />
   if (key === 'illustrator') return <Adobe bg="bg-[#330000]" fg="text-[#ff9a00]" label="Ai" />
   if (key === 'premiere') return <Adobe bg="bg-[#00005b]" fg="text-[#9999ff]" label="Pr" />
