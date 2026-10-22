@@ -100,9 +100,9 @@ function Home({ s }: { s: State }) {
             return (
               <div key={t} className="relative shrink-0">
                 {/* 유리 카드: 뒤에 타일 색의 흐린 빛 덩어리를 깔고, 그 위에 반투명 간유리 면을 얹는다. 선택하면 빛이 진해지고 테두리가 밝아진다 */}
-                <span aria-hidden className="pointer-events-none absolute -inset-5 z-0 rounded-full transition-opacity duration-300" style={{ background: `radial-gradient(closest-side, ${hi} 0%, ${lo} 65%, transparent 100%)`, opacity: sel ? 0.95 : 0.5 }} />
+                <span aria-hidden className="pointer-events-none absolute -inset-4 z-0 rounded-full transition-opacity duration-300" style={{ background: `radial-gradient(closest-side, ${hi} 0%, ${lo} 65%, transparent 100%)`, opacity: sel ? 0.5 : 0.22 }} />
                 <motion.button aria-label={label(t)} onClick={() => open('tile', i)} animate={{ scale: sel ? 1.04 : 1, y: sel ? -3 : 0 }} transition={{ type: 'spring', stiffness: 380, damping: 26 }}
-                  className={`relative z-10 block h-[116px] w-[116px] overflow-hidden rounded-[22px] text-left ${sel ? 'ring-[1.5px] ring-white/90' : 'ring-1 ring-white/35'}`}
+                  className={`relative z-10 block h-[116px] w-[116px] overflow-hidden rounded-[22px] text-left backdrop-blur-xl ${sel ? 'ring-[1.5px] ring-white/90' : 'ring-1 ring-white/35'}`}
                   style={{ background: 'linear-gradient(150deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.10) 55%, rgba(255,255,255,.18) 100%)', boxShadow: `inset 0 1px 1px rgba(255,255,255,.7), inset 0 -10px 18px -8px ${lo}88, 0 14px 26px -12px rgba(0,0,0,.55)` }}>
                   {chip ? (
                     <>
