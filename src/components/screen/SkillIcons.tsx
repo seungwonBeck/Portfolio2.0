@@ -100,72 +100,25 @@ export default function SkillIcon({ name }: { name: string }) {
   return null
 }
 
-/** 홈 타일용 말랑한 3D 느낌 그림(점토 질감): 그라데이션 + 위쪽 하이라이트 + 바닥 그림자. 외부 이미지 없이 SVG로 그렸다. */
-export function TileArt({ name }: { name: 'ABOUT' | 'SKILLS' | 'PROJECTS' | 'CONTACT' | 'GAME' }) {
+/** 홈 타일용 아이콘: 가는 선 + 은은한 색 면 + 빛 번짐만 쓴 절제된 모양. `color`는 그 타일의 포인트 색. */
+export function TileArt({ name, color }: { name: 'ABOUT' | 'SKILLS' | 'PROJECTS' | 'CONTACT' | 'GAME'; color: string }) {
   const id = useId()
-  const u = (k: string) => `url(#${id}${k})`
-  const grad = (k: string, a: string, b: string) => (
-    <linearGradient id={`${id}${k}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={a} /><stop offset="1" stopColor={b} /></linearGradient>
+  const stroke = `url(#${id}s)`, fill = `url(#${id}f)`
+  const p = { fill, stroke, strokeWidth: 1.5, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
+  const glyph: Record<typeof name, React.ReactNode> = {
+    ABOUT: (<><circle cx="24" cy="17" r="8" {...p} /><path d="M9 41C9 31 16 26 24 26C32 26 39 31 39 41" {...p} /></>),
+    SKILLS: (<><path d="M22 5L26.5 19.5L41 24L26.5 28.5L22 43L17.5 28.5L3 24L17.5 19.5Z" {...p} /><path d="M38 6L39.4 10.6L44 12L39.4 13.4L38 18L36.6 13.4L32 12L36.6 10.6Z" {...p} /></>),
+    PROJECTS: (<><rect x="12" y="6" width="26" height="9" rx="3" {...p} opacity=".55" /><rect x="8" y="12" width="32" height="10" rx="3" {...p} opacity=".8" /><rect x="5" y="19" width="38" height="22" rx="5" {...p} /></>),
+    CONTACT: (<><rect x="5" y="11" width="38" height="26" rx="6" {...p} /><path d="M7 15L24 28L41 15" {...p} fill="none" /></>),
+    GAME: (<><path d="M13 14H35C41 14 45 19 44 27C43 35 39 38 34 34L31 31H17L14 34C9 38 5 35 4 27C3 19 7 14 13 14Z" {...p} /><path d="M15 20V28M11 24H19" {...p} fill="none" /><circle cx="32" cy="22" r="2.2" {...p} /><circle cx="37" cy="26.5" r="2.2" {...p} /></>),
+  }
+  return (
+    <svg aria-hidden viewBox="0 0 48 48" className="h-full w-full">
+      <defs>
+        <linearGradient id={`${id}s`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffffff" /><stop offset="1" stopColor={color} /></linearGradient>
+        <linearGradient id={`${id}f`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffffff" stopOpacity=".16" /><stop offset="1" stopColor={color} stopOpacity=".18" /></linearGradient>
+      </defs>
+      {glyph[name]}
+    </svg>
   )
-  const shadow = <ellipse cx="50" cy="93" rx="28" ry="4.5" fill="rgba(0,0,0,.22)" />
-  let art: React.ReactNode = null
-  if (name === 'ABOUT') art = (
-    <>
-      <defs>{grad('s', '#ffe4cb', '#f0a878')}{grad('b', '#ffffff', '#c6d2f7')}{grad('h', '#6b4630', '#2b1a12')}</defs>
-      {shadow}
-      <path d="M16 92C16 72 31 65 50 65C69 65 84 72 84 92Z" fill={u('b')} />
-      <circle cx="50" cy="42" r="27" fill={u('s')} />
-      <path d="M22 41C20 17 38 9 52 11C69 12 81 23 78 41C71 31 61 27 50 27C39 27 29 32 22 41Z" fill={u('h')} />
-      <ellipse cx="40" cy="47" rx="3.6" ry="4.8" fill="#2a1a14" /><ellipse cx="60" cy="47" rx="3.6" ry="4.8" fill="#2a1a14" />
-      <circle cx="41.2" cy="45" r="1.3" fill="#fff" /><circle cx="61.2" cy="45" r="1.3" fill="#fff" />
-      <circle cx="32" cy="56" r="4.2" fill="#ff8f8f" opacity=".5" /><circle cx="68" cy="56" r="4.2" fill="#ff8f8f" opacity=".5" />
-      <path d="M44 57Q50 63 56 57" stroke="#8a4a3a" strokeWidth="2.4" strokeLinecap="round" fill="none" />
-      <ellipse cx="37" cy="30" rx="9" ry="4.5" fill="#fff" opacity=".28" transform="rotate(-25 37 30)" />
-    </>
-  )
-  if (name === 'SKILLS') art = (
-    <>
-      <defs>{grad('b', '#ffffff', '#c9d4f6')}{grad('r', '#ff8a7a', '#e0383b')}{grad('f', '#ffe27a', '#ff8a2a')}</defs>
-      {shadow}
-      <path d="M42 70Q50 96 58 70Z" fill={u('f')} />
-      <path d="M33 52L16 74L34 70Z" fill={u('r')} /><path d="M67 52L84 74L66 70Z" fill={u('r')} />
-      <path d="M50 6C67 21 71 46 67 71L33 71C29 46 33 21 50 6Z" fill={u('b')} />
-      <path d="M50 6C58 13 63 22 65 31L35 31C37 22 42 13 50 6Z" fill={u('r')} />
-      <circle cx="50" cy="49" r="10" fill="#4aa8ff" stroke="#fff" strokeWidth="3.5" /><circle cx="47" cy="46" r="2.6" fill="#fff" opacity=".9" />
-      <ellipse cx="40" cy="38" rx="3" ry="9" fill="#fff" opacity=".5" transform="rotate(8 40 38)" />
-    </>
-  )
-  if (name === 'PROJECTS') art = (
-    <>
-      <defs>{grad('k', '#ffcf5c', '#f3951a')}{grad('f', '#ffe08a', '#f7a41d')}</defs>
-      {shadow}
-      <path d="M12 34Q12 24 22 24H38L46 32H80Q90 32 90 42V78Q90 88 80 88H22Q12 88 12 78Z" fill={u('k')} />
-      <rect x="22" y="30" width="54" height="34" rx="4" fill="#fff" transform="rotate(-4 49 47)" />
-      <rect x="26" y="36" width="34" height="4" rx="2" fill="#c9d4f6" transform="rotate(-4 43 38)" /><rect x="26" y="45" width="26" height="4" rx="2" fill="#c9d4f6" transform="rotate(-4 39 47)" />
-      <path d="M10 50H90V80Q90 90 80 90H20Q10 90 10 80Z" fill={u('f')} />
-      <rect x="16" y="54" width="68" height="5" rx="2.5" fill="#fff" opacity=".4" />
-    </>
-  )
-  if (name === 'CONTACT') art = (
-    <>
-      <defs>{grad('b', '#ffffff', '#d5def9')}{grad('f', '#f6f8ff', '#bcc9f2')}{grad('h', '#ff7a8f', '#e0264a')}</defs>
-      {shadow}
-      <rect x="10" y="26" width="80" height="58" rx="11" fill={u('b')} />
-      <path d="M10 38Q10 26 22 26H78Q90 26 90 38L50 62Z" fill={u('f')} />
-      <path d="M50 74C36 65 40 53 47 55C49 56 50 58 50 58C50 58 51 56 53 55C60 53 64 65 50 74Z" fill={u('h')} transform="translate(0 -3)" />
-      <ellipse cx="30" cy="34" rx="12" ry="3.5" fill="#fff" opacity=".6" transform="rotate(8 30 34)" />
-    </>
-  )
-  if (name === 'GAME') art = (
-    <>
-      <defs>{grad('b', '#ffffff', '#c9d0ea')}{grad('r', '#ff8a7a', '#e0383b')}{grad('u', '#7cc0ff', '#2f7de0')}</defs>
-      {shadow}
-      <path d="M22 32H78C91 32 97 45 95 62C93 76 84 82 76 75L68 67H32L24 75C16 82 7 76 5 62C3 45 9 32 22 32Z" fill={u('b')} />
-      <rect x="22" y="48" width="18" height="6.5" rx="2.5" fill="#3b4252" /><rect x="27.8" y="42.3" width="6.5" height="18" rx="2.5" fill="#3b4252" />
-      <circle cx="69" cy="46" r="5.6" fill={u('r')} /><circle cx="79" cy="55" r="5.6" fill={u('u')} />
-      <circle cx="67.6" cy="44.4" r="1.6" fill="#fff" opacity=".8" /><circle cx="77.6" cy="53.4" r="1.6" fill="#fff" opacity=".8" />
-      <ellipse cx="32" cy="38" rx="14" ry="3.5" fill="#fff" opacity=".7" />
-    </>
-  )
-  return <svg aria-hidden viewBox="0 0 100 100" className="h-full w-full">{art}</svg>
 }
