@@ -304,8 +304,8 @@ function HeroSlides({ imgs: all, i, className = '', contain = false, dark = fals
   // 다음 사진이 넘어오는 순간 비어 보이지 않도록 모든 사진을 미리 받아 둔다
   useEffect(() => { imgs.forEach(src => { const im = new Image(); im.decoding = 'async'; im.src = src }) }, [imgs.join('|')]) // eslint-disable-line react-hooks/exhaustive-deps
   if (single) return (
-    <div className={`relative overflow-hidden bg-d-bg2 ${className}`}>
-      <img src={imgs[0]} alt="" draggable={false} decoding="async" className="absolute inset-0 h-full w-full object-cover object-top" />
+    <div className={`relative overflow-hidden ${dark ? 'bg-[#121212]' : 'bg-d-bg2'} ${className}`}>
+      <img src={imgs[0]} alt="" draggable={false} decoding="async" className={`absolute inset-0 h-full w-full ${contain ? 'object-contain' : 'object-cover object-top'}`} />
     </div>
   )
   return (
@@ -390,6 +390,7 @@ function Detail({ s }: { s: State }) {
   const ratio = fit === 'slide' ? 'aspect-[16/9]' : fit === 'a4' ? 'aspect-[210/297]' : 'aspect-[4/3]'
   const panelW = fit === 'a4' ? 'w-[46%]' : 'w-[76%]' // A4는 세로로 길어서 칸 폭을 좁게
   const dark = (p as { imageTone?: string }).imageTone === 'dark'
+  const heroFit = (p as { heroFit?: string }).heroFit // 'contain': 대표 사진이 가로로 길어 잘리지 않게 칸 안에 맞춘다
   const own = (p as { sections?: { title?: string; text?: string }[] }).sections ?? []
   const tools = (p as { tools?: string }).tools // 사이트 작업의 사용 도구 (예: VSCODE · HTML · CSS · JS)
   const pdf = (p.links as { pdf?: string }).pdf
@@ -458,7 +459,7 @@ function Detail({ s }: { s: State }) {
             <p className="mb-4 line-clamp-2 text-[12px] leading-[1.5] text-white/75">{p.summary}</p>
             {showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-4 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
           </div>
-          <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} glow className="relative min-w-0 flex-1" />
+          <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain || heroFit === 'contain'} dark={dark} glow className="relative min-w-0 flex-1" />
         </section>
       ) : (
         <section className="flex h-full flex-col overflow-hidden">
