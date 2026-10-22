@@ -76,7 +76,7 @@ export const PressContext = createContext<(b: Btn) => void>(() => {})
 /** Box-art colours per tile (light, dark) and the one-line blurb shown under the focused tile, like a game's title on the Switch home. */
 // 홈 타일 색: 조이콘처럼 왼쪽 파랑에서 가운데 보라를 지나 오른쪽 빨강으로 이어지게 통일 (밝은 색, 어두운 색)
 const TILE_ART = { ABOUT: ['#52a8ff', '#1f5fd0'], SKILLS: ['#6e8cff', '#3a4fcf'], PROJECTS: ['#a07cf0', '#6a45c2'], CONTACT: ['#f27a9a', '#c23a62'], GAME: ['#ff6b5e', '#c92a2a'] } as const
-const TILE_SUB = { ABOUT: '프로필과 타임라인', PROJECTS: `${projects.length}개의 작품`, SKILLS: '쓸 수 있는 도구들', CONTACT: '연락하는 방법', GAME: '쉬어가는 미니게임' } as const
+const TILE_SUB = { ABOUT: '프로필과 타임라인', PROJECTS: `${projects.length}개의 작품`, SKILLS: 'Figma · Photoshop · Illustrator · React · Claude', CONTACT: '연락하는 방법', GAME: '쉬어가는 미니게임' } as const
 
 /**
  * Console-style home, modelled on the Switch home screen: a row of square "game" tiles with soft drop shadows (the focused one
@@ -100,22 +100,22 @@ function Home({ s }: { s: State }) {
             return (
               <div key={t} className="relative shrink-0">
                 {/* 유리 카드: 뒤에 타일 색의 흐린 빛 덩어리를 깔고, 그 위에 반투명 간유리 면을 얹는다. 선택하면 빛이 진해지고 테두리가 밝아진다 */}
-                <span aria-hidden className="pointer-events-none absolute -inset-3 rounded-full blur-2xl transition-opacity duration-300" style={{ background: `radial-gradient(circle, ${hi} 0%, ${lo} 70%, transparent 100%)`, opacity: sel ? 0.95 : 0.5 }} />
+                <span aria-hidden className="pointer-events-none absolute -inset-4 z-0 rounded-full transition-opacity duration-300" style={{ background: `radial-gradient(closest-side, ${hi} 0%, ${hi}aa 45%, ${lo}66 75%, transparent 100%)`, opacity: sel ? 1 : 0.75 }} />
                 <motion.button aria-label={label(t)} onClick={() => open('tile', i)} animate={{ scale: sel ? 1.04 : 1, y: sel ? -3 : 0 }} transition={{ type: 'spring', stiffness: 380, damping: 26 }}
-                  className={`relative block h-[116px] w-[116px] overflow-hidden rounded-[22px] text-left backdrop-blur-xl ${sel ? 'ring-[1.5px] ring-white/90' : 'ring-1 ring-white/35'}`}
-                  style={{ background: 'linear-gradient(150deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.10) 55%, rgba(255,255,255,.18) 100%)', boxShadow: `inset 0 1px 1px rgba(255,255,255,.7), inset 0 -10px 18px -8px ${lo}88, 0 14px 26px -12px rgba(0,0,0,.55)` }}>
+                  className={`relative z-10 block h-[116px] w-[116px] overflow-hidden rounded-[22px] text-left ${sel ? 'ring-[1.5px] ring-white/90' : 'ring-1 ring-white/35'}`}
+                  style={{ background: `radial-gradient(75% 65% at 50% 38%, ${hi}cc 0%, ${hi}55 60%, transparent 100%), linear-gradient(150deg, rgba(255,255,255,.42) 0%, rgba(255,255,255,.14) 55%, rgba(255,255,255,.22) 100%)`, boxShadow: `inset 0 1px 1px rgba(255,255,255,.7), inset 0 -10px 18px -8px ${lo}88, 0 14px 26px -12px rgba(0,0,0,.55)` }}>
                   {chip ? (
                     <>
                       {/* 꽂힌 카트리지: 다른 타일과 같은 유리 카드 위에 작품 로고를 작은 상자로 올리고, 이름은 같은 가는 글씨, PLAYING은 유리 알약으로 */}
                       <span className="absolute left-1/2 top-[46%] block h-[50px] w-[50px] -translate-x-1/2 -translate-y-1/2"><ChipBadge i={s.only!} bare className="!absolute !inset-0 !aspect-auto !h-full !w-full !rounded-2xl" /></span>
                       <span className="absolute left-2 top-2 rounded-full bg-white/25 px-2 py-0.5 text-[8px] font-bold tracking-[0.16em] text-white ring-1 ring-white/40 backdrop-blur-sm">PLAYING</span>
-                      <span aria-hidden className="absolute -left-4 -top-6 h-16 w-24 rotate-[-18deg] bg-white/30 blur-xl" />
+                      <span aria-hidden className="absolute inset-0 bg-[radial-gradient(70%_55%_at_22%_8%,rgba(255,255,255,.45),transparent)]" />
                       <span className="absolute inset-x-1 bottom-3 truncate text-center text-[10px] font-semibold tracking-[0.12em] text-white [text-shadow:0_1px_6px_rgba(0,0,0,.35)]">{label(t)}</span>
                     </>
                   ) : (
                     <>
-                      <span aria-hidden className="absolute left-1/2 top-[41%] block h-[70px] w-[70px] -translate-x-1/2 -translate-y-1/2 [filter:drop-shadow(0_2px_8px_rgba(255,255,255,.35))]"><TileArt name={t} color="#ffffff" /></span>
-                      <span aria-hidden className="absolute -left-4 -top-6 h-16 w-24 rotate-[-18deg] bg-white/30 blur-xl" />
+                      <span aria-hidden className="absolute left-1/2 top-[41%] block h-[70px] w-[70px] -translate-x-1/2 -translate-y-1/2 [filter:drop-shadow(0_0_10px_rgba(255,255,255,.75))_drop-shadow(0_0_22px_rgba(255,255,255,.35))]"><TileArt name={t} color="#ffffff" /></span>
+                      <span aria-hidden className="absolute inset-0 bg-[radial-gradient(70%_55%_at_22%_8%,rgba(255,255,255,.45),transparent)]" />
                       <span className="absolute inset-x-0 bottom-3 text-center text-[11px] font-semibold tracking-[0.26em] text-white [text-shadow:0_1px_6px_rgba(0,0,0,.35)]">{label(t)}</span>
                     </>
                   )}
@@ -304,8 +304,8 @@ function HeroSlides({ imgs: all, i, className = '', contain = false, dark = fals
   // 다음 사진이 넘어오는 순간 비어 보이지 않도록 모든 사진을 미리 받아 둔다
   useEffect(() => { imgs.forEach(src => { const im = new Image(); im.decoding = 'async'; im.src = src }) }, [imgs.join('|')]) // eslint-disable-line react-hooks/exhaustive-deps
   if (single) return (
-    <div className={`relative overflow-hidden bg-d-bg2 ${className}`}>
-      <img src={imgs[0]} alt="" draggable={false} decoding="async" className="absolute inset-0 h-full w-full object-cover object-top" />
+    <div className={`relative overflow-hidden ${dark ? 'bg-[#121212]' : 'bg-d-bg2'} ${className}`}>
+      <img src={imgs[0]} alt="" draggable={false} decoding="async" className={`absolute inset-0 h-full w-full ${contain ? 'object-contain' : 'object-cover object-top'}`} />
     </div>
   )
   return (
@@ -338,7 +338,7 @@ function HeroSlides({ imgs: all, i, className = '', contain = false, dark = fals
           )}
         </motion.div>
       </AnimatePresence>
-      <div className="absolute bottom-2 left-4 flex gap-1">
+      <div className="absolute inset-x-0 bottom-2 flex justify-center gap-1">
         {Array.from({ length: n }, (_, k) => <span key={k} className={`h-1 rounded-full transition-all ${k === idx ? 'w-4 bg-white' : 'w-1 bg-white/50'}`} />)}
       </div>
     </div>
@@ -350,6 +350,16 @@ const H3 = 'mb-1.5 text-[16px] font-extrabold leading-[1.3] tracking-tight'
 const BODY = 'text-[11px] leading-[1.6]'
 const Eyebrow = ({ children, dark = false }: { children: ReactNode; dark?: boolean }) => (
   <div className={`mb-1 text-[10px] font-bold leading-none tracking-wide ${dark ? 'text-[#4aa3ff]' : 'text-[#0a6cff]'}`}>{children}</div>
+)
+
+/** 사용 도구 개수에 따른 크기: 적을수록 크게, 많을수록 작게 (한 줄에 들어오도록). 인라인 스타일 대신 미리 정한 클래스를 쓴다. */
+const toolSize = (n: number) => (
+  n <= 2 ? { box: 'h-[24px] w-[24px]', scale: 'scale-[1.2]', text: 'text-[14px]', gap: 'gap-x-4' }
+  : n === 3 ? { box: 'h-[20px] w-[20px]', scale: 'scale-100', text: 'text-[12px]', gap: 'gap-x-3.5' }
+  : n === 4 ? { box: 'h-[16px] w-[16px]', scale: 'scale-[.8]', text: 'text-[10px]', gap: 'gap-x-3' }
+  : n === 5 ? { box: 'h-[13px] w-[13px]', scale: 'scale-[.65]', text: 'text-[8px]', gap: 'gap-x-2' }
+  : n === 6 ? { box: 'h-[11px] w-[11px]', scale: 'scale-[.55]', text: 'text-[7px]', gap: 'gap-x-1.5' }
+  : { box: 'h-[9px] w-[9px]', scale: 'scale-[.45]', text: 'text-[6px]', gap: 'gap-x-1' }
 )
 
 /**
@@ -372,13 +382,15 @@ function Detail({ s }: { s: State }) {
   const resolve = (f?: string) => (f ? (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`) : '')
   const banners = (p as { banners?: Banner[] }).banners
   const bannerImgs = (banners ?? []).map(b => resolve(b.image)).filter(Boolean)
-  const slideImgs = heroImgs.length ? heroImgs : imgs.length ? imgs : bannerImgs.slice(0, 1) // 배너 작품은 첫 사진 한 장만 꽉 차게 보여 준다
   const fit = (p as { imageFit?: string }).imageFit
+  const slideAll = heroImgs.length ? heroImgs : imgs.length ? imgs : bannerImgs
+  const slideImgs = fit === 'a4' || banners ? slideAll.slice(0, 1) : slideAll // 상세페이지·배너 작품은 대표 사진 한 장만 고정(넘어가지 않음)
   const contain = fit === 'contain' || fit === 'slide' || fit === 'a4' // slide: 16:9 슬라이드/PDF 캡처, a4: 세로로 긴 상세 페이지를 A4 비율로 잘라 둔 것, 잘리지 않게 칸도 같은 비율
   // 슬라이드 사진은 16:9 칸에 꽉 채운다(원본 비율이 소수점 단위로 달라 contain이면 가장자리에 1px 틈이 생김)
   const ratio = fit === 'slide' ? 'aspect-[16/9]' : fit === 'a4' ? 'aspect-[210/297]' : 'aspect-[4/3]'
   const panelW = fit === 'a4' ? 'w-[46%]' : 'w-[76%]' // A4는 세로로 길어서 칸 폭을 좁게
   const dark = (p as { imageTone?: string }).imageTone === 'dark'
+  const heroFit = (p as { heroFit?: string }).heroFit // 'contain': 대표 사진이 가로로 길어 잘리지 않게 칸 안에 맞춘다
   const own = (p as { sections?: { title?: string; text?: string }[] }).sections ?? []
   const tools = (p as { tools?: string }).tools // 사이트 작업의 사용 도구 (예: VSCODE · HTML · CSS · JS)
   const pdf = (p.links as { pdf?: string }).pdf
@@ -427,43 +439,61 @@ function Detail({ s }: { s: State }) {
   const label = 'text-[10px] font-bold uppercase tracking-[0.18em] text-d-mute'
   const sectionBox = 'flex flex-col gap-3 border-t border-d-line px-5 py-6'
   const h3 = 'text-[22px] font-extrabold leading-[1.25] tracking-tight text-ink'
+  // 섹션 번호는 실제로 보이는 섹션만 차례로 센다. 키워드 섹션(02)은 작품이 직접 쓴 글이 있을 때만 보여 준다(상세페이지·배너 작품은 빼는 중)
+  const hasContext = !!own[1]?.text
+  let secNo = 0
+  const num = () => String(++secNo).padStart(2, '0')
   const head = (n: string, title: string) => (
     <h3 className={`${h3} flex items-baseline gap-3`}><span className="text-[16px] text-accent-blue">{n}</span><span>{title}</span></h3>
   )
-  const galleryRatio = fit === 'a4' ? 'aspect-[210/297]' : 'aspect-[16/9]'
+  const galleryRatio = fit === 'a4' ? 'aspect-[210/297]' : fit === 'contain' ? 'aspect-[16/10]' : 'aspect-[16/9]'
   return (
     <div className="relative h-full">
     <div data-scroll className="h-full overflow-y-auto bg-d-band [scrollbar-width:none]">
-      {/* 첫 화면: 왼쪽은 작업 색을 깐 소개 패널, 오른쪽은 대표 사진 슬라이드 */}
-      <section className="flex h-full overflow-hidden">
-        <div className="flex w-[44%] shrink-0 flex-col justify-center px-5 py-4 text-white" style={{ background: `linear-gradient(155deg, color-mix(in srgb, ${tone} 60%, #101827), #101827)` }}>
-          <div className="mb-3 self-start rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/90 ring-1 ring-white/50">{p.role}</div>
-          <h2 className="mb-2 text-[26px] font-extrabold leading-[1.1] tracking-tight">{p.title}</h2>
-          <p className="mb-4 line-clamp-2 text-[12px] leading-[1.5] text-white/75">{p.summary}</p>
-          {showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-4 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
-        </div>
-        <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} glow className="relative min-w-0 flex-1" />
-      </section>
+      {/* 첫 화면. 상세페이지(a4)·배너 작품은 왼쪽 소개 패널 + 오른쪽 사진(원래 배치), 웹·앱 작업은 위에 사진을 꽉 차게 + 아래 가운데 정렬 소개 */}
+      {(fit === 'a4' || banners) ? (
+        <section className="flex h-full overflow-hidden">
+          <div className="flex w-[44%] shrink-0 flex-col justify-center px-5 py-4 text-white" style={{ background: `linear-gradient(155deg, color-mix(in srgb, ${tone} 60%, #101827), #101827)` }}>
+            <div className="mb-3 self-start rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/90 ring-1 ring-white/50">{p.role}</div>
+            <h2 className="mb-2 text-[26px] font-extrabold leading-[1.1] tracking-tight">{p.title}</h2>
+            <p className="mb-4 line-clamp-2 text-[12px] leading-[1.5] text-white/75">{p.summary}</p>
+            {showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-4 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
+          </div>
+          <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain || heroFit === 'contain'} dark={dark} glow className="relative min-w-0 flex-1" />
+        </section>
+      ) : (
+        <section className="flex h-full flex-col overflow-hidden">
+          <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} dark={dark} className="relative min-h-0 w-full flex-1" />
+          <div className="flex shrink-0 flex-col items-center gap-2 px-5 py-3.5 text-center text-white" style={{ background: `linear-gradient(160deg, color-mix(in srgb, ${tone} 60%, #101827), #101827)` }}>
+            <span className="rounded-full px-3 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-white/90 ring-1 ring-white/50">{p.role}</span>
+            <h2 className="max-w-full truncate text-[20px] font-extrabold leading-[1.15] tracking-tight">{p.title}</h2>
+            <div className="flex max-w-full items-center justify-center gap-3">
+              <p className="min-w-0 truncate text-[11px] leading-[1.4] text-white/75">{p.summary}</p>
+              {showBtns && <div className="flex shrink-0 items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-3.5 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-3.5 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* 01: 프로젝트 개요 */}
       <section className={sectionBox}>
         <div className={label}>{banners ? 'Concept' : 'Project Overview'}</div>
-        {head('01', sec[0].title)}
+        {head(num(), sec[0].title)}
         <p className={`${BODY} text-justify text-d-body`}>{sec[0].text}</p>
       </section>
 
       {/* 02: 배경·키워드 (왼쪽 제목, 오른쪽 설명) */}
-      <section className={sectionBox}>
+      {hasContext && <section className={sectionBox}>
         <div className={label}>Context</div>
-        {head('02', sec[1].title)}
+        {head(num(), sec[1].title)}
         <p className={`${BODY} text-justify text-d-body`}>{sec[1].text}</p>
-      </section>
+      </section>}
 
       {/* 03: 역할 — 기간 · 작업 비중 · 사용 도구를 세 칸으로 */}
       <section className={sectionBox}>
         <div className={label}>Role</div>
-        {head('03', sec[2].title)}
-        <div className="grid grid-cols-3 gap-5">
+        {head(num(), sec[2].title)}
+        <div className={`grid gap-5 ${tools ? 'grid-cols-[1fr_1fr_1.9fr]' : 'grid-cols-2'}`}>
           {/* 칸마다 제목과 값을 한 묶음으로 두고 둘 다 가운데 정렬. 사용 도구는 도구가 많아도 줄바꿈 없이 한 줄로 작게 나열한다 */}
           {[
             { t: '작업 기간', v: p.period, big: true },
@@ -473,10 +503,10 @@ function Detail({ s }: { s: State }) {
             <div key={c.t} className="flex flex-col items-center gap-3 text-center">
               <div className="text-[13px] font-extrabold text-ink">{c.t}</div>
               {c.big ? <div className="text-[24px] font-extrabold leading-[1.2] tracking-tight text-ink">{c.v}</div> : (
-                <ul className="flex flex-nowrap items-center justify-center gap-x-2 whitespace-nowrap">
+                <ul className={`flex flex-nowrap items-center justify-center whitespace-nowrap ${toolSize(c.v.split(' · ').length).gap}`}>
                   {c.v.split(' · ').map(t => (
-                    <li key={t} className="flex items-center gap-[3px] text-[6px] font-semibold text-ink">
-                      <span className="relative block h-[10px] w-[10px] shrink-0"><span className="absolute left-0 top-0 block origin-top-left scale-50"><SkillIcon name={t} /></span></span>
+                    <li key={t} className={`flex items-center gap-1 font-semibold text-ink ${toolSize(c.v.split(' · ').length).text}`}>
+                      <span className={`relative block shrink-0 ${toolSize(c.v.split(' · ').length).box}`}><span className={`absolute left-0 top-0 block origin-top-left ${toolSize(c.v.split(' · ').length).scale}`}><SkillIcon name={t} /></span></span>
                       <span>{t}</span>
                     </li>
                   ))}
@@ -520,18 +550,16 @@ function Detail({ s }: { s: State }) {
       {gallery.length > 0 && (
         <section className={sectionBox}>
           <div className="flex items-end justify-between gap-3">
-            <div className="flex flex-col gap-3"><div className={label}>Works</div>{head('04', sec[3].title)}</div>
+            <div className="flex flex-col gap-3"><div className={label}>Works</div>{head(num(), sec[3].title)}</div>
             <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.14em] text-d-mute">{gallery.length} works</span>
           </div>
-          <div className="grid grid-cols-2 items-start gap-5">
+          <div className="grid grid-cols-2 gap-5">
             {gallery.map((g, k) => (
               <figure key={g}>
-                {/* 비율이 제각각인 캡처(contain)는 칸을 사진 비율대로 늘리고, 슬라이드·A4 페이지는 정해진 비율 칸에 꽉 채운다 */}
-                {fit === 'contain' ? <img src={g} alt="" draggable={false} loading="lazy" decoding="async" className="block h-auto w-full rounded-lg bg-d-bg2" /> : (
-                  <div className={`relative w-full overflow-hidden rounded-lg bg-d-bg2 ${galleryRatio}`}>
-                    <img src={g} alt="" draggable={false} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover object-top" />
-                  </div>
-                )}
+                {/* 사진 칸은 모두 같은 크기로 맞춘다: 캡처(contain)는 칸 안에 비율대로 들어가고, 슬라이드·A4 페이지는 칸을 꽉 채운다 */}
+                <div className={`relative w-full overflow-hidden rounded-lg bg-d-bg2 ${galleryRatio}`}>
+                  <img src={g} alt="" draggable={false} loading="lazy" decoding="async" className={`absolute inset-0 h-full w-full ${fit === 'contain' ? 'object-contain' : 'object-cover object-top'}`} />
+                </div>
                 <figcaption className="mt-3 text-[11px] font-bold text-d-sub">{String(k + 1).padStart(2, '0')} / {String(gallery.length).padStart(2, '0')}</figcaption>
               </figure>
             ))}
@@ -542,7 +570,7 @@ function Detail({ s }: { s: State }) {
       {/* 05: 링크 */}
       <section className={sectionBox}>
         <div className={label}>Links</div>
-        {head('05', p.title)}
+        {head(num(), p.title)}
         <p className={`${BODY} text-justify text-d-body`}>{sec[3].text}</p>
         {showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-transparent px-4 py-1 text-ink ring-1 ring-ink/40')}</div>}
       </section>
