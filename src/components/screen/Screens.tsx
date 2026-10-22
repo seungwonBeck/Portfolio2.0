@@ -448,15 +448,17 @@ function Detail({ s }: { s: State }) {
   return (
     <div className="relative h-full">
     <div data-scroll className="h-full overflow-y-auto bg-d-band [scrollbar-width:none]">
-      {/* 첫 화면: 왼쪽은 작업 색을 깐 소개 패널, 오른쪽은 대표 사진 슬라이드 */}
-      <section className="flex h-full overflow-hidden">
-        <div className="flex w-[44%] shrink-0 flex-col justify-center px-5 py-4 text-white" style={{ background: `linear-gradient(155deg, color-mix(in srgb, ${tone} 60%, #101827), #101827)` }}>
-          <div className="mb-3 self-start rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/90 ring-1 ring-white/50">{p.role}</div>
-          <h2 className="mb-2 text-[26px] font-extrabold leading-[1.1] tracking-tight">{p.title}</h2>
-          <p className="mb-4 line-clamp-2 text-[12px] leading-[1.5] text-white/75">{p.summary}</p>
-          {showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-4 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
+      {/* 첫 화면: 위는 대표 사진 슬라이드를 가로로 꽉 차게(뒤 배경 없이 칸에 맞춰 채움), 아래는 제목·소개·버튼 */}
+      <section className="flex h-full flex-col overflow-hidden">
+        <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} dark={dark} className="relative min-h-0 w-full flex-1" />
+        <div className="flex shrink-0 flex-col gap-2 px-5 py-3.5 text-white" style={{ background: `linear-gradient(160deg, color-mix(in srgb, ${tone} 60%, #101827), #101827)` }}>
+          <div className="flex items-center gap-2.5">
+            <span className="rounded-full px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-white/90 ring-1 ring-white/50">{p.role}</span>
+            <h2 className="min-w-0 truncate text-[19px] font-extrabold leading-[1.15] tracking-tight">{p.title}</h2>
+          </div>
+          <p className="line-clamp-1 text-[11px] leading-[1.4] text-white/75">{p.summary}</p>
+          {showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-3.5 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-3.5 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
         </div>
-        <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} glow className="relative min-w-0 flex-1" />
       </section>
 
       {/* 01: 프로젝트 개요 */}
