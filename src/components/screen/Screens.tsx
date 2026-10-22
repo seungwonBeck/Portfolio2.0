@@ -100,22 +100,22 @@ function Home({ s }: { s: State }) {
             return (
               <div key={t} className="relative shrink-0">
                 {/* 유리 카드: 뒤에 타일 색의 흐린 빛 덩어리를 깔고, 그 위에 반투명 간유리 면을 얹는다. 선택하면 빛이 진해지고 테두리가 밝아진다 */}
-                <span aria-hidden className="pointer-events-none absolute -inset-3 z-0 rounded-full transition-opacity duration-300" style={{ background: `radial-gradient(closest-side, ${hi} 0%, ${lo} 65%, transparent 100%)`, opacity: sel ? 0.95 : 0.5 }} />
+                <span aria-hidden className="pointer-events-none absolute -inset-4 z-0 rounded-full transition-opacity duration-300" style={{ background: `radial-gradient(closest-side, ${hi} 0%, ${hi}aa 45%, ${lo}66 75%, transparent 100%)`, opacity: sel ? 1 : 0.75 }} />
                 <motion.button aria-label={label(t)} onClick={() => open('tile', i)} animate={{ scale: sel ? 1.04 : 1, y: sel ? -3 : 0 }} transition={{ type: 'spring', stiffness: 380, damping: 26 }}
                   className={`relative z-10 block h-[116px] w-[116px] overflow-hidden rounded-[22px] text-left ${sel ? 'ring-[1.5px] ring-white/90' : 'ring-1 ring-white/35'}`}
-                  style={{ background: 'linear-gradient(150deg, rgba(255,255,255,.30) 0%, rgba(255,255,255,.08) 55%, rgba(255,255,255,.14) 100%)', boxShadow: `inset 0 1px 1px rgba(255,255,255,.7), inset 0 -10px 18px -8px ${lo}88, 0 14px 26px -12px rgba(0,0,0,.55)` }}>
+                  style={{ background: `radial-gradient(75% 65% at 50% 38%, ${hi}cc 0%, ${hi}55 60%, transparent 100%), linear-gradient(150deg, rgba(255,255,255,.42) 0%, rgba(255,255,255,.14) 55%, rgba(255,255,255,.22) 100%)`, boxShadow: `inset 0 1px 1px rgba(255,255,255,.7), inset 0 -10px 18px -8px ${lo}88, 0 14px 26px -12px rgba(0,0,0,.55)` }}>
                   {chip ? (
                     <>
                       {/* 꽂힌 카트리지: 다른 타일과 같은 유리 카드 위에 작품 로고를 작은 상자로 올리고, 이름은 같은 가는 글씨, PLAYING은 유리 알약으로 */}
                       <span className="absolute left-1/2 top-[46%] block h-[50px] w-[50px] -translate-x-1/2 -translate-y-1/2"><ChipBadge i={s.only!} bare className="!absolute !inset-0 !aspect-auto !h-full !w-full !rounded-2xl" /></span>
                       <span className="absolute left-2 top-2 rounded-full bg-white/25 px-2 py-0.5 text-[8px] font-bold tracking-[0.16em] text-white ring-1 ring-white/40 backdrop-blur-sm">PLAYING</span>
-                      <span aria-hidden className="absolute -left-4 -top-6 h-16 w-24 rotate-[-18deg] bg-white/30 blur-xl" />
+                      <span aria-hidden className="absolute inset-0 bg-[radial-gradient(70%_55%_at_22%_8%,rgba(255,255,255,.45),transparent)]" />
                       <span className="absolute inset-x-1 bottom-3 truncate text-center text-[10px] font-semibold tracking-[0.12em] text-white [text-shadow:0_1px_6px_rgba(0,0,0,.35)]">{label(t)}</span>
                     </>
                   ) : (
                     <>
-                      <span aria-hidden className="absolute left-1/2 top-[41%] block h-[70px] w-[70px] -translate-x-1/2 -translate-y-1/2 [filter:drop-shadow(0_2px_8px_rgba(255,255,255,.35))]"><TileArt name={t} color="#ffffff" /></span>
-                      <span aria-hidden className="absolute -left-4 -top-6 h-16 w-24 rotate-[-18deg] bg-white/30 blur-xl" />
+                      <span aria-hidden className="absolute left-1/2 top-[41%] block h-[70px] w-[70px] -translate-x-1/2 -translate-y-1/2 [filter:drop-shadow(0_0_10px_rgba(255,255,255,.75))_drop-shadow(0_0_22px_rgba(255,255,255,.35))]"><TileArt name={t} color="#ffffff" /></span>
+                      <span aria-hidden className="absolute inset-0 bg-[radial-gradient(70%_55%_at_22%_8%,rgba(255,255,255,.45),transparent)]" />
                       <span className="absolute inset-x-0 bottom-3 text-center text-[11px] font-semibold tracking-[0.26em] text-white [text-shadow:0_1px_6px_rgba(0,0,0,.35)]">{label(t)}</span>
                     </>
                   )}
