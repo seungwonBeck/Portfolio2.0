@@ -76,7 +76,7 @@ export const PressContext = createContext<(b: Btn) => void>(() => {})
 /** Box-art colours per tile (light, dark) and the one-line blurb shown under the focused tile, like a game's title on the Switch home. */
 // 홈 타일 색: 조이콘처럼 왼쪽 파랑에서 가운데 보라를 지나 오른쪽 빨강으로 이어지게 통일 (밝은 색, 어두운 색)
 const TILE_ART = { ABOUT: ['#52a8ff', '#1f5fd0'], SKILLS: ['#6e8cff', '#3a4fcf'], PROJECTS: ['#a07cf0', '#6a45c2'], CONTACT: ['#f27a9a', '#c23a62'], GAME: ['#ff6b5e', '#c92a2a'] } as const
-const TILE_SUB = { ABOUT: '프로필과 타임라인', PROJECTS: `${projects.length}개의 작품`, SKILLS: '쓸 수 있는 도구들', CONTACT: '연락하는 방법', GAME: '쉬어가는 미니게임' } as const
+const TILE_SUB = { ABOUT: '프로필과 타임라인', PROJECTS: `${projects.length}개의 작품`, SKILLS: 'Figma · Photoshop · Illustrator · React · Claude', CONTACT: '연락하는 방법', GAME: '쉬어가는 미니게임' } as const
 
 /**
  * Console-style home, modelled on the Switch home screen: a row of square "game" tiles with soft drop shadows (the focused one
@@ -100,7 +100,7 @@ function Home({ s }: { s: State }) {
             return (
               <div key={t} className="relative shrink-0">
                 {/* 유리 카드: 뒤에 타일 색의 흐린 빛 덩어리를 깔고, 그 위에 반투명 간유리 면을 얹는다. 선택하면 빛이 진해지고 테두리가 밝아진다 */}
-                <span aria-hidden className="pointer-events-none absolute -inset-4 z-0 rounded-full transition-opacity duration-300" style={{ background: `radial-gradient(closest-side, ${hi} 0%, ${lo} 65%, transparent 100%)`, opacity: sel ? 0.5 : 0.22 }} />
+                <span aria-hidden className="pointer-events-none absolute -inset-3 z-0 rounded-full transition-opacity duration-300" style={{ background: `radial-gradient(closest-side, ${hi} 0%, ${lo} 65%, transparent 100%)`, opacity: sel ? 0.95 : 0.5 }} />
                 <motion.button aria-label={label(t)} onClick={() => open('tile', i)} animate={{ scale: sel ? 1.04 : 1, y: sel ? -3 : 0 }} transition={{ type: 'spring', stiffness: 380, damping: 26 }}
                   className={`relative z-10 block h-[116px] w-[116px] overflow-hidden rounded-[22px] text-left backdrop-blur-xl ${sel ? 'ring-[1.5px] ring-white/90' : 'ring-1 ring-white/35'}`}
                   style={{ background: 'linear-gradient(150deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.10) 55%, rgba(255,255,255,.18) 100%)', boxShadow: `inset 0 1px 1px rgba(255,255,255,.7), inset 0 -10px 18px -8px ${lo}88, 0 14px 26px -12px rgba(0,0,0,.55)` }}>
