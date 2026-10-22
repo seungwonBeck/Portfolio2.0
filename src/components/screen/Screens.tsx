@@ -73,9 +73,9 @@ export const OpenContext = createContext<(row: 'tile' | 'dock', i: number) => vo
 export const RowContext = createContext<(screen: 'PROJECTS' | 'CONTACT' | 'GAME', i: number) => void>(() => {})
 export const PressContext = createContext<(b: Btn) => void>(() => {})
 
-const dockColor = { ABOUT: '#ff4b3e', PROJECTS: '#ff9f43', SKILLS: '#34c759', CONTACT: '#1fb6e8', GAME: '#8a8b90' }
 /** Box-art colours per tile (light, dark) and the one-line blurb shown under the focused tile, like a game's title on the Switch home. */
-const TILE_ART = { ABOUT: ['#ff7a6b', '#b3261a'], PROJECTS: ['#ffb54d', '#c4630a'], SKILLS: ['#4fd98a', '#12803f'], CONTACT: ['#3cc6f2', '#0b6f98'], GAME: ['#b07bff', '#4a21a8'] } as const
+// 홈 타일 색: 빨주노초 대신 파랑~남색~청록~보라의 차가운 색 한 계열로 통일 (밝은 색, 어두운 색)
+const TILE_ART = { ABOUT: ['#7b97ff', '#3d56c9'], SKILLS: ['#58b8f4', '#2a7bc4'], PROJECTS: ['#8a8fff', '#4a4fc4'], CONTACT: ['#4fcad4', '#23909f'], GAME: ['#a590f7', '#6048c4'] } as const
 const TILE_SUB = { ABOUT: '프로필과 타임라인', PROJECTS: `${projects.length}개의 작품`, SKILLS: '쓸 수 있는 도구들', CONTACT: '연락하는 방법', GAME: '쉬어가는 미니게임' } as const
 
 /**
@@ -416,43 +416,70 @@ function Detail({ s }: { s: State }) {
       </div>
     </div>
   )
+  // 상세 화면 배치: 왼쪽 색 패널 + 오른쪽 큰 사진의 첫 화면, 그 아래 번호 붙은 섹션(01 개요 · 02 배경 · 03 역할 · 04 작업물 · 05 링크)
+  const tone = PROJ_ART[s.proj % PROJ_ART.length][1]
+  const gallery = banners ? [] : imgs
+  const label = 'mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-accent-blue'
+  const sectionBox = 'border-t border-d-line px-5 py-6'
+  const h3 = 'text-[22px] font-extrabold leading-[1.25] tracking-tight text-ink'
+  const galleryRatio = fit === 'a4' ? 'aspect-[210/297]' : 'aspect-[16/9]'
   return (
     <div className="relative h-full">
     <div data-scroll className="h-full overflow-y-auto bg-d-band [scrollbar-width:none]">
-      {/* hero: left-aligned text with the button set apart from the title, then the photo edge to edge */}
-      <section className="relative flex h-full flex-col overflow-hidden bg-d-bg1">
-        {/* 슬라이드형 작업: 메인 사진을 첫 화면 전체 배경에 흐리고 옅게 깐다 */}
-        {(fit === 'slide' || fit === 'a4') && slideImgs[0] && <img aria-hidden src={slideImgs[0]} alt="" draggable={false} decoding="async" className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-2xl" />}
-        <div className="relative flex shrink-0 items-start justify-between gap-3 px-4 pb-4 pt-4">
-          <div className="min-w-0">
-            <Eyebrow>{p.role}</Eyebrow>
-            <h2 className="mb-1.5 text-[24px] font-extrabold leading-[1.2] tracking-tight text-ink">{p.title}</h2>
-            <p className="line-clamp-1 text-[12px] leading-[1.4] text-d-sub">{p.summary}</p>
-            {showBtns && <div className="mt-3 flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-4 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
+      {/* 첫 화면: 왼쪽은 작업 색을 깐 소개 패널, 오른쪽은 대표 사진 슬라이드 */}
+      <section className="flex h-full overflow-hidden">
+        <div className="flex w-[44%] shrink-0 flex-col justify-center px-5 py-4 text-white" style={{ background: `linear-gradient(155deg, color-mix(in srgb, ${tone} 60%, #101827), #101827)` }}>
+          <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">{p.role}</div>
+          <h2 className="mb-2 text-[26px] font-extrabold leading-[1.1] tracking-tight">{p.title}</h2>
+          <p className="mb-3 line-clamp-2 text-[12px] leading-[1.5] text-white/75">{p.summary}</p>
+          <div className="mb-3 flex flex-wrap gap-1.5">
+            {[p.role, p.period].map(t => <span key={t} className="rounded-full px-2.5 py-0.5 text-[10px] font-bold text-white/85 ring-1 ring-white/35">{t}</span>)}
           </div>
-          <ChipBadge i={s.proj} className="mt-1 w-[76px]" />
+          {showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-4 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
         </div>
-        <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} glow={fit === 'slide' || fit === 'a4'} className="relative min-h-0 w-full flex-1" />
+        <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} glow={fit === 'slide' || fit === 'a4'} className="relative min-w-0 flex-1" />
       </section>
 
-      {/* 띠마다 글자는 가운데 정렬, 사진은 그 아래 가운데에 놓는다 */}
-      {/* band 1: white, text, then the photo on a grey panel */}
-      <section className="bg-d-band px-4 py-6 text-center">
-        <Eyebrow>{banners ? 'Concept' : 'Overview'}</Eyebrow>
-        <h3 className={`${H3} text-ink`}>{sec[0].title}</h3>
-        <p className={`mx-auto max-w-[460px] ${BODY} text-d-body`}>{sec[0].text}</p>
-        {!banners && (
-          <div className={`mx-auto mt-4 ${panelW} rounded-xl bg-d-bg2 p-2.5`}>
-            <Photo src={imgs[1]} i={s.proj} k={1} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
-          </div>
-        )}
+      {/* 01: 프로젝트 개요 */}
+      <section className={sectionBox}>
+        <div className={label}>01 / {banners ? 'Concept' : 'Project Overview'}</div>
+        <h3 className={`${h3} mb-2`}>{sec[0].title}</h3>
+        <p className={`max-w-[480px] ${BODY} text-d-body`}>{sec[0].text}</p>
+      </section>
+
+      {/* 02: 배경·키워드 (왼쪽 제목, 오른쪽 설명) */}
+      <section className={sectionBox}>
+        <div className={label}>02 / Context</div>
+        <div className="grid grid-cols-[1fr_1.1fr] items-start gap-6">
+          <h3 className={h3}>{sec[1].title}</h3>
+          <p className={`${BODY} text-d-body`}>{sec[1].text}</p>
+        </div>
+      </section>
+
+      {/* 03: 역할 — 기간 · 작업 비중 · 사용 도구를 세 칸으로 */}
+      <section className={sectionBox}>
+        <div className={label}>03 / Role</div>
+        <h3 className={`${h3} mb-4`}>{sec[2].title}</h3>
+        <div className="grid grid-cols-3 gap-5">
+          {[
+            { t: '작업 기간', v: p.period },
+            { t: '작업 비중', v: '100%' },
+            ...(tools ? [{ t: '사용 도구', v: tools }] : []),
+          ].map((c, n) => (
+            <div key={c.t}>
+              <div className="mb-1 text-[11px] font-bold text-accent-blue">{String(n + 1).padStart(2, '0')}</div>
+              <div className="mb-1 text-[13px] font-extrabold text-ink">{c.t}</div>
+              <div className={`${BODY} text-d-body`}>{c.v}</div>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* 배너 목록: 사진은 왼쪽, 브랜드 로고·상품명·설명은 오른쪽. 내용이 비어 있으면 자리표시로 틀만 보여 준다 */}
       {banners && (
-        <section className="bg-d-bg3 px-4 py-2">
+        <section className="border-t border-d-line bg-d-bg3 px-5 py-2">
           {banners.map((b, k) => (
-            <div key={k} className="mx-auto flex max-w-[560px] items-center gap-8 border-b border-black/[.06] py-5 last:border-b-0">
+            <div key={k} className="mx-auto flex max-w-[560px] items-center gap-8 border-b border-d-line py-5 last:border-b-0">
               <div className="w-[34%] shrink-0">
                 <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-d-line">
                   {b.image ? <img src={resolve(b.image)} alt="" draggable={false} decoding="async" className="absolute inset-0 h-full w-full object-contain" /> : (
@@ -477,30 +504,35 @@ function Detail({ s }: { s: State }) {
         </section>
       )}
 
-      {/* band 2: white, text, the big number 24px under it, then the photo panel */}
-      <section className="bg-d-band px-4 py-6 text-center">
-        <Eyebrow>Role</Eyebrow>
-        <h3 className={`${H3} text-ink`}>{sec[2].title}</h3>
-        <p className={`mx-auto max-w-[460px] ${BODY} text-d-body`}>{sec[2].text}</p>
-        <div className="mx-auto mt-6 flex max-w-[460px] justify-center">
-          <div className="w-[35%]"><div className="text-[22px] font-extrabold leading-none text-ink">{p.period}</div><div className="mt-1.5 text-[9px] text-d-sub">작업 기간</div></div>
-          <div className="w-[35%]"><div className="text-[22px] font-extrabold leading-none text-ink">100%</div><div className="mt-1.5 text-[9px] text-d-sub">작업 비중</div></div>
-          {tools && <div className="w-[30%]"><div className="text-[11px] font-extrabold leading-[22px] text-ink">{tools.split(' · ').map(t => <span key={t} className="mx-[2px] inline-block whitespace-nowrap">{t}</span>)}</div><div className="mt-1.5 text-[9px] text-d-sub">사용 도구</div></div>}
-        </div>
-        {!banners && (
-          <div className={`mx-auto mt-4 ${panelW} rounded-xl bg-d-bg2 p-2.5`}>
-            <Photo src={imgs[4]} i={s.proj} k={4} plain contain={fit === 'contain'} className={`${ratio} w-full`} />
+      {/* 04: 작업물 — 사진을 두 칸씩, 아래에 번호 */}
+      {gallery.length > 0 && (
+        <section className={sectionBox}>
+          <div className="mb-4 flex items-end justify-between gap-3">
+            <div><div className={label}>04 / Works</div><h3 className={h3}>{sec[3].title}</h3></div>
+            <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.14em] text-d-mute">{gallery.length} works</span>
           </div>
-        )}
-      </section>
+          <div className="grid grid-cols-2 items-start gap-5">
+            {gallery.map((g, k) => (
+              <figure key={g}>
+                {/* 비율이 제각각인 캡처(contain)는 칸을 사진 비율대로 늘리고, 슬라이드·A4 페이지는 정해진 비율 칸에 꽉 채운다 */}
+                {fit === 'contain' ? <img src={g} alt="" draggable={false} loading="lazy" decoding="async" className="block h-auto w-full rounded-lg bg-d-bg2" /> : (
+                  <div className={`relative w-full overflow-hidden rounded-lg bg-d-bg2 ${galleryRatio}`}>
+                    <img src={g} alt="" draggable={false} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover object-top" />
+                  </div>
+                )}
+                <figcaption className="mt-2 text-[11px] font-bold text-d-sub">{String(k + 1).padStart(2, '0')} / {String(gallery.length).padStart(2, '0')}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+      )}
 
-      {/* band 3: dark closing band */}
-      <section className="bg-[#0b0b0d] px-4 py-6 text-center text-white">
-        <Eyebrow dark>Next</Eyebrow>
-        <h3 className={`${H3}`}>{sec[3].title}</h3>
-        <p className={`mx-auto max-w-[460px] ${BODY} text-white/65`}>{sec[3].text}</p>
-        {showBtns && <div className="mt-3 flex flex-wrap items-center justify-center gap-2">{site ? siteBtn('bg-white px-3.5 py-1 text-[#0b0b0d]') : siteBtn('')}{downloadBtn('bg-transparent px-3.5 py-1 text-white ring-1 ring-white/50')}</div>}
-        {!banners && <Photo src={imgs[5]} i={s.proj} k={5} plain contain={fit === 'contain'} className={`mx-auto mt-4 ${ratio} ${panelW} rounded-lg`} />}
+      {/* 05: 링크 */}
+      <section className={sectionBox}>
+        <div className={label}>05 / Links</div>
+        <h3 className={`${h3} mb-1`}>{p.title}</h3>
+        <p className={`${BODY} mb-3 max-w-[480px] text-d-body`}>{sec[3].text}</p>
+        {showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-transparent px-4 py-1 text-ink ring-1 ring-ink/40')}</div>}
       </section>
     </div>
     {/* 확대해서 보기: 화면 위에 사진을 크게 띄운다. 바깥을 누르거나 닫기 버튼으로 닫는다 */}
