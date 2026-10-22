@@ -100,9 +100,9 @@ function Home({ s }: { s: State }) {
             return (
               <div key={t} className="relative shrink-0">
                 {/* 유리 카드: 뒤에 타일 색의 흐린 빛 덩어리를 깔고, 그 위에 반투명 간유리 면을 얹는다. 선택하면 빛이 진해지고 테두리가 밝아진다 */}
-                <span aria-hidden className="pointer-events-none absolute -inset-3 rounded-full blur-2xl transition-opacity duration-300" style={{ background: `radial-gradient(closest-side, ${hi} 0%, ${lo} 65%, transparent 100%)`, opacity: sel ? 0.95 : 0.5 }} />
+                <span aria-hidden className="pointer-events-none absolute -inset-5 z-0 rounded-full transition-opacity duration-300" style={{ background: `radial-gradient(closest-side, ${hi} 0%, ${lo} 65%, transparent 100%)`, opacity: sel ? 0.95 : 0.5 }} />
                 <motion.button aria-label={label(t)} onClick={() => open('tile', i)} animate={{ scale: sel ? 1.04 : 1, y: sel ? -3 : 0 }} transition={{ type: 'spring', stiffness: 380, damping: 26 }}
-                  className={`relative block h-[116px] w-[116px] overflow-hidden rounded-[22px] text-left backdrop-blur-xl ${sel ? 'ring-[1.5px] ring-white/90' : 'ring-1 ring-white/35'}`}
+                  className={`relative z-10 block h-[116px] w-[116px] overflow-hidden rounded-[22px] text-left ${sel ? 'ring-[1.5px] ring-white/90' : 'ring-1 ring-white/35'}`}
                   style={{ background: 'linear-gradient(150deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.10) 55%, rgba(255,255,255,.18) 100%)', boxShadow: `inset 0 1px 1px rgba(255,255,255,.7), inset 0 -10px 18px -8px ${lo}88, 0 14px 26px -12px rgba(0,0,0,.55)` }}>
                   {chip ? (
                     <>
@@ -338,7 +338,7 @@ function HeroSlides({ imgs: all, i, className = '', contain = false, dark = fals
           )}
         </motion.div>
       </AnimatePresence>
-      <div className="absolute bottom-2 left-4 flex gap-1">
+      <div className="absolute inset-x-0 bottom-2 flex justify-center gap-1">
         {Array.from({ length: n }, (_, k) => <span key={k} className={`h-1 rounded-full transition-all ${k === idx ? 'w-4 bg-white' : 'w-1 bg-white/50'}`} />)}
       </div>
     </div>
@@ -445,7 +445,7 @@ function Detail({ s }: { s: State }) {
   const head = (n: string, title: string) => (
     <h3 className={`${h3} flex items-baseline gap-3`}><span className="text-[16px] text-accent-blue">{n}</span><span>{title}</span></h3>
   )
-  const galleryRatio = fit === 'a4' ? 'aspect-[210/297]' : 'aspect-[16/9]'
+  const galleryRatio = fit === 'a4' ? 'aspect-[210/297]' : fit === 'contain' ? 'aspect-[16/10]' : 'aspect-[16/9]'
   return (
     <div className="relative h-full">
     <div data-scroll className="h-full overflow-y-auto bg-d-band [scrollbar-width:none]">
@@ -552,15 +552,13 @@ function Detail({ s }: { s: State }) {
             <div className="flex flex-col gap-3"><div className={label}>Works</div>{head(num(), sec[3].title)}</div>
             <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.14em] text-d-mute">{gallery.length} works</span>
           </div>
-          <div className="grid grid-cols-2 items-start gap-5">
+          <div className="grid grid-cols-2 gap-5">
             {gallery.map((g, k) => (
               <figure key={g}>
-                {/* 비율이 제각각인 캡처(contain)는 칸을 사진 비율대로 늘리고, 슬라이드·A4 페이지는 정해진 비율 칸에 꽉 채운다 */}
-                {fit === 'contain' ? <img src={g} alt="" draggable={false} loading="lazy" decoding="async" className="block h-auto w-full rounded-lg bg-d-bg2" /> : (
-                  <div className={`relative w-full overflow-hidden rounded-lg bg-d-bg2 ${galleryRatio}`}>
-                    <img src={g} alt="" draggable={false} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover object-top" />
-                  </div>
-                )}
+                {/* 사진 칸은 모두 같은 크기로 맞춘다: 캡처(contain)는 칸 안에 비율대로 들어가고, 슬라이드·A4 페이지는 칸을 꽉 채운다 */}
+                <div className={`relative w-full overflow-hidden rounded-lg bg-d-bg2 ${galleryRatio}`}>
+                  <img src={g} alt="" draggable={false} loading="lazy" decoding="async" className={`absolute inset-0 h-full w-full ${fit === 'contain' ? 'object-contain' : 'object-cover object-top'}`} />
+                </div>
                 <figcaption className="mt-3 text-[11px] font-bold text-d-sub">{String(k + 1).padStart(2, '0')} / {String(gallery.length).padStart(2, '0')}</figcaption>
               </figure>
             ))}
