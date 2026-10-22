@@ -193,7 +193,7 @@ function About({ s }: { s: State }) {
 function Projects({ s }: { s: State }) {
   const pickRow = useContext(RowContext)
   const cover = (p: (typeof projects)[number]) => {
-    const f = ((p as { heroImages?: string[] }).heroImages?.[0] ?? (p as { images?: string[] }).images?.[0]) as string | undefined
+    const f = ((p as { heroImages?: string[] }).heroImages?.[0] ?? (p as { images?: string[] }).images?.[0] ?? (p as { banners?: { image?: string }[] }).banners?.[0]?.image) as string | undefined
     return f ? (/^(https?:)?\//.test(f) ? f : `${import.meta.env.BASE_URL}projects/${f}`) : ''
   }
   return (
@@ -486,7 +486,7 @@ function Detail({ s }: { s: State }) {
           {banners.map((b, k) => (
             <div key={k} className="mx-auto flex max-w-[560px] items-center gap-8 border-b border-d-line py-5 last:border-b-0">
               <div className="w-[34%] shrink-0">
-                <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-d-line">
+                <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl bg-d-line">
                   {b.image ? <img src={resolve(b.image)} alt="" draggable={false} decoding="async" className="absolute inset-0 h-full w-full object-contain" /> : (
                     <span aria-hidden className="absolute inset-0 grid place-items-center text-[11px] font-extrabold tracking-[0.2em] text-d-mute">BANNER {String(k + 1).padStart(2, '0')}</span>
                   )}
