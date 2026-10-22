@@ -275,7 +275,7 @@ function Photo({ src, i, k, className = '', plain = false, contain = false }: { 
 }
 
 /** The big hero photo as an auto-advancing slideshow: each slide sweeps in from the right with a horizontal motion-blur streak while the old one is pulled out to the left. Uses the project's own pictures, or box-art colour cards until they exist. */
-/** 사진을 64×16 캔버스에 꽉 채워(cover) 그려 두면, 화면에 늘려 보일 때 부드럽게 번져 흐린 배경처럼 보인다. */
+/** 사진을 40×32 캔버스에 꽉 채워(cover) 그려 두면, 화면에 늘려 보일 때 부드럽게 번져 흐린 배경처럼 보인다. */
 function GlowCanvas({ src }: { src: string }) {
   const ref = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
@@ -288,7 +288,7 @@ function GlowCanvas({ src }: { src: string }) {
     }
     im.src = src
   }, [src])
-  return <canvas ref={ref} width={64} height={16} className="h-full w-full" />
+  return <canvas ref={ref} width={40} height={32} className="h-full w-full" />
 }
 
 function HeroSlides({ imgs: all, i, className = '', contain = false, dark = false, glow = false }: { imgs: string[]; i: number; className?: string; contain?: boolean; dark?: boolean; glow?: boolean }) {
@@ -308,7 +308,7 @@ function HeroSlides({ imgs: all, i, className = '', contain = false, dark = fals
       {glow && imgs.length > 0 && (
         <AnimatePresence initial={false}>
           <motion.div key={`g${idx}`} aria-hidden className="pointer-events-none absolute inset-0"
-            initial={{ opacity: 0 }} animate={{ opacity: 0.55 }} exit={{ opacity: 0.55, transition: { duration: 0, delay: 0.45 } }} transition={{ duration: 0.45 }}>
+            initial={{ opacity: 0 }} animate={{ opacity: 0.8 }} exit={{ opacity: 0.8, transition: { duration: 0, delay: 0.45 } }} transition={{ duration: 0.45 }}>
             <GlowCanvas src={imgs[idx]} />
           </motion.div>
         </AnimatePresence>
@@ -435,7 +435,7 @@ function Detail({ s }: { s: State }) {
           <p className="mb-4 line-clamp-2 text-[12px] leading-[1.5] text-white/75">{p.summary}</p>
           {showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-4 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
         </div>
-        <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} glow={fit === 'slide' || fit === 'a4'} className="relative min-w-0 flex-1" />
+        <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain} dark={dark} glow className="relative min-w-0 flex-1" />
       </section>
 
       {/* 01: 프로젝트 개요 */}
