@@ -106,10 +106,11 @@ function Home({ s }: { s: State }) {
                   style={{ background: 'linear-gradient(150deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.10) 55%, rgba(255,255,255,.18) 100%)', boxShadow: `inset 0 1px 1px rgba(255,255,255,.7), inset 0 -10px 18px -8px ${lo}88, 0 14px 26px -12px rgba(0,0,0,.55)` }}>
                   {chip ? (
                     <>
-                      {/* inserted cartridge: the project's logo fills the box, its title sits on a dark bar, a PLAYING tag marks it as different from the plain menu tiles */}
-                      <ChipBadge i={s.only!} bare className="absolute inset-0 !rounded-none !shadow-none !ring-0" />
-                      <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/75 to-black/0 px-2.5 pb-2 pt-6 text-[12px] font-extrabold leading-tight tracking-tight text-white">{label(t)}</span>
-                      <span className="absolute left-2 top-2 rounded-full bg-[#ff4b3e] px-2 py-0.5 text-[8px] font-extrabold tracking-[0.14em] text-white shadow-[0_2px_4px_rgba(0,0,0,.3)]">PLAYING</span>
+                      {/* 꽂힌 카트리지: 다른 타일과 같은 유리 카드 위에 작품 로고를 작은 상자로 올리고, 이름은 같은 가는 글씨, PLAYING은 유리 알약으로 */}
+                      <span className="absolute left-1/2 top-[46%] block h-[50px] w-[50px] -translate-x-1/2 -translate-y-1/2"><ChipBadge i={s.only!} bare className="!absolute !inset-0 !aspect-auto !h-full !w-full !rounded-2xl" /></span>
+                      <span className="absolute left-2 top-2 rounded-full bg-white/25 px-2 py-0.5 text-[8px] font-bold tracking-[0.16em] text-white ring-1 ring-white/40 backdrop-blur-sm">PLAYING</span>
+                      <span aria-hidden className="absolute -left-4 -top-6 h-16 w-24 rotate-[-18deg] bg-white/30 blur-xl" />
+                      <span className="absolute inset-x-1 bottom-3 truncate text-center text-[10px] font-semibold tracking-[0.12em] text-white [text-shadow:0_1px_6px_rgba(0,0,0,.35)]">{label(t)}</span>
                     </>
                   ) : (
                     <>
