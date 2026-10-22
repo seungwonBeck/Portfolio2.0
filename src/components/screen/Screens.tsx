@@ -90,41 +90,40 @@ function Home({ s }: { s: State }) {
   const cur = TILES[s.home]
   return (
     <div className="relative flex h-full flex-col items-center justify-center">
-      <div className="overflow-hidden px-2 py-3">
-      {/* 다섯 칸(116px 정사각형 + 간격 8px)이 한 줄에 다 보이고, 타일 줄과 이름·설명은 화면 가운데에 놓는다 */}
-      <div className="flex gap-2.5 py-1">
+      {/* 고급스러운 부채꼴 배치: 선택한 카드는 가운데에서 크고 반듯하게, 양옆 카드는 작아지고 기울며 어두워진다 */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(55%_45%_at_50%_38%,rgba(130,160,255,.20),transparent)]" />
+      <div className="relative h-[190px] w-full">
         {TILES.map((t, i) => {
-          const sel = tileFocus && i === s.home
+          const d = i - s.home, a = Math.abs(d)
+          const sel = tileFocus && d === 0
           const [hi, lo] = TILE_ART[t]
-          const Icon = tileIcon[t]
           const chip = t === 'PROJECTS' && s.only !== null // 칩이 꽂히면 이 칸은 그 프로젝트의 로고 + 제목으로 바뀐다
+          const spread = [0, 100, 182, 250, 300][a] // 가운데에서 떨어진 거리
           return (
-            <div key={t} className="shrink-0">
-              <motion.button aria-label={label(t)} onClick={() => open('tile', i)} animate={{ scale: sel ? 1.04 : 1, y: sel ? -3 : 0 }} transition={{ type: 'spring', stiffness: 380, damping: 26 }}
-                className={`relative block h-[116px] w-[116px] overflow-hidden rounded-[14px] text-left ${sel ? 'animate-[tileGlow_1.6s_ease-in-out_infinite]' : 'shadow-[0_8px_16px_-6px_rgba(0,0,0,.35)]'}`}
-                style={{ background: `linear-gradient(155deg, ${hi} 0%, ${lo} 100%)` }}>
-                {chip ? (
-                  <>
-                    {/* inserted cartridge: the project's logo fills the box, its title sits on a dark bar, a PLAYING tag marks it as different from the plain menu tiles */}
-                    <ChipBadge i={s.only!} bare className="absolute inset-0 !rounded-none !shadow-none !ring-0" />
-                    <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/75 to-black/0 px-2.5 pb-2 pt-6 text-[12px] font-extrabold leading-tight tracking-tight text-white">{label(t)}</span>
-                    <span className="absolute left-2 top-2 rounded-full bg-[#ff4b3e] px-2 py-0.5 text-[8px] font-extrabold tracking-[0.14em] text-white shadow-[0_2px_4px_rgba(0,0,0,.3)]">PLAYING</span>
-                    <span aria-hidden className="absolute inset-0 rounded-[14px]" style={{ boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,.55)' }} />
-                  </>
-                ) : (
-                  <>
-                    {/* 말랑한 3D 느낌 그림(기울여서 카드 위로 살짝 튀어나오게), 왼쪽 위에서 오는 빛, 테두리 빛, 아래에 이름 */}
-                    <motion.span aria-hidden className="absolute right-0.5 top-1.5 block h-[84px] w-[84px] [filter:drop-shadow(0_6px_5px_rgba(0,0,0,.28))]" initial={false} animate={{ scale: sel ? 1.1 : 1, rotate: sel ? -2 : -6 }} transition={{ type: 'spring', stiffness: 300, damping: 18 }}><TileArt name={t} /></motion.span>
-                    <span aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.06) 38%, transparent 52%)' }} />
-                    <span aria-hidden className="absolute inset-0 rounded-[14px]" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,.28), inset 0 -26px 34px -18px rgba(0,0,0,.5)' }} />
-                    <span className="absolute inset-x-0 bottom-0 p-2.5 text-[15px] font-extrabold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,.45)]">{label(t)}</span>
-                  </>
-                )}
-              </motion.button>
-            </div>
+            <motion.button key={t} aria-label={label(t)} onClick={() => open('tile', i)} initial={false}
+              animate={{ x: Math.sign(d) * spread, y: a * 10, scale: d === 0 ? 1.14 : 1 - 0.1 * a, rotate: d * 7.5, filter: `brightness(${1 - 0.2 * a})` }}
+              transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+              style={{ zIndex: 10 - a, background: `linear-gradient(160deg, ${hi} 0%, ${lo} 100%)` }}
+              className={`absolute left-1/2 top-1/2 -ml-[60px] -mt-[64px] block h-[120px] w-[120px] overflow-hidden rounded-[20px] text-left ${sel ? 'ring-2 ring-white/85 shadow-[0_20px_36px_-10px_rgba(0,0,0,.7)]' : 'ring-1 ring-white/30 shadow-[0_12px_24px_-10px_rgba(0,0,0,.6)]'}`}>
+              {chip ? (
+                <>
+                  {/* inserted cartridge: the project's logo fills the box, its title sits on a dark bar, a PLAYING tag marks it as different from the plain menu tiles */}
+                  <ChipBadge i={s.only!} bare className="absolute inset-0 !rounded-none !shadow-none !ring-0" />
+                  <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/75 to-black/0 px-2.5 pb-2 pt-6 text-[12px] font-extrabold leading-tight tracking-tight text-white">{label(t)}</span>
+                  <span className="absolute left-2 top-2 rounded-full bg-[#ff4b3e] px-2 py-0.5 text-[8px] font-extrabold tracking-[0.14em] text-white shadow-[0_2px_4px_rgba(0,0,0,.3)]">PLAYING</span>
+                </>
+              ) : (
+                <>
+                  {/* 말랑한 3D 느낌 그림, 위쪽 유리 같은 빛, 아래로 갈수록 어두워지는 막, 가운데 정렬된 가는 이름 */}
+                  <span aria-hidden className="absolute left-[18px] top-3 block h-[84px] w-[84px] [filter:drop-shadow(0_8px_6px_rgba(0,0,0,.35))]"><TileArt name={t} /></span>
+                  <span aria-hidden className="absolute inset-0 bg-[linear-gradient(160deg,rgba(255,255,255,.30)_0%,rgba(255,255,255,.04)_36%,transparent_52%)]" />
+                  <span aria-hidden className="absolute inset-x-0 bottom-0 h-[44px] bg-gradient-to-t from-black/45 to-transparent" />
+                  <span className="absolute inset-x-0 bottom-2 text-center text-[11px] font-semibold tracking-[0.24em] text-white/95">{label(t)}</span>
+                </>
+              )}
+            </motion.button>
           )
         })}
-      </div>
       </div>
       {/* the focused tile's name and blurb */}
       <div className="mt-5 h-12 w-full px-7 text-center">
@@ -322,7 +321,7 @@ function HeroSlides({ imgs: all, i, className = '', contain = false, dark = fals
           className="absolute inset-0 [will-change:transform]"
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
-          exit={{ x: '-30%' }}
+          exit={{ x: '-100%' }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         >
           {imgs.length ? <img src={imgs[idx]} alt="" draggable={false} decoding="async" className={`h-full w-full ${contain ? 'object-contain' : 'object-cover'}`} /> : (
@@ -454,10 +453,8 @@ function Detail({ s }: { s: State }) {
       {/* 02: 배경·키워드 (왼쪽 제목, 오른쪽 설명) */}
       <section className={sectionBox}>
         <div className={label}>Context</div>
-        <div className="grid grid-cols-[1fr_1.1fr] items-center gap-6">
-          {head('02', sec[1].title)}
-          <p className={`${BODY} text-d-body`}>{sec[1].text}</p>
-        </div>
+        {head('02', sec[1].title)}
+        <p className={`max-w-[480px] ${BODY} text-d-body`}>{sec[1].text}</p>
       </section>
 
       {/* 03: 역할 — 기간 · 작업 비중 · 사용 도구를 세 칸으로 */}
