@@ -352,6 +352,16 @@ const Eyebrow = ({ children, dark = false }: { children: ReactNode; dark?: boole
   <div className={`mb-1 text-[10px] font-bold leading-none tracking-wide ${dark ? 'text-[#4aa3ff]' : 'text-[#0a6cff]'}`}>{children}</div>
 )
 
+/** 사용 도구 개수에 따른 크기: 적을수록 크게, 많을수록 작게 (한 줄에 들어오도록). 인라인 스타일 대신 미리 정한 클래스를 쓴다. */
+const toolSize = (n: number) => (
+  n <= 2 ? { box: 'h-[24px] w-[24px]', scale: 'scale-[1.2]', text: 'text-[14px]', gap: 'gap-x-4' }
+  : n === 3 ? { box: 'h-[20px] w-[20px]', scale: 'scale-100', text: 'text-[12px]', gap: 'gap-x-3.5' }
+  : n === 4 ? { box: 'h-[16px] w-[16px]', scale: 'scale-[.8]', text: 'text-[10px]', gap: 'gap-x-3' }
+  : n === 5 ? { box: 'h-[13px] w-[13px]', scale: 'scale-[.65]', text: 'text-[8px]', gap: 'gap-x-2' }
+  : n === 6 ? { box: 'h-[11px] w-[11px]', scale: 'scale-[.55]', text: 'text-[7px]', gap: 'gap-x-1.5' }
+  : { box: 'h-[9px] w-[9px]', scale: 'scale-[.45]', text: 'text-[6px]', gap: 'gap-x-1' }
+)
+
 /**
  * Project page, laid out like the "Apple Concept" template sketch, as full-width bands (no side margin on the bands themselves,
  * only a small padding for the text inside). First view: a left-aligned header (small blue label, big title, blurb, then, with some
@@ -477,10 +487,10 @@ function Detail({ s }: { s: State }) {
             <div key={c.t} className="flex flex-col items-center gap-3 text-center">
               <div className="text-[13px] font-extrabold text-ink">{c.t}</div>
               {c.big ? <div className="text-[24px] font-extrabold leading-[1.2] tracking-tight text-ink">{c.v}</div> : (
-                <ul className="flex flex-nowrap items-center justify-center gap-x-2 whitespace-nowrap">
+                <ul className={`flex flex-nowrap items-center justify-center whitespace-nowrap ${toolSize(c.v.split(' · ').length).gap}`}>
                   {c.v.split(' · ').map(t => (
-                    <li key={t} className="flex items-center gap-[3px] text-[8px] font-semibold text-ink">
-                      <span className="relative block h-[13px] w-[13px] shrink-0"><span className="absolute left-0 top-0 block origin-top-left scale-[.65]"><SkillIcon name={t} /></span></span>
+                    <li key={t} className={`flex items-center gap-1 font-semibold text-ink ${toolSize(c.v.split(' · ').length).text}`}>
+                      <span className={`relative block shrink-0 ${toolSize(c.v.split(' · ').length).box}`}><span className={`absolute left-0 top-0 block origin-top-left ${toolSize(c.v.split(' · ').length).scale}`}><SkillIcon name={t} /></span></span>
                       <span>{t}</span>
                     </li>
                   ))}
