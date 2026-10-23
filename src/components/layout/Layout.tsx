@@ -84,7 +84,7 @@ export const CardFace = ({ i, title }: { i: number; title: string }) => {
   // 사이트 파비콘 파일명 (없으면 라벨에 아이콘을 그리지 않는다)
   const fav = projects[i]?.favicon
   const cap = projects[i]?.faviconLabel // 파비콘 아래에 적는 짧은 글자 (없으면 파비콘만 크게)
-  const tone = { black: 'bg-black', orange: 'bg-[#fc4c02]' }[projects[i]?.faviconTone as string] ?? 'bg-white'
+  const tone = { black: 'bg-black', orange: 'bg-[#fc4c02]', blue: 'bg-[#0080ff]' }[projects[i]?.faviconTone as string] ?? 'bg-white'
   return (
   <>
     {/* molded matte plastic: a slightly lighter rim, then a flat dark face — real cards are not glossy */}

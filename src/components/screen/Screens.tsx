@@ -235,7 +235,7 @@ export function Thumb({ i, className = '' }: { i: number; className?: string }) 
 }
 
 /** 파비콘 칩의 배경색 (Layout의 칩 라벨과 같은 값) */
-export const CHIP_TONE: Record<string, string> = { black: 'bg-black', orange: 'bg-[#fc4c02]' }
+export const CHIP_TONE: Record<string, string> = { black: 'bg-black', orange: 'bg-[#fc4c02]', blue: 'bg-[#0080ff]' }
 
 /** 칩 아이콘을 정사각형 상자로: 파비콘이 있는 칩은 칩 라벨과 같은 모양, 없는 칩은 박스아트 색 위에 제목. */
 function ChipBadge({ i, className = '', bare = false }: { i: number; className?: string; bare?: boolean }) {
