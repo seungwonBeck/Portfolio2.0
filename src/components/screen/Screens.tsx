@@ -466,7 +466,7 @@ function Detail({ s }: { s: State }) {
     <div className="relative h-full">
     <div data-scroll className="h-full overflow-y-auto bg-d-band [scrollbar-width:none]">
       {/* 첫 화면: 모든 작품이 같은 배치. 위에 대문사진을 가로로 꽉 차게(뒤 배경 없음), 아래에 분류·제목·소개·버튼을 가운데 정렬 */}
-        <section className="flex h-full flex-col gap-3 overflow-hidden py-3">
+        <section className="flex h-full flex-col overflow-hidden">
           <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} dark={dark} className="relative min-h-0 w-full flex-1" />
           <div className="flex shrink-0 flex-col items-center gap-1.5 px-5 py-2.5 text-center text-white" style={{ background: `linear-gradient(160deg, color-mix(in srgb, ${tone} 60%, #101827), #101827)` }}>
             <span className="rounded-full px-3 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-white/90 ring-1 ring-white/50">{p.role}</span>
