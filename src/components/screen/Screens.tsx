@@ -305,7 +305,7 @@ function HeroSlides({ imgs: all, i, className = '', contain = false, dark = fals
   useEffect(() => { imgs.forEach(src => { const im = new Image(); im.decoding = 'async'; im.src = src }) }, [imgs.join('|')]) // eslint-disable-line react-hooks/exhaustive-deps
   if (single) return (
     <div className={`relative overflow-hidden ${dark ? 'bg-[#121212]' : 'bg-d-bg2'} ${className}`}>
-      <img src={imgs[0]} alt="" draggable={false} decoding="async" className={`absolute inset-0 h-full w-full ${contain ? 'object-contain' : 'object-cover object-top'}`} />
+      <img src={imgs[0]} alt="" draggable={false} decoding="async" className={`absolute inset-0 h-full w-full ${contain ? 'object-contain' : 'object-cover object-center'}`} />
     </div>
   )
   return (
@@ -390,8 +390,6 @@ function Detail({ s }: { s: State }) {
   const ratio = fit === 'slide' ? 'aspect-[16/9]' : fit === 'a4' ? 'aspect-[210/297]' : 'aspect-[4/3]'
   const panelW = fit === 'a4' ? 'w-[46%]' : 'w-[76%]' // A4는 세로로 길어서 칸 폭을 좁게
   const dark = (p as { imageTone?: string }).imageTone === 'dark'
-  const heroFit = (p as { heroFit?: string }).heroFit // 'contain': 대표 사진이 가로로 길어 잘리지 않게 칸 안에 맞춘다
-  const wideHero = heroFit === 'wide'
   const own = (p as { sections?: { title?: string; text?: string }[] }).sections ?? []
   const tools = (p as { tools?: string }).tools // 사이트 작업의 사용 도구 (예: VSCODE · HTML · CSS · JS)
   const pdf = (p.links as { pdf?: string }).pdf
@@ -451,21 +449,9 @@ function Detail({ s }: { s: State }) {
   return (
     <div className="relative h-full">
     <div data-scroll className="h-full overflow-y-auto bg-d-band [scrollbar-width:none]">
-      {/* 첫 화면. 상세페이지(a4)·배너 작품은 왼쪽 소개 패널 + 오른쪽 사진(원래 배치), 웹·앱 작업은 위에 사진을 꽉 차게 + 아래 가운데 정렬 소개 */}
-      {(fit === 'a4' || banners) && !wideHero ? (
-        <section className="flex h-full overflow-hidden">
-          <div className="flex w-[44%] shrink-0 flex-col justify-center px-5 py-4 text-white" style={{ background: `linear-gradient(155deg, color-mix(in srgb, ${tone} 60%, #101827), #101827)` }}>
-            <div className="mb-3 self-start rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/90 ring-1 ring-white/50">{p.role}</div>
-            <h2 className="mb-2 text-[26px] font-extrabold leading-[1.1] tracking-tight">{p.title}</h2>
-            <p className="mb-4 line-clamp-2 text-[12px] leading-[1.5] text-white/75">{p.summary}</p>
-            {showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-4 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
-          </div>
-          <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain || heroFit === 'contain'} dark={dark} glow className="relative min-w-0 flex-1" />
-        </section>
-      ) : (
-        <section className={wideHero ? 'flex flex-col' : 'flex h-full flex-col overflow-hidden'}>
-          {/* wide: 대문사진이 가로로 긴 작품은 사진 비율(749:333) 그대로 가로를 꽉 채우고, 뒤 배경·검은 띠 없이 소개는 사진 아래에 둔다 */}
-          <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={!wideHero && (contain || heroFit === 'contain')} dark={dark} glow={!wideHero} className={wideHero ? 'relative aspect-[749/333] w-full shrink-0' : 'relative min-h-0 w-full flex-1'} />
+      {/* 첫 화면: 모든 작품이 같은 배치. 위에 대문사진을 가로로 꽉 차게(뒤 배경 없음), 아래에 분류·제목·소개·버튼을 가운데 정렬 */}
+        <section className="flex h-full flex-col overflow-hidden">
+          <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} dark={dark} className="relative min-h-0 w-full flex-1" />
           <div className="flex shrink-0 flex-col items-center gap-2 px-5 py-3.5 text-center text-white" style={{ background: `linear-gradient(160deg, color-mix(in srgb, ${tone} 60%, #101827), #101827)` }}>
             <span className="rounded-full px-3 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-white/90 ring-1 ring-white/50">{p.role}</span>
             <h2 className="max-w-full truncate text-[20px] font-extrabold leading-[1.15] tracking-tight">{p.title}</h2>
@@ -475,7 +461,6 @@ function Detail({ s }: { s: State }) {
             </div>
           </div>
         </section>
-      )}
 
       {/* 01: 프로젝트 개요 */}
       <section className={sectionBox}>
