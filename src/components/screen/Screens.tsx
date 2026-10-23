@@ -411,6 +411,22 @@ function Detail({ s }: { s: State }) {
   ) : (
     <span aria-disabled className="inline-block cursor-not-allowed rounded-full bg-black/[.08] px-3.5 py-1 text-[12px] font-bold text-ink-sub">링크 준비 중</span>
   )
+  // pdfs: PDF가 여러 개인 작업은 파일마다 보기 + 다운로드 버튼을 한 쌍씩 만든다
+  const pdfs = (p as { pdfs?: { label: string; file: string }[] }).pdfs ?? []
+  const multiPdf = pdfs.length > 0
+  const pdfBtns = (wrap: string, dark: boolean) => (
+    <div className={`flex items-center gap-2 ${wrap}`}>
+      {pdfs.map(f => {
+        const href = `${import.meta.env.BASE_URL}${f.file}`
+        return (
+          <span key={f.file} className="flex items-center gap-1.5">
+            <a href={href} target="_blank" rel="noopener" className="inline-flex items-center gap-1 rounded-full bg-[#0a6cff] px-3.5 py-1 text-[12px] font-bold text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)] hover:brightness-110">{f.label} PDF 보기 <ExternalLink size={12} /></a>
+            <a href={href} download className={`inline-flex items-center gap-1 rounded-full px-3.5 py-1 text-[12px] font-bold hover:brightness-110 ${dark ? 'bg-white text-[#0a6cff] ring-1 ring-[#0a6cff]/40' : 'bg-transparent text-ink ring-1 ring-ink/40'}`}>다운로드 <Download size={12} /></a>
+          </span>
+        )
+      })}
+    </div>
+  )
   const downloadBtn = (cls: string) => pdfOnly ? <a href={pdfHref} download className={`inline-flex items-center gap-1 rounded-full text-[12px] font-bold hover:brightness-110 ${cls}`}>PDF 다운로드 <Download size={12} /></a> : null
   if (soon) return (
     <div data-scroll className="flex h-full flex-col bg-d-bg1 [scrollbar-width:none]">
@@ -431,7 +447,7 @@ function Detail({ s }: { s: State }) {
     </div>
   )
   // 상세 화면 배치: 왼쪽 색 패널 + 오른쪽 큰 사진의 첫 화면, 그 아래 번호 붙은 섹션(01 개요 · 02 배경 · 03 역할 · 04 작업물 · 05 링크)
-  const tone = PROJ_ART[s.proj % PROJ_ART.length][1]
+  const tone = (p as { accent?: string }).accent ?? PROJ_ART[s.proj % PROJ_ART.length][1] // 작품마다 내용에 맞는 색(accent)을 쓰고, 없으면 기본 팔레트
   // 작업물: 대표 사진·본문 사진을 합쳐 같은 사진은 한 번만 (데이터에 칸을 채우려고 같은 사진이 여러 번 적혀 있다)
   const gallery = banners ? [] : [...new Set([...heroImgs, ...imgs])]
   // 섹션 간격 규칙: 안쪽 요소 사이는 모두 12px(gap-3), 섹션 위아래는 24px. 번호는 제목 바로 옆에 둔다
@@ -450,14 +466,14 @@ function Detail({ s }: { s: State }) {
     <div className="relative h-full">
     <div data-scroll className="h-full overflow-y-auto bg-d-band [scrollbar-width:none]">
       {/* 첫 화면: 모든 작품이 같은 배치. 위에 대문사진을 가로로 꽉 차게(뒤 배경 없음), 아래에 분류·제목·소개·버튼을 가운데 정렬 */}
-        <section className="flex h-full flex-col gap-3 overflow-hidden py-3">
+        <section className="flex h-full flex-col overflow-hidden">
           <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} dark={dark} className="relative min-h-0 w-full flex-1" />
           <div className="flex shrink-0 flex-col items-center gap-1.5 px-5 py-2.5 text-center text-white" style={{ background: `linear-gradient(160deg, color-mix(in srgb, ${tone} 60%, #101827), #101827)` }}>
             <span className="rounded-full px-3 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-white/90 ring-1 ring-white/50">{p.role}</span>
             <h2 className="max-w-full truncate text-[20px] font-extrabold leading-[1.15] tracking-tight">{p.title}</h2>
             <div className="flex max-w-full items-center justify-center gap-3">
               <p className="min-w-0 truncate text-[11px] leading-[1.4] text-white/75">{p.summary}</p>
-              {showBtns && <div className="flex shrink-0 items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-3.5 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-3.5 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
+              {multiPdf ? pdfBtns('shrink-0', true) : showBtns && <div className="flex shrink-0 items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-3.5 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-3.5 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
             </div>
           </div>
         </section>
@@ -561,7 +577,7 @@ function Detail({ s }: { s: State }) {
         <div className={label}>Links</div>
         {head(num(), p.title)}
         <p className={`${BODY} text-justify text-d-body`}>{sec[3].text}</p>
-        {showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-transparent px-4 py-1 text-ink ring-1 ring-ink/40')}</div>}
+        {multiPdf ? pdfBtns('flex-wrap', false) : showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-transparent px-4 py-1 text-ink ring-1 ring-ink/40')}</div>}
       </section>
     </div>
     {/* 확대해서 보기: 화면 위에 사진을 크게 띄운다. 바깥을 누르거나 닫기 버튼으로 닫는다 */}
