@@ -411,6 +411,22 @@ function Detail({ s }: { s: State }) {
   ) : (
     <span aria-disabled className="inline-block cursor-not-allowed rounded-full bg-black/[.08] px-3.5 py-1 text-[12px] font-bold text-ink-sub">링크 준비 중</span>
   )
+  // pdfs: PDF가 여러 개인 작업은 파일마다 보기 + 다운로드 버튼을 한 쌍씩 만든다
+  const pdfs = (p as { pdfs?: { label: string; file: string }[] }).pdfs ?? []
+  const multiPdf = pdfs.length > 0
+  const pdfBtns = (wrap: string, dark: boolean) => (
+    <div className={`flex items-center gap-2 ${wrap}`}>
+      {pdfs.map(f => {
+        const href = `${import.meta.env.BASE_URL}${f.file}`
+        return (
+          <span key={f.file} className="flex items-center gap-1.5">
+            <a href={href} target="_blank" rel="noopener" className="inline-flex items-center gap-1 rounded-full bg-[#0a6cff] px-3.5 py-1 text-[12px] font-bold text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)] hover:brightness-110">{f.label} PDF 보기 <ExternalLink size={12} /></a>
+            <a href={href} download className={`inline-flex items-center gap-1 rounded-full px-3.5 py-1 text-[12px] font-bold hover:brightness-110 ${dark ? 'bg-white text-[#0a6cff] ring-1 ring-[#0a6cff]/40' : 'bg-transparent text-ink ring-1 ring-ink/40'}`}>다운로드 <Download size={12} /></a>
+          </span>
+        )
+      })}
+    </div>
+  )
   const downloadBtn = (cls: string) => pdfOnly ? <a href={pdfHref} download className={`inline-flex items-center gap-1 rounded-full text-[12px] font-bold hover:brightness-110 ${cls}`}>PDF 다운로드 <Download size={12} /></a> : null
   if (soon) return (
     <div data-scroll className="flex h-full flex-col bg-d-bg1 [scrollbar-width:none]">
@@ -457,7 +473,7 @@ function Detail({ s }: { s: State }) {
             <h2 className="max-w-full truncate text-[20px] font-extrabold leading-[1.15] tracking-tight">{p.title}</h2>
             <div className="flex max-w-full items-center justify-center gap-3">
               <p className="min-w-0 truncate text-[11px] leading-[1.4] text-white/75">{p.summary}</p>
-              {showBtns && <div className="flex shrink-0 items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-3.5 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-3.5 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
+              {multiPdf ? pdfBtns('shrink-0', true) : showBtns && <div className="flex shrink-0 items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-3.5 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-white px-3.5 py-1 text-[#0a6cff] ring-1 ring-[#0a6cff]/40')}</div>}
             </div>
           </div>
         </section>
@@ -561,7 +577,7 @@ function Detail({ s }: { s: State }) {
         <div className={label}>Links</div>
         {head(num(), p.title)}
         <p className={`${BODY} text-justify text-d-body`}>{sec[3].text}</p>
-        {showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-transparent px-4 py-1 text-ink ring-1 ring-ink/40')}</div>}
+        {multiPdf ? pdfBtns('flex-wrap', false) : showBtns && <div className="flex flex-wrap items-center gap-2">{site ? siteBtn('bg-[#0a6cff] px-4 py-1 text-white shadow-[0_6px_14px_-6px_rgba(10,108,255,.7)]') : siteBtn('')}{downloadBtn('bg-transparent px-4 py-1 text-ink ring-1 ring-ink/40')}</div>}
       </section>
     </div>
     {/* 확대해서 보기: 화면 위에 사진을 크게 띄운다. 바깥을 누르거나 닫기 버튼으로 닫는다 */}
