@@ -447,7 +447,7 @@ function Detail({ s }: { s: State }) {
     </div>
   )
   // 상세 화면 배치: 왼쪽 색 패널 + 오른쪽 큰 사진의 첫 화면, 그 아래 번호 붙은 섹션(01 개요 · 02 배경 · 03 역할 · 04 작업물 · 05 링크)
-  const tone = PROJ_ART[s.proj % PROJ_ART.length][1]
+  const tone = (p as { accent?: string }).accent ?? PROJ_ART[s.proj % PROJ_ART.length][1] // 작품마다 내용에 맞는 색(accent)을 쓰고, 없으면 기본 팔레트
   // 작업물: 대표 사진·본문 사진을 합쳐 같은 사진은 한 번만 (데이터에 칸을 채우려고 같은 사진이 여러 번 적혀 있다)
   const gallery = banners ? [] : [...new Set([...heroImgs, ...imgs])]
   // 섹션 간격 규칙: 안쪽 요소 사이는 모두 12px(gap-3), 섹션 위아래는 24px. 번호는 제목 바로 옆에 둔다
