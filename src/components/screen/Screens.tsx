@@ -463,7 +463,7 @@ function Detail({ s }: { s: State }) {
         </section>
       ) : (
         <section className="flex h-full flex-col overflow-hidden">
-          <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} dark={dark} className="relative min-h-0 w-full flex-1" />
+          <HeroSlides imgs={slideImgs.length ? slideImgs : p.thumbnail ? [p.thumbnail] : []} i={s.proj} contain={contain || heroFit === 'contain'} dark={dark} glow className="relative min-h-0 w-full flex-1" />
           <div className="flex shrink-0 flex-col items-center gap-2 px-5 py-3.5 text-center text-white" style={{ background: `linear-gradient(160deg, color-mix(in srgb, ${tone} 60%, #101827), #101827)` }}>
             <span className="rounded-full px-3 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-white/90 ring-1 ring-white/50">{p.role}</span>
             <h2 className="max-w-full truncate text-[20px] font-extrabold leading-[1.15] tracking-tight">{p.title}</h2>
