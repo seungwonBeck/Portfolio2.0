@@ -184,7 +184,8 @@ function Hero({ children, tv, onPick, onPickTv, onPress, onZoom, away }: { child
   const est = Math.min(maxHz, (innerWidth - (short ? 24 : innerWidth >= 768 ? 160 : 40)) * ZOOM * (CANVAS.h / CANVAS.w)) // rendered console height
   const lift = short ? Math.min(0, -(est - (vh - PT - 12)) / 2) : 0 // 확대로 넘친 높이의 절반만큼 올려서 세로 가운데에 맞춘다
   // chip row spans the console from Joy-Con seam to Joy-Con seam (233..1520 of the 1760px canvas)
-  const rowW = portraitPhone ? innerWidth - 40 : (est * CANVAS.w / CANVAS.h) * ((1520 - 233) / CANVAS.w) // 확대된 폰에서는 칩 줄이 화면 폭을 꽉 채운다
+  // 가로 폰은 확대한 기기 폭 기준이라 화면 폭보다 넓어질 수 있다 → 좌우 여백을 뺀 폭을 넘지 않게 줄여서 가로로 삐져나가지(=A키가 밀려나지) 않게 한다
+  const rowW = portraitPhone ? innerWidth - 40 : Math.min((est * CANVAS.w / CANVAS.h) * ((1520 - 233) / CANVAS.w), innerWidth - (innerWidth >= 768 ? 160 : 40)) // 확대된 폰에서는 칩 줄이 화면 폭을 꽉 채운다
   const { scrollY: sy } = useScroll()
   const hintO = useTransform(sy, [0, 120], [1, 0]) // 첫 화면 안내: 스크롤을 시작하면 사라진다
   const centerY = useRef(0)
