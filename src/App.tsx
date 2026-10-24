@@ -357,7 +357,7 @@ function TvControls({ press, compact }: { press: (b: Btn) => void; compact: bool
         </div>
       </div>
       <p className={`text-center font-semibold leading-snug text-white/55 [word-break:keep-all] ${compact ? 'hidden text-[11px] md:block' : 'hidden text-[13px] sm:block'}`}>방향키로 이동 · A 선택<br />B 뒤로 · H 홈</p>
-      <div className={`flex items-end justify-self-end ${compact ? 'gap-3' : 'gap-3 sm:gap-5'}`}>
+      <div className={`col-start-3 flex items-end justify-self-end ${compact ? 'gap-3' : 'gap-3 sm:gap-5'}`}>
         {btn('B', 'BACK', 'B')}
         {btn('HOME', 'HOME', 'H')}
         {btn('A', 'OPEN', 'A')}
