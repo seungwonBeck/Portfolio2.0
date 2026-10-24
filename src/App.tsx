@@ -329,7 +329,8 @@ function Flying({ i, from, to, eject, wallTop, onDone }: { i: number; from: DOMR
 
 /** 확대 화면 아래 조작부: 왼쪽 방향키, 가운데 안내 문구, 오른쪽 B / H / A 버튼 (누르면 기기 버튼과 똑같이 동작) */
 function TvControls({ press, compact }: { press: (b: Btn) => void; compact: boolean }) {
-  const key = compact ? 'h-9 w-9 text-[13px]' : 'h-14 w-14 text-[17px]'
+  // 세로 폰처럼 좁은 화면에서는 버튼을 줄이고 안내 글을 숨겨서 B·H·A 세 버튼이 모두 화면 안에 들어오게 한다
+  const key = compact ? 'h-9 w-9 text-[13px]' : 'h-12 w-12 text-[16px] sm:h-14 sm:w-14 sm:text-[17px]'
   const round = `grid ${key} touch-manipulation select-none place-items-center rounded-full bg-[#f3f1ea] font-extrabold text-[#3a3b3f] shadow-[0_4px_0_#9b9a92] transition-transform active:translate-y-[3px] active:shadow-[0_1px_0_#9b9a92]`
   const arm = (b: Btn, node: React.ReactNode, cls: string) => (
     <button type="button" aria-label={b} onPointerDown={e => { e.preventDefault(); press(b) }}
@@ -342,9 +343,9 @@ function TvControls({ press, compact }: { press: (b: Btn) => void; compact: bool
     </div>
   )
   return (
-    <div className="grid w-full max-w-5xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-6">
+    <div className="grid w-full max-w-5xl grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 sm:gap-4 sm:px-6">
       <div className="flex items-center gap-4 justify-self-start">
-        <span className={`font-bold leading-tight text-white/60 ${compact ? 'hidden text-[9px] sm:block' : 'text-[12px]'}`}>MOVE<br /><span className="text-[10px] font-medium">방향키</span></span>
+        <span className={`font-bold leading-tight text-white/60 ${compact ? 'hidden text-[9px] sm:block' : 'hidden text-[12px] sm:block'}`}>MOVE<br /><span className="text-[10px] font-medium">방향키</span></span>
         {/* 십자 모양 방향키: 가로·세로 막대를 겹치고 네 방향에 눌리는 칸을 둔다 */}
         <div className={`relative ${compact ? 'h-[84px] w-[84px] scale-75' : 'h-[96px] w-[96px]'}`}>
           <span aria-hidden className="absolute left-[32px] top-0 h-full w-8 rounded-[8px] bg-[#f3f1ea] shadow-[0_4px_0_#9b9a92]" />
@@ -355,8 +356,8 @@ function TvControls({ press, compact }: { press: (b: Btn) => void; compact: bool
           {arm('right', <ChevronRight size={16} />, 'left-[64px] top-[32px] h-8 w-8 rounded-r-[8px]')}
         </div>
       </div>
-      <p className={`text-center font-semibold leading-snug text-white/55 [word-break:keep-all] ${compact ? 'hidden text-[11px] md:block' : 'text-[13px]'}`}>방향키로 이동 · A 선택<br />B 뒤로 · H 홈</p>
-      <div className={`flex items-end justify-self-end ${compact ? 'gap-3' : 'gap-5'}`}>
+      <p className={`text-center font-semibold leading-snug text-white/55 [word-break:keep-all] ${compact ? 'hidden text-[11px] md:block' : 'hidden text-[13px] sm:block'}`}>방향키로 이동 · A 선택<br />B 뒤로 · H 홈</p>
+      <div className={`flex items-end justify-self-end ${compact ? 'gap-3' : 'gap-3 sm:gap-5'}`}>
         {btn('B', 'BACK', 'B')}
         {btn('HOME', 'HOME', 'H')}
         {btn('A', 'OPEN', 'A')}
