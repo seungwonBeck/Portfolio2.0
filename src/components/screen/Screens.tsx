@@ -909,10 +909,9 @@ const clamp01 = (v: number) => Math.max(0, Math.min(1, v))
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 const smooth = (t: number) => t * t * (3 - 2 * t)
 const rnd = (a: number, b: number) => a + Math.random() * (b - a)
-/** 힘 게이지: 0→1→0을 오가는 삼각파 */
-const gaugeAt = (now: number, from: number) => { const ph = (((now - from) / 1000) * 1.15) % 2; return ph < 1 ? ph : 2 - ph }
+const POWER = 0.68 // 힘 조절은 없앴다: 항상 수비벽을 넘기기 좋은 일정한 힘으로 찬다
 
-/** 프리킥: ◀▶▲▼로 조준 → A로 힘 게이지 시작 → A로 슛. 수비벽을 넘기려면 힘이 필요하고, 너무 세면 크로스바 위로 뜬다. 키커는 ABOUT에서 고른 캐릭터. */
+/** 프리킥: ◀▶▲▼로 조준 → A로 슛. 힘은 일정하다. 키커는 ABOUT에서 고른 캐릭터. */
 function FreeKick({ s }: { s: State }) {
   const hero = s.avatar >= 2 ? s.avatar : 2
   const cv = useRef<HTMLCanvasElement>(null)
@@ -920,10 +919,10 @@ function FreeKick({ s }: { s: State }) {
   const [phase, setPhase] = useState<'idle' | 'play' | 'over'>('idle')
   const [score, setScore] = useState(0)
   const [best, setBest] = useState(() => best0('folio-fk-best'))
-  // stage: aim(조준) → power(게이지) → fly(공 비행) → result(결과 표시). (tx,ty)=공이 골 라인에 닿는 곳, lift=공이 떠오르는 높이
+  // stage: aim(조준) → fly(공 비행) → result(결과 표시). (tx,ty)=공이 골 라인에 닿는 곳, lift=공이 떠오르는 높이
   const g = useRef({
-    n: 0, goals: 0, score: 0, stage: 'aim' as 'aim' | 'power' | 'fly' | 'result', cx: 288, cy: 62, vx: 0, vy: 0,
-    gaugeFrom: 0, power: 0, kickAt: 0, res: '' as KickRes, bonus: false, nextAt: 0,
+    n: 0, goals: 0, score: 0, stage: 'aim' as 'aim' | 'fly' | 'result', cx: 288, cy: 62, vx: 0, vy: 0,
+    power: 0, kickAt: 0, res: '' as KickRes, bonus: false, nextAt: 0,
     tx: 288, ty: 62, lift: 0, wallN: 3, wallX: 288, kx: 288, ky: 70,
   })
 
@@ -944,13 +943,8 @@ function FreeKick({ s }: { s: State }) {
   const draw = (now: number) => {
     const c = cv.current?.getContext('2d'); if (!c) return
     const st = g.current
-    // 하늘 + 관중석
-    c.fillStyle = '#7fc4ee'; c.fillRect(0, 0, GW, GH)
-    c.fillStyle = '#4f5d75'; c.fillRect(0, 0, GW, 26)
-    for (let i = 0; i < 96; i++) { c.fillStyle = ['#ff6b5e', '#ffd84a', '#ffffff', '#5aa9ff', '#7ee08a'][(i * 7) % 5]; c.fillRect(i * 6 + 1, 4 + ((i * 13) % 4) * 5, 3, 3) }
-    c.fillStyle = '#2b3550'; c.fillRect(0, 26, GW, 6) // 광고판
-    // 잔디 줄무늬
-    for (let i = 0; i < 8; i++) { c.fillStyle = i % 2 ? '#3d9a4a' : '#43a652'; c.fillRect(0, 32 + i * 21, GW, 21) }
+    // 배경: 보기 편하도록 한 가지 잔디색으로만 채운다 (하늘·관중석·줄무늬 없음)
+    c.fillStyle = '#2f7d4a'; c.fillRect(0, 0, GW, GH)
     c.fillStyle = 'rgba(255,255,255,.55)'; c.fillRect(150, 100, 276, 2) // 페널티 라인
     // 골대 뒤 그물
     c.fillStyle = '#d7dde0'; c.fillRect(GOAL.x0, GOAL.y0, GOAL.x1 - GOAL.x0, GOAL.y1 - GOAL.y0)
@@ -981,8 +975,8 @@ function FreeKick({ s }: { s: State }) {
       c.fillStyle = '#2a2b30'; c.fillRect(x - 7, WALL_TOP + 34, 5, 2); c.fillRect(x + 2, WALL_TOP + 34, 5, 2)
     }
 
-    // 조준 틀 (조준·게이지 단계)
-    if (st.stage === 'aim' || st.stage === 'power') {
+    // 조준 틀 (조준 단계)
+    if (st.stage === 'aim') {
       const a = aim(now)
       c.save(); c.translate(a.x, a.y); c.strokeStyle = '#fff'; c.lineWidth = 2
       for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { c.beginPath(); c.moveTo(sx * 13, sy * 7); c.lineTo(sx * 13, sy * 13); c.lineTo(sx * 7, sy * 13); c.stroke() }
@@ -1014,15 +1008,6 @@ function FreeKick({ s }: { s: State }) {
       c.strokeStyle = '#2a2b30'; c.lineWidth = 2; c.beginPath(); c.arc(BALL0.x, BALL0.y, 5, 0.3, 2.6); c.stroke()
     }
 
-    // 힘 게이지 (오른쪽): 초록 구간이 수비벽을 넘기기 좋은 힘
-    const gx = 528, gy = 38, gh = 124, p = st.stage === 'power' ? gaugeAt(now, st.gaugeFrom) : st.power
-    c.fillStyle = 'rgba(22,23,27,.75)'; c.fillRect(gx - 4, gy - 4, 22, gh + 8)
-    c.fillStyle = '#34c759'; c.fillRect(gx, gy + gh * (1 - 0.82), 14, gh * (0.82 - 0.46))
-    c.fillStyle = '#ff8a3c'; c.fillRect(gx, gy, 14, gh * (1 - 0.88))
-    c.fillStyle = '#5a5f6b'; c.fillRect(gx, gy + gh * (1 - 0.46), 14, gh * 0.46)
-    if (st.stage === 'power' || st.stage === 'fly' || st.stage === 'result') { c.fillStyle = '#fff'; c.fillRect(gx - 5, gy + gh * (1 - p) - 2, 24, 4) }
-    c.fillStyle = '#fff'; c.font = FONT; c.textAlign = 'center'; c.fillText('힘', gx + 7, gy - 8); c.textAlign = 'left'
-
     // 상태판 + 결과 문구
     c.fillStyle = 'rgba(31,70,150,.88)'; c.fillRect(8, 36, 98, 40)
     c.fillStyle = '#fff'; c.font = FONT
@@ -1037,7 +1022,7 @@ function FreeKick({ s }: { s: State }) {
 
   useEffect(() => { draw(performance.now()) }, [phase])
 
-  useEffect(() => { // 패드: 방향키 = 조준 가속, A = 시작 / 게이지 시작 / 슛
+  useEffect(() => { // 패드: 방향키 = 조준 가속, A = 시작 / 슛
     if (s.pad.n === seen.current) return
     seen.current = s.pad.n
     const st = g.current, b = s.pad.b, now = performance.now()
@@ -1047,18 +1032,17 @@ function FreeKick({ s }: { s: State }) {
       newKick(); setScore(0); setPhase('play'); return
     }
     if (b === 'left' || b === 'right' || b === 'up' || b === 'down') { // 누를수록 그 방향으로 빨라지고 천천히 멈춘다
-      if (st.stage !== 'aim' && st.stage !== 'power') return
+      if (st.stage !== 'aim') return
       if (b === 'left' || b === 'right') st.vx = Math.max(-170, Math.min(170, st.vx + (b === 'left' ? -100 : 100)))
       else st.vy = Math.max(-140, Math.min(140, st.vy + (b === 'up' ? -80 : 80)))
       return
     }
     if (b !== 'A') return
-    if (st.stage === 'aim') { st.stage = 'power'; st.gaugeFrom = now; return }
-    if (st.stage !== 'power') return
-    // 슛: 게이지 힘 + 조준점으로 공이 닿을 곳과 떠오르는 높이를 정한다
-    const p = gaugeAt(now, st.gaugeFrom), q = aim(now)
+    if (st.stage !== 'aim') return
+    // 슛: 일정한 힘 + 조준점으로 공이 닿을 곳과 떠오르는 높이를 정한다
+    const p = POWER, q = aim(now)
     st.power = p; st.kickAt = now; st.stage = 'fly'
-    st.tx = q.x; st.ty = q.y - Math.max(0, p - 0.88) * 520 // 너무 세면 위로 뜬다
+    st.tx = q.x; st.ty = q.y
     st.lift = 15 + 95 * p
     const w = bez(WALL_T), half = (st.wallN * 18) / 2 + 4
     const blocked = w.y > WALL_TOP && Math.abs(w.x - st.wallX) < half // 수비벽 높이보다 낮게 벽 폭 안을 지나면 막힌다
@@ -1084,7 +1068,6 @@ function FreeKick({ s }: { s: State }) {
       const damp = Math.max(0, 1 - 3.2 * dt); st.vx *= damp; st.vy *= damp
       if (st.cx < GOAL.x0 - 12 || st.cx > GOAL.x1 + 12) { st.cx = Math.max(GOAL.x0 - 12, Math.min(GOAL.x1 + 12, st.cx)); st.vx *= -0.3 }
       if (st.cy < GOAL.y0 - 10 || st.cy > GOAL.y1 + 10) { st.cy = Math.max(GOAL.y0 - 10, Math.min(GOAL.y1 + 10, st.cy)); st.vy *= -0.3 }
-      if (st.stage === 'power' && now - st.gaugeFrom > 4500) { st.vx = st.vy = 0 } // 너무 오래 끌면 조준만 멈춘다
       if (st.stage === 'fly' && now >= st.kickAt + FLY_MS) { // 공이 도착: 결과 확정
         st.stage = 'result'; st.nextAt = now + 1400
         if (st.res === 'GOAL') { st.goals++; st.score += 100 + (st.bonus ? 50 : 0); setScore(st.score) }
@@ -1104,8 +1087,8 @@ function FreeKick({ s }: { s: State }) {
     return () => cancelAnimationFrame(id)
   }, [phase])
 
-  const hint = phase === 'idle' ? `A로 시작 · ◀▶▲▼ 조준 · A로 힘 게이지 시작, 다시 A로 슛 · ${KICKS}번 · 키커: ${AVATARS[hero].name}`
-    : phase === 'play' ? '◀▶▲▼ 조준 · A로 게이지 시작 · A로 슛 (초록 구간이 수비벽을 넘기기 좋아요)' : `끝! ${g.current.goals}골 · ${score}점 · A로 다시 도전`
+  const hint = phase === 'idle' ? `A로 시작 · ◀▶▲▼ 조준 · A로 슛 · ${KICKS}번 · 키커: ${AVATARS[hero].name}`
+    : phase === 'play' ? '◀▶▲▼ 조준 · A로 슛 (구석을 노리면 보너스 +50)' : `끝! ${g.current.goals}골 · ${score}점 · A로 다시 도전`
   return <Arcade title="FREE KICK" score={score} best={best} cv={cv} hint={hint} />
 }
 
@@ -1113,7 +1096,7 @@ const ARCADE = [
   { name: 'SIDE QUEST', sub: 'A · 점프', color: '#1fb6e8', Icon: Footprints, View: Runner },
   { name: 'STAR FIGHTER', sub: '우주 슈팅', color: '#ff4b3e', Icon: Rocket, View: Starfighter },
   { name: 'YACHT', sub: '주사위 · 1vsCOM / 2P', color: '#e0a21c', Icon: Dices, View: Yacht },
-  { name: 'FREE KICK', sub: 'A · 힘 조절', color: '#2ea44f', Icon: Goal, View: FreeKick },
+  { name: 'FREE KICK', sub: 'A · 조준 슛', color: '#2ea44f', Icon: Goal, View: FreeKick },
 ]
 
 /** GAME tab: pick one of the mini games (◀▶ + A); B goes back to this menu. */
