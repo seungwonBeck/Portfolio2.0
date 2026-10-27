@@ -1,6 +1,6 @@
 import { ReactNode, RefObject, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Code2, Dices, Download, Maximize2, X, Palette, Sparkles, Wrench, Github, Instagram, Wifi, Goal, ExternalLink, FolderOpen, Footprints, Gamepad2, Gauge, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
+import { Code2, Dices, Download, Maximize2, X, Palette, Sparkles, Wrench, Github, Instagram, Wifi, ExternalLink, FolderOpen, Footprints, Gamepad2, Gauge, Mail, MousePointerClick, Move, Rocket, User } from 'lucide-react'
 import SkillIcon, { TileArt } from './SkillIcons'
 import { AVATAR_ORDER, Btn, contactItems, DOCK, State, TILES } from '../../store/nav'
 import { Avatar, AVATARS, Coin, runFrame } from './avatars'
@@ -883,220 +883,10 @@ function Starfighter({ s }: { s: State }) {
   return <Arcade title="STAR FIGHTER" score={score} best={best} cv={cv} hint={phase === 'idle' ? 'A로 시작 · ◀▶ 조종(계속 이동) · ▼ 정지 · A 발사' : phase === 'play' ? 'A 발사 · ◀▶ 방향 전환' : '격추당했어요! A로 다시 도전'} />
 }
 
-/** 선수를 뒤에서 본 모습: 얼굴(눈·입·코)을 몸 색으로 덮고, 머리 윗부분은 헬멧(머리) 색으로 바꾼다 */
-function backView(rows: string[]): string[] {
-  const count: Record<string, number> = {}
-  rows.forEach(r => [...r].forEach(ch => { if (ch !== '.' && ch !== 'L') count[ch] = (count[ch] ?? 0) + 1 }))
-  const main = Object.keys(count).sort((a, b) => count[b] - count[a])[0]
-  return rows.map((row, ri) => [...row].map(ch => {
-    if (ch === '.' || ch === 'L') return ch
-    if ('wekpd'.includes(ch) || (ch === 'r' && ri >= 3)) ch = main
-    return ri >= 2 && ri <= 4 && ch === main ? 'H' : ch
-  }).join(''))
-}
-
-// ---------- 프리킥 (골대 쪽을 바라보는 시점) ----------
-const KICKS = 5
-const GOAL = { x0: 206, x1: 370, y0: 34, y1: 92 } // 골대 안쪽 면
-const BALL0 = { x: 288, y: 176 } // 공을 차는 자리
-const WALL_TOP = 106, WALL_FEET = 140 // 수비벽 머리·발 높이
-const WALL_T = 0.5 // 공이 수비벽 앞을 지나는 비행 진행도
-const FLY_MS = 850
-const BPX = 4 // 키커 스프라이트 확대
-type KickRes = '' | 'GOAL' | 'SAVE' | 'WALL' | 'OVER' | 'WIDE'
-const KICK_LABEL: Record<KickRes, string> = { '': '', GOAL: '골!', SAVE: '골키퍼가 막았어요', WALL: '수비벽에 막혔어요', OVER: '크로스바 위로', WIDE: '골대 밖으로' }
-const clamp01 = (v: number) => Math.max(0, Math.min(1, v))
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t
-const smooth = (t: number) => t * t * (3 - 2 * t)
-const rnd = (a: number, b: number) => a + Math.random() * (b - a)
-const POWER = 0.68 // 힘 조절은 없앴다: 항상 수비벽을 넘기기 좋은 일정한 힘으로 찬다
-
-/** 프리킥: ◀▶▲▼로 조준 → A로 슛. 힘은 일정하다. 키커는 ABOUT에서 고른 캐릭터. */
-function FreeKick({ s }: { s: State }) {
-  const hero = s.avatar >= 2 ? s.avatar : 2
-  const cv = useRef<HTMLCanvasElement>(null)
-  const seen = useRef(s.pad.n)
-  const [phase, setPhase] = useState<'idle' | 'play' | 'over'>('idle')
-  const [score, setScore] = useState(0)
-  const [best, setBest] = useState(() => best0('folio-fk-best'))
-  // stage: aim(조준) → fly(공 비행) → result(결과 표시). (tx,ty)=공이 골 라인에 닿는 곳, lift=공이 떠오르는 높이
-  const g = useRef({
-    n: 0, goals: 0, score: 0, stage: 'aim' as 'aim' | 'fly' | 'result', cx: 288, cy: 62, vx: 0, vy: 0,
-    power: 0, kickAt: 0, res: '' as KickRes, bonus: false, nextAt: 0,
-    tx: 288, ty: 62, lift: 0, wallN: 3, wallX: 288, kx: 288, ky: 70,
-  })
-
-  /** 공의 비행 경로(2차 곡선): 시작점 → 떠오르는 조절점 → 도착점 */
-  const bez = (u: number) => {
-    const st = g.current, cx = (BALL0.x + st.tx) / 2, cy = (BALL0.y + st.ty) / 2 - st.lift
-    const a = (1 - u) ** 2, b = 2 * (1 - u) * u, c = u * u
-    return { x: a * BALL0.x + b * cx + c * st.tx, y: a * BALL0.y + b * cy + c * st.ty }
-  }
-  /** 조준점: 실제 위치 + 살짝 떨리는 흔들림 */
-  const aim = (now: number) => ({ x: g.current.cx + Math.sin(now / 170) * 2.2, y: g.current.cy + Math.cos(now / 230) * 1.6 })
-  const newKick = () => {
-    const st = g.current
-    st.stage = 'aim'; st.res = ''; st.bonus = false; st.cx = 288; st.cy = 62; st.vx = st.vy = 0
-    st.wallN = 3 + Math.floor(Math.random() * 3); st.wallX = 288 + rnd(-24, 24); st.kx = 288; st.ky = 74
-  }
-
-  const draw = (now: number) => {
-    const c = cv.current?.getContext('2d'); if (!c) return
-    const st = g.current
-    // 배경: 보기 편하도록 한 가지 잔디색으로만 채운다 (하늘·관중석·줄무늬 없음)
-    c.fillStyle = '#2f7d4a'; c.fillRect(0, 0, GW, GH)
-    c.fillStyle = 'rgba(255,255,255,.55)'; c.fillRect(150, 100, 276, 2) // 페널티 라인
-    // 골대 뒤 그물
-    c.fillStyle = '#d7dde0'; c.fillRect(GOAL.x0, GOAL.y0, GOAL.x1 - GOAL.x0, GOAL.y1 - GOAL.y0)
-    c.strokeStyle = 'rgba(90,100,110,.55)'; c.lineWidth = 1
-    for (let x = GOAL.x0; x <= GOAL.x1; x += 8) { c.beginPath(); c.moveTo(x, GOAL.y0); c.lineTo(x, GOAL.y1); c.stroke() }
-    for (let y = GOAL.y0; y <= GOAL.y1; y += 8) { c.beginPath(); c.moveTo(GOAL.x0, y); c.lineTo(GOAL.x1, y); c.stroke() }
-
-    // 골키퍼: 공이 출발하면 정한 자리로 몸을 날린다
-    const dive = st.stage === 'fly' || st.stage === 'result' ? smooth(clamp01((now - st.kickAt) / (FLY_MS * 0.8))) : 0
-    const kx = lerp(288, st.kx, dive), ky = lerp(74, st.ky, dive), tilt = (st.kx - 288) / 120 * dive
-    c.save(); c.translate(kx, ky); c.rotate(tilt)
-    c.fillStyle = '#ffd84a'; c.fillRect(-8, -14, 16, 26) // 몸
-    c.fillStyle = '#f1c9a0'; c.beginPath(); c.arc(0, -19, 6, 0, 7); c.fill()
-    c.fillStyle = '#16171b'; c.fillRect(-11, -8, 4, 8); c.fillRect(7, -8, 4, 8) // 장갑
-    c.fillRect(-7, 12, 5, 8); c.fillRect(2, 12, 5, 8)
-    c.restore()
-
-    // 골대 기둥·크로스바
-    c.fillStyle = '#ffffff'; c.fillRect(GOAL.x0 - 4, GOAL.y0 - 4, 4, GOAL.y1 - GOAL.y0 + 8); c.fillRect(GOAL.x1, GOAL.y0 - 4, 4, GOAL.y1 - GOAL.y0 + 8); c.fillRect(GOAL.x0 - 4, GOAL.y0 - 4, GOAL.x1 - GOAL.x0 + 8, 4)
-
-    // 수비벽
-    const wallW = st.wallN * 18, wx0 = st.wallX - wallW / 2
-    for (let i = 0; i < st.wallN; i++) {
-      const x = wx0 + i * 18 + 9
-      c.fillStyle = '#f1f1f6'; c.fillRect(x - 7, WALL_TOP + 8, 14, 20)
-      c.fillStyle = '#3a4a8a'; c.fillRect(x - 7, WALL_TOP + 28, 14, 6)
-      c.fillStyle = '#f1c9a0'; c.beginPath(); c.arc(x, WALL_TOP + 3, 5.5, 0, 7); c.fill()
-      c.fillStyle = '#2a2b30'; c.fillRect(x - 7, WALL_TOP + 34, 5, 2); c.fillRect(x + 2, WALL_TOP + 34, 5, 2)
-    }
-
-    // 조준 틀 (조준 단계)
-    if (st.stage === 'aim') {
-      const a = aim(now)
-      c.save(); c.translate(a.x, a.y); c.strokeStyle = '#fff'; c.lineWidth = 2
-      for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { c.beginPath(); c.moveTo(sx * 13, sy * 7); c.lineTo(sx * 13, sy * 13); c.lineTo(sx * 7, sy * 13); c.stroke() }
-      c.fillStyle = '#ffd84a'; c.fillRect(-1.5, -1.5, 3, 3); c.restore()
-    }
-
-    // 키커: 공 왼쪽 뒤에 서 있다가 차는 순간 앞으로 달려 나간다
-    const run = st.stage === 'fly' ? smooth(clamp01((now - st.kickAt) / 220)) : st.stage === 'result' ? 1 : 0
-    const f = runFrame(hero, 0), rows = backView(f.rows), w = rows[0].length * BPX
-    const kxr = 228 + 16 * run, kfeet = GH + 20 - 10 * run
-    drawPixels(c, rows, { ...f.pal, H: '#c8312a' }, kxr - w / 2, kfeet - rows.length * BPX, BPX)
-    c.fillStyle = '#fff'; c.font = '800 20px Paperlogy, sans-serif'; c.textAlign = 'center'
-    c.fillText('10', kxr, kfeet - rows.length * BPX * 0.38); c.textAlign = 'left' // 등번호
-
-    // 공
-    if (st.stage === 'fly' || st.stage === 'result') {
-      const u = clamp01((now - st.kickAt) / FLY_MS)
-      let p = bez(u), r = 9 - 5 * u
-      if (st.res === 'WALL' && u > WALL_T) { // 수비벽에 맞고 튕겨 나온다
-        const w0 = bez(WALL_T), k = (u - WALL_T) / (1 - WALL_T)
-        p = { x: w0.x + (st.tx < 288 ? -1 : 1) * 70 * k, y: w0.y + 50 * k * k - 22 * k }; r = 9 - 5 * WALL_T + 2 * k
-      } else if (st.res === 'SAVE' && u > 0.92) { p = { x: p.x, y: p.y + (u - 0.92) * 140 } }
-      c.fillStyle = 'rgba(0,0,0,.22)'; c.beginPath(); c.ellipse(p.x, Math.min(GH - 6, p.y + r + 6), r, r * 0.4, 0, 0, 7); c.fill()
-      c.fillStyle = '#fff'; c.beginPath(); c.arc(p.x, p.y, r, 0, 7); c.fill()
-      c.strokeStyle = '#2a2b30'; c.lineWidth = Math.max(1, r * 0.25); c.beginPath(); c.arc(p.x, p.y, r * 0.55, now / 60, now / 60 + 2.2); c.stroke()
-    } else {
-      c.fillStyle = 'rgba(0,0,0,.25)'; c.beginPath(); c.ellipse(BALL0.x, BALL0.y + 9, 9, 3.5, 0, 0, 7); c.fill()
-      c.fillStyle = '#fff'; c.beginPath(); c.arc(BALL0.x, BALL0.y, 9, 0, 7); c.fill()
-      c.strokeStyle = '#2a2b30'; c.lineWidth = 2; c.beginPath(); c.arc(BALL0.x, BALL0.y, 5, 0.3, 2.6); c.stroke()
-    }
-
-    // 상태판 + 결과 문구
-    c.fillStyle = 'rgba(31,70,150,.88)'; c.fillRect(8, 36, 98, 40)
-    c.fillStyle = '#fff'; c.font = FONT
-    c.fillText(`골  ${st.goals} / ${KICKS}`, 16, 52); c.fillText(`${Math.min(st.n, KICKS)}번째 킥`, 16, 69)
-    if (st.stage === 'result' && st.res) {
-      c.font = '800 22px Paperlogy, sans-serif'; c.textAlign = 'center'
-      const msg = st.res === 'GOAL' && st.bonus ? '골! 구석 보너스 +50' : KICK_LABEL[st.res]
-      c.fillStyle = 'rgba(22,23,27,.78)'; c.fillRect(GW / 2 - 140, 100, 280, 34)
-      c.fillStyle = st.res === 'GOAL' ? '#ffd84a' : '#fff'; c.fillText(msg, GW / 2, 125); c.textAlign = 'left'
-    }
-  }
-
-  useEffect(() => { draw(performance.now()) }, [phase])
-
-  useEffect(() => { // 패드: 방향키 = 조준 가속, A = 시작 / 슛
-    if (s.pad.n === seen.current) return
-    seen.current = s.pad.n
-    const st = g.current, b = s.pad.b, now = performance.now()
-    if (phase !== 'play') {
-      if (b !== 'A') return
-      Object.assign(st, { n: 1, goals: 0, score: 0, nextAt: 0 })
-      newKick(); setScore(0); setPhase('play'); return
-    }
-    if (b === 'left' || b === 'right' || b === 'up' || b === 'down') { // 누를수록 그 방향으로 빨라지고 천천히 멈춘다
-      if (st.stage !== 'aim') return
-      if (b === 'left' || b === 'right') st.vx = Math.max(-170, Math.min(170, st.vx + (b === 'left' ? -100 : 100)))
-      else st.vy = Math.max(-140, Math.min(140, st.vy + (b === 'up' ? -80 : 80)))
-      return
-    }
-    if (b !== 'A') return
-    if (st.stage !== 'aim') return
-    // 슛: 일정한 힘 + 조준점으로 공이 닿을 곳과 떠오르는 높이를 정한다
-    const p = POWER, q = aim(now)
-    st.power = p; st.kickAt = now; st.stage = 'fly'
-    st.tx = q.x; st.ty = q.y
-    st.lift = 15 + 95 * p
-    const w = bez(WALL_T), half = (st.wallN * 18) / 2 + 4
-    const blocked = w.y > WALL_TOP && Math.abs(w.x - st.wallX) < half // 수비벽 높이보다 낮게 벽 폭 안을 지나면 막힌다
-    const inside = st.tx >= GOAL.x0 && st.tx <= GOAL.x1 && st.ty >= GOAL.y0 && st.ty <= GOAL.y1
-    const corner = st.ty < GOAL.y0 + 16 && Math.abs(st.tx - 288) > 50
-    // 골키퍼: 경기가 진행될수록 공이 올 곳을 더 잘 읽는다 (구석은 막기 어렵다)
-    const read = Math.min(0.7, 0.28 + 0.07 * st.n)
-    if (Math.random() < read) { st.kx = st.tx + rnd(-14, 14); st.ky = st.ty + rnd(-10, 10) } else { st.kx = rnd(GOAL.x0 + 10, GOAL.x1 - 10); st.ky = rnd(GOAL.y0 + 14, GOAL.y1 - 16) }
-    st.kx = Math.max(GOAL.x0 + 8, Math.min(GOAL.x1 - 8, st.kx)); st.ky = Math.max(GOAL.y0 + 12, Math.min(GOAL.y1 - 14, st.ky))
-    const saved = Math.abs(st.tx - st.kx) < 24 * (corner ? 0.55 : 1) && Math.abs(st.ty - st.ky) < 26 * (corner ? 0.6 : 1)
-    st.res = blocked ? 'WALL' : st.ty < GOAL.y0 ? 'OVER' : !inside ? 'WIDE' : saved ? 'SAVE' : 'GOAL'
-    st.bonus = st.res === 'GOAL' && corner
-  }, [s.pad.n])
-
-  useEffect(() => {
-    if (phase !== 'play') return
-    const st = g.current
-    let id = 0, last = performance.now()
-    const loop = (now: number) => {
-      const dt = Math.min(0.033, (now - last) / 1000); last = now
-      // 조준점 이동: 속도 × 시간, 마찰로 서서히 멈추고 골대 가장자리에서 튕긴다
-      st.cx += st.vx * dt; st.cy += st.vy * dt
-      const damp = Math.max(0, 1 - 3.2 * dt); st.vx *= damp; st.vy *= damp
-      if (st.cx < GOAL.x0 - 12 || st.cx > GOAL.x1 + 12) { st.cx = Math.max(GOAL.x0 - 12, Math.min(GOAL.x1 + 12, st.cx)); st.vx *= -0.3 }
-      if (st.cy < GOAL.y0 - 10 || st.cy > GOAL.y1 + 10) { st.cy = Math.max(GOAL.y0 - 10, Math.min(GOAL.y1 + 10, st.cy)); st.vy *= -0.3 }
-      if (st.stage === 'fly' && now >= st.kickAt + FLY_MS) { // 공이 도착: 결과 확정
-        st.stage = 'result'; st.nextAt = now + 1400
-        if (st.res === 'GOAL') { st.goals++; st.score += 100 + (st.bonus ? 50 : 0); setScore(st.score) }
-      }
-      if (st.stage === 'result' && now >= st.nextAt) {
-        if (st.n >= KICKS) {
-          setPhase('over')
-          if (st.score > best) { setBest(st.score); saveBest('folio-fk-best', st.score) }
-          draw(now); return
-        }
-        st.n++; newKick()
-      }
-      draw(now)
-      id = requestAnimationFrame(loop)
-    }
-    id = requestAnimationFrame(loop)
-    return () => cancelAnimationFrame(id)
-  }, [phase])
-
-  const hint = phase === 'idle' ? `A로 시작 · ◀▶▲▼ 조준 · A로 슛 · ${KICKS}번 · 키커: ${AVATARS[hero].name}`
-    : phase === 'play' ? '◀▶▲▼ 조준 · A로 슛 (구석을 노리면 보너스 +50)' : `끝! ${g.current.goals}골 · ${score}점 · A로 다시 도전`
-  return <Arcade title="FREE KICK" score={score} best={best} cv={cv} hint={hint} />
-}
-
 const ARCADE = [
   { name: 'SIDE QUEST', sub: 'A · 점프', color: '#1fb6e8', Icon: Footprints, View: Runner },
   { name: 'STAR FIGHTER', sub: '우주 슈팅', color: '#ff4b3e', Icon: Rocket, View: Starfighter },
   { name: 'YACHT', sub: '주사위 · 1vsCOM / 2P', color: '#e0a21c', Icon: Dices, View: Yacht },
-  { name: 'FREE KICK', sub: 'A · 조준 슛', color: '#2ea44f', Icon: Goal, View: FreeKick },
 ]
 
 /** GAME tab: pick one of the mini games (◀▶ + A); B goes back to this menu. */
@@ -1106,7 +896,7 @@ function Game({ s }: { s: State }) {
   return (
     <div className="px-7">
       <Title>ARCADE</Title>
-      <div className="grid grid-cols-4 gap-2.5">
+      <div className="grid grid-cols-3 gap-2.5">
         {ARCADE.map((a, i) => (
           <div key={a.name} role="button" tabIndex={-1} onClick={() => pickRow('GAME', i)} className={`flex h-[120px] cursor-pointer flex-col justify-between rounded-2xl p-3 text-white transition-transform hover:scale-[1.02] ${i === s.game ? 'ring-[3px] ring-accent-blue ring-offset-2' : ''}`} style={{ background: a.color }}>
             <a.Icon size={28} strokeWidth={2.2} />
